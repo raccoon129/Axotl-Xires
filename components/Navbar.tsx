@@ -13,11 +13,11 @@ const Navbar = () => {
   return (
     <nav className="bg-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-24">
+        <div className="flex justify-between items-center h-20">
           {/* Logo y Texto */}
           <Link href="/" className="flex-shrink-0 flex items-center">
             <Image
-              src="https://drift3.alwaysdata.net/axotlxires/logoMorado.png"
+              src="https://drift3.alwaysdata.net/axotlxires/logoMorado2.png"
               alt="Axotl Xires Logo"
               width={60}
               height={60}
@@ -90,7 +90,7 @@ const Navbar = () => {
             <div className="flex items-center px-4">
               <Input
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Busca algo interesate"
                 className="w-full pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

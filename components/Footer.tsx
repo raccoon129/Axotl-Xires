@@ -9,6 +9,7 @@ const Footer = () => {
           <div>
             <h3 className="text-2xl font-bold mb-2">Axotl Xires Publicaciones</h3>
             <h4 className="text-lg mb-4">Plataforma para la divulgación de artículos científicos y académicos.</h4>
+            <h6>Alpha 0.0.1</h6>
           </div>
           <div className="flex flex-col space-y-2">
             <Link href="/terminos" className="hover:text-purple-600">Términos y condiciones</Link>

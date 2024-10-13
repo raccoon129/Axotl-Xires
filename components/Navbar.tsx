@@ -44,7 +44,7 @@ const Navbar = () => {
             <div className="relative">
               <Input
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Busca algo interesante"
                 className="w-64 pl-10 pr-4 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-600"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

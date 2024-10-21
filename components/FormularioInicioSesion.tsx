@@ -1,63 +1,94 @@
 // components/FormularioInicioSesion.tsx
+
 "use client";
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { toast } from "@/hooks/use-toast"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
 
-export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+const FormularioInicioSesion = () => {
+  const [correo, setCorreo] = useState('');
+  const [contrasena, setContrasena] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+  const manejarEnvio = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCargando(true);
 
-    const result = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-    })
+    try {
+      // URL de la API obtenida de la variable de entorno
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`;
 
-    if (result?.error) {
+      // Cuerpo de la petición con la estructura correcta
+      const body = {
+        correo,
+        contrasena,
+      };
+
+      const respuesta = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body), // Enviamos los datos en el cuerpo de la solicitud
+      });
+
+      const datos = await respuesta.json();
+
+      if (respuesta.ok) {
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: "Has iniciado sesión correctamente.",
+        });
+
+        // Guardar el token en localStorage o cookies
+        localStorage.setItem('token', datos.token);
+
+        // Redirigir a la página de inicio o al perfil del usuario
+        router.push(`/perfil/${datos.usuario.id}`);
+      } else {
+        toast({
+          title: "Error de inicio de sesión",
+          description: datos.mensaje || 'Credenciales incorrectas, por favor inténtalo de nuevo.',
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error durante el inicio de sesión:', error);
       toast({
         title: "Error de inicio de sesión",
-        description: result.error,
+        description: 'Ocurrió un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.',
         variant: "destructive",
-      })
-    } else {
-      router.push('/')
+      });
+    } finally {
+      setCargando(false);
     }
-
-    setIsLoading(false)
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={manejarEnvio} className="space-y-4">
       <Input
         type="email"
         placeholder="Correo electrónico"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={correo}
+        onChange={(e) => setCorreo(e.target.value)}
         required
-        disabled={isLoading}
+        disabled={cargando}
       />
       <Input
         type="password"
         placeholder="Contraseña"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        value={contrasena}
+        onChange={(e) => setContrasena(e.target.value)}
         required
-        disabled={isLoading}
+        disabled={cargando}
       />
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+      <Button type="submit" className="w-full" disabled={cargando}>
+        {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
       </Button>
     </form>
-  )
-}
+  );
+};
+
+export default FormularioInicioSesion;

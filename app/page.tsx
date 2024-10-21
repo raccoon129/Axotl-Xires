@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchRecentPublications } from '@/services/publicacionesServicio';
 import { Publication } from '@/type/typePublicacion';
 
 // Función auxiliar para formatear la fecha
@@ -11,6 +10,16 @@ function formatDate(date: string | Date | null): string {
     return new Date(date).toLocaleDateString();
   }
   return date.toLocaleDateString();
+}
+
+// Función para obtener las publicaciones recientes
+async function fetchRecentPublications(limit: number): Promise<Publication[]> {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/recientes`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch publications');
+  }
+  const data = await response.json();
+  return data;
 }
 
 // Componente principal Home
@@ -31,16 +40,16 @@ export default async function Home() {
       <div className="flex flex-col lg:flex-row items-center bg-[#612C7D] text-white px-8 lg:px-16 mb-8" style={{ height: '300px' }}>
         {/* Columna izquierda: Imagen y subtítulo */}
         <div className="lg:w-1/2 mb-4 lg:mb-0 flex flex-col items-center lg:items-start">
-          <img 
-            src="https://drift3.alwaysdata.net/axotlxires/logoBlanco.png" 
-            alt="Descripción de la imagen" 
+          <img
+            src="https://drift3.alwaysdata.net/axotlxires/logoBlanco.png"
+            alt="Descripción de la imagen"
             className="w-full h-auto max-w-xs mb-2"
           />
           <p className="text-xs lg:text-sm text-left opacity-80">
             Subtítulo en tamaño pequeño alineado a la izquierda
           </p>
         </div>
-        
+
         {/* Columna derecha: Título y subtítulo principal */}
         <div className="lg:w-1/2 text-center lg:text-left">
           <h1 className="text-4xl font-bold">Bienvenido a Axotl Publicaciones</h1>
@@ -60,9 +69,9 @@ export default async function Home() {
             {recentPublications.map((pub) => (
               <Card key={pub.id_publicacion} className="overflow-hidden transition-all duration-500 ease-in-out max-h-72 hover:max-h-[500px] hover:shadow-lg">
                 <div className="relative w-full h-48 overflow-hidden transition-all duration-500 ease-in-out hover:h-80">
-                  <img 
-                    src={pub.imagen_portada} 
-                    alt={pub.titulo} 
+                  <img
+                    src={pub.imagen_portada}
+                    alt={pub.titulo}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </div>

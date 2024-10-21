@@ -69,10 +69,10 @@ const FormularioRegistro = () => {
     }
 
     setCargando(true);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    //const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     try {
-      const respuesta = await fetch(`${API_URL}/api/auth/registro`, {
+      const respuesta = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/registro`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

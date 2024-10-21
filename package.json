@@ -53,8 +53,10 @@
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",
+    "framer-motion": "^11.11.9",
     "input-otp": "^1.2.4",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.446.0",
     "mysql2": "^3.11.3",
     "next": "13.5.1",
@@ -78,6 +80,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.7",
+    "@types/jwt-decode": "^3.1.0",
     "prisma": "^5.20.0"
   }
 }

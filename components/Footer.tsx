@@ -12,10 +12,12 @@ const Footer = () => {
             <h6>Alpha 0.0.1</h6>
           </div>
           <div className="flex flex-col space-y-2">
-            <Link href="/terminos" className="hover:text-purple-600">Términos y condiciones</Link>
-            <Link href="/contacto" className="hover:text-purple-600">Contacto</Link>
-            <Link href="/copyright" className="hover:text-purple-600">Copyright</Link>
-            <Link href="/acerca-de" className="hover:text-purple-600">Acerca de</Link>
+            <Link href="/axotl/terminos" className="hover:text-purple-600">Términos y condiciones</Link>
+            <Link href="/axotl/contacto" className="hover:text-purple-600">Contacto</Link>
+            <Link href="/axotl/copyright" className="hover:text-purple-600">Copyright</Link>
+            <Link href="/axotl/nosotros" className="hover:text-purple-600">Nosotros</Link>
+            <Link href="/axotl" className="hover:text-purple-600">Acerca de</Link>
+            
           </div>
           <div>
             <h4 className="text-lg font-semibold mb-4">Encuéntranos en redes sociales:</h4>

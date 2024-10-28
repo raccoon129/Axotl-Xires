@@ -101,7 +101,7 @@ const FormularioRegistro = () => {
       });
 
       // Redirigir al perfil
-      router.push(`/perfil/${datos.usuario.id}`);
+      router.push(`/perfiles/${datos.usuario.id}`);
       
     } catch (error) {
       console.error('Error durante el registro:', error);

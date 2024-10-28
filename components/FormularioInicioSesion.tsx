@@ -46,7 +46,7 @@ const FormularioInicioSesion = () => {
         localStorage.setItem('token', datos.token);
 
         // Redirigir a la página de inicio o al perfil del usuario
-        router.push(`/perfil/${datos.usuario.id}`);
+        router.push(`/perfiles/${datos.usuario.id}`);
       } else {
         toast({
           title: "Error de inicio de sesión",

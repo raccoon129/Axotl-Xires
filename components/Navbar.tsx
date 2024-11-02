@@ -139,7 +139,7 @@ const Navbar = () => {
             <div className="flex-shrink-0 w-48 flex items-center">
               <Link href="/" className="flex items-center">
                 <Image
-                  src="https://drift3.alwaysdata.net/axotlxires/logoMorado2.png"
+                  src={`${process.env.NEXT_PUBLIC_ASSET_URL}/logoMorado2.png`}
                   alt="Axotl Xires Logo"
                   width={60}
                   height={60}

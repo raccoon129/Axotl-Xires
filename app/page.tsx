@@ -41,7 +41,7 @@ export default async function Home() {
         {/* Columna izquierda: Imagen y subtítulo */}
         <div className="lg:w-1/2 mb-4 lg:mb-0 flex flex-col items-center lg:items-start">
           <img
-            src="https://drift3.alwaysdata.net/axotlxires/logoBlanco.png"
+            src={`${process.env.NEXT_PUBLIC_ASSET_URL}/logoBlanco.png`}
             alt="Descripción de la imagen"
             className="w-full h-auto max-w-xs mb-2"
           />

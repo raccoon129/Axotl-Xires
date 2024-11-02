@@ -212,7 +212,7 @@ const ConfiguracionPage = () => {
           {/* Columna izquierda */}
           <div className="space-y-8">
             {/* Información básica */}
-            <section className="bg-white p-6 rounded-lg shadow-lg">
+            <section className="bg-white p-6 rounded-lg shadow-lg rounded-lg transition-all transform hover:scale-105">
               <h2 className="text-2xl font-semibold text-gray-700 mb-6">
                 Información Básica
               </h2>
@@ -264,7 +264,7 @@ const ConfiguracionPage = () => {
             </section>
 
             {/* Foto de perfil */}
-            <section className="bg-white p-6 rounded-lg shadow-lg">
+            <section className="bg-white p-6 rounded-lg shadow-lg rounded-lg transition-all transform hover:scale-105">
               <h2 className="text-2xl font-semibold text-gray-700 mb-6">
                 Foto de Perfil
               </h2>
@@ -301,7 +301,7 @@ const ConfiguracionPage = () => {
           {/* Columna derecha */}
           <div className="space-y-8">
             {/* Cambio de contraseña */}
-            <section className="bg-white p-6 rounded-lg shadow-lg">
+            <section className="bg-white p-6 rounded-lg shadow-lg rounded-lg transition-all transform hover:scale-105">
               <h2 className="text-2xl font-semibold text-gray-700 mb-6">
                 Cambiar Contraseña
               </h2>
@@ -349,7 +349,7 @@ const ConfiguracionPage = () => {
             </section>
 
             {/* Estadísticas */}
-            <section className="bg-white p-6 rounded-lg shadow-lg">
+            <section className="bg-white p-6 rounded-lg shadow-lg rounded-lg transition-all transform hover:scale-105">
               <h2 className="text-2xl font-semibold text-gray-700 mb-6">
                 Estadísticas
               </h2>

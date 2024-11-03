@@ -1,5 +1,6 @@
+//components/EditorTexto.tsx
 'use client';
-
+//test2
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -33,6 +34,14 @@ interface MenuButtonProps {
   title?: string;
 }
 
+interface EditorTextoProps {
+  onChange?: (content: string) => void;
+  initialContent?: string;
+  onGuardadoExitoso?: () => void;
+}
+
+
+
 const MenuButton: React.FC<MenuButtonProps> = ({
   onClick,
   active = false,
@@ -52,7 +61,11 @@ const MenuButton: React.FC<MenuButtonProps> = ({
   </button>
 );
 
-const EditorTexto: React.FC = () => {
+const EditorTexto: React.FC<EditorTextoProps> = ({ 
+  onChange, 
+  initialContent = '', 
+  onGuardadoExitoso 
+}) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -74,11 +87,14 @@ const EditorTexto: React.FC = () => {
         types: ['heading', 'paragraph']
       })
     ],
-    content: '',
+    content: initialContent,
     editorProps: {
       attributes: {
         class: 'prose max-w-none focus:outline-none min-h-[200px] px-4 py-2'
       }
+    },
+    onUpdate: ({ editor }) => {
+      onChange?.(editor.getHTML());
     }
   });
 

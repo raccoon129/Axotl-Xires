@@ -6,27 +6,31 @@ interface PropiedadesGenerador {
   tituloPublicacion: string;
   nombreAutor: string;
   alGuardar: (imagenPortada: string) => void;
+  dimensiones?: { ancho: number; alto: number }; // Hacemos las dimensiones opcionales
 }
 
 const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
   tituloPublicacion,
   nombreAutor,
   alGuardar,
+  dimensiones = { ancho: 612, alto: 792 }, // Valor por defecto si no se proporcionan dimensiones
 }) => {
   const [imagenPortada, setImagenPortada] = useState<string | null>(null);
-  const [tituloPersonalizado, setTituloPersonalizado] =
-    useState(tituloPublicacion);
+  const [tituloPersonalizado, setTituloPersonalizado] = useState(tituloPublicacion);
   const [autorPersonalizado, setAutorPersonalizado] = useState(nombreAutor);
   const [tamanoFuente, setTamanoFuente] = useState(70);
   const portadaRef = useRef<HTMLDivElement>(null);
 
-  // Dimensiones base (tamaño carta)
-  const ANCHO_BASE = 612;
-  const ALTO_BASE = 792;
+  // Factor de escala para la vista previa
+  const FACTOR_ESCALA = 0.8;
 
-  // Dimensiones para el editor (1.5x)
-  const ANCHO_EDITOR = 918;
-  const ALTO_EDITOR = 1188;
+  // Usar las dimensiones proporcionadas
+  const ANCHO_BASE = dimensiones.ancho;
+  const ALTO_BASE = dimensiones.alto;
+
+  // Dimensiones calculadas para el editor
+  const ANCHO_EDITOR = Math.floor(ANCHO_BASE * FACTOR_ESCALA);
+  const ALTO_EDITOR = Math.floor(ALTO_BASE * FACTOR_ESCALA);
 
   const validarYEstablecerImagen = (archivo: File) => {
     if (archivo && archivo.type.startsWith("image/")) {
@@ -88,42 +92,25 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
         allowTaint: true,
         logging: false,
         backgroundColor: "#ffffff",
-        width: ANCHO_EDITOR,
-        height: ALTO_EDITOR,
+        width: ANCHO_BASE,  // Usar dimensiones exactas recibidas
+        height: ALTO_BASE,
         imageTimeout: 0,
       });
 
-      // Canvas temporal para el tamaño final
-      const canvasTemporal = document.createElement("canvas");
-      canvasTemporal.width = ANCHO_EDITOR;
-      canvasTemporal.height = ALTO_EDITOR;
-      const ctx = canvasTemporal.getContext("2d");
-
-      if (ctx) {
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(canvas, 0, 0, ANCHO_EDITOR, ALTO_EDITOR);
-
-        const imagenFinal = canvasTemporal.toDataURL("image/png", 1.0);
-        alGuardar(imagenFinal);
-      }
+      const imagenFinal = canvas.toDataURL("image/png", 1.0);
+      alGuardar(imagenFinal);
     }
   };
 
   return (
-    <div className="flex flex-col gap-6 max-h-full overflow-hidden">
-      <h2 className="text-xl font-semibold text-gray-700 mb-1">
-        Imagen de la portada
-      </h2>
-      <div className="flex gap-6">
+    <div className="flex flex-col gap-6 h-full">
+      <div className="flex gap-6 h-full">
         <div className="w-1/2">
           <div
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 min-h-[400px] flex items-center justify-center cursor-pointer"
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 h-[500px] flex items-center justify-center cursor-pointer"
             onDrop={manejarSoltarImagen}
             onDragOver={(e) => e.preventDefault()}
-            onClick={() =>
-              document.getElementById("inputImagenPortada")?.click()
-            }
+            onClick={() => document.getElementById("inputImagenPortada")?.click()}
           >
             <input
               id="inputImagenPortada"
@@ -132,7 +119,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
               onChange={manejarSeleccionImagen}
               className="hidden"
             />
-            {!imagenPortada && (
+            {!imagenPortada ? (
               <span className="text-gray-500 text-center">
                 Arrastra una imagen aquí o haz clic para seleccionar
                 <br />
@@ -140,11 +127,9 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                   (Mínimo {ANCHO_BASE}px de ancho, máximo 3MB)
                 </span>
               </span>
-            )}
-            {imagenPortada && (
+            ) : (
               <span className="text-gray-500 text-center">
-                Reemplaza tu imagen arrastrandola aquí o haz clic para
-                seleccionar
+                Reemplaza tu imagen arrastrándola aquí o haz clic para seleccionar
                 <br />
                 <span className="text-sm text-gray-400">
                   (Mínimo {ANCHO_BASE}px de ancho, máximo 3MB)
@@ -155,7 +140,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
           <div className="mt-4 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Rectifica el título en la portada
+                Título en la portada
               </label>
               <input
                 type="text"
@@ -178,20 +163,18 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
           </div>
         </div>
 
-        <div className="w-1/2 overflow-hidden">
+        <div className="w-1/2 flex items-center justify-center bg-gray-50 rounded-lg">
           <div
             ref={portadaRef}
-            className="vista-previa-portada bg-white shadow-lg rounded-lg overflow-hidden"
+            className="vista-previa-portada bg-white shadow-lg overflow-hidden"
             style={{
               width: `${ANCHO_EDITOR}px`,
               height: `${ALTO_EDITOR}px`,
-              transform: "scale(0.5)",
-              transformOrigin: "top left",
             }}
           >
             {imagenPortada ? (
               <>
-                <div className="h-2/3 overflow-hidden bg-gray-100">
+                <div className="h-2/3 overflow-hidden">
                   <img
                     src={imagenPortada}
                     alt="Portada"
@@ -200,8 +183,8 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                 </div>
                 <div className="h-1/3 p-8 bg-white contenedor-titulo">
                   <h1
-                    className="titulo-publicacion font-bold leading-tight text-2xl"
-                    style={{ fontSize: `${tamanoFuente}px` }}
+                    className="titulo-publicacion font-bold leading-tight"
+                    style={{ fontSize: `${Math.floor(tamanoFuente * FACTOR_ESCALA)}px` }}
                   >
                     {tituloPersonalizado}
                   </h1>
@@ -219,9 +202,9 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
         </div>
       </div>
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mt-4">
         <div className="text-sm text-gray-500">
-          La imagen se generará en {ANCHO_EDITOR}x{ALTO_EDITOR}px (tamaño carta)
+          La imagen se generará en {ANCHO_BASE}x{ALTO_BASE}px
         </div>
         <button
           onClick={generarPortada}

@@ -1,4 +1,6 @@
 // app/redactar/page.tsx
+//Revisar a detalle su comportamiento al momento de guardar borradores junto con su ruta en la API
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -10,7 +12,40 @@ import Tooltip from "@/components/Tooltip";
 import ModalPortada from "@/components/Modal";
 import GeneradorPortada from "@/components/GeneradorPortada";
 import { motion } from "framer-motion";
+import { Save } from "lucide-react";
 
+// Interfaces
+interface TipoPublicacion {
+  id_tipo: number;
+  nombre: string;
+  descripcion: string;
+}
+
+interface BorradorData {
+  titulo: string;
+  resumen: string;
+  contenido: string;
+  id_tipo: number;
+  referencias?: string;
+  id_publicacion?: number;
+}
+
+interface BorradorResponse {
+  mensaje: string;
+  datos: {
+    id_publicacion: number;
+    titulo: string;
+    resumen: string;
+    contenido: string;
+    referencias: string;
+    estado: string;
+    es_privada: number;
+    imagen_portada: string | null;
+    id_tipo: number;
+  };
+}
+
+// Importación dinámica del editor
 const EditorTexto = dynamic(() => import("@/components/EditorTexto"), {
   ssr: false,
 });
@@ -19,8 +54,17 @@ const RedactarPage = () => {
   const { isLoggedIn, userProfile } = useAuth();
   const router = useRouter();
 
+  // Estados principales
   const [nombrePublicacion, setNombrePublicacion] = useState("");
   const [resumenPublicacion, setResumenPublicacion] = useState("");
+  const [editorContent, setEditorContent] = useState("");
+  const [referencias, setReferencias] = useState("");
+  const [tiposPublicacion, setTiposPublicacion] = useState<TipoPublicacion[]>(
+    []
+  );
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<number | "">("");
+
+  // Estados de la portada
   const [portada, setPortada] = useState<File | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -29,18 +73,113 @@ const RedactarPage = () => {
     alto: 792,
   });
 
+  // Estados para el guardado
+  const [guardando, setGuardando] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
+  const [mensajeGuardado, setMensajeGuardado] = useState<string | null>(null);
+  const [idBorradorActual, setIdBorradorActual] = useState<number | null>(null);
+
+  // Efecto inicial
   useEffect(() => {
     if (!isLoggedIn) {
-      //router.push('/login');
+      alert("No hay sesión iniciada");
+      return;
     }
-  }, [isLoggedIn, router]);
 
+    obtenerTiposPublicacion();
+  }, [isLoggedIn]);
+
+  // Función para obtener tipos de publicación
+  const obtenerTiposPublicacion = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/tipospublicacion`
+      );
+      const data = await response.json();
+      if (data.datos) {
+        setTiposPublicacion(data.datos);
+      }
+    } catch (error) {
+      console.error("Error al obtener los tipos de publicación:", error);
+    }
+  };
+
+  // Validación para guardar borrador
+  const puedeGuardarBorrador = (): boolean => {
+    return Boolean(
+      nombrePublicacion.trim() &&
+        resumenPublicacion.trim() &&
+        tipoSeleccionado &&
+        editorContent.trim()
+    );
+  };
+
+  // Función para guardar borrador
+  const guardarBorrador = async () => {
+    if (!puedeGuardarBorrador()) {
+      setErrorGuardado("Por favor completa todos los campos requeridos");
+      return;
+    }
+
+    try {
+      setGuardando(true);
+      setErrorGuardado(null);
+      setMensajeGuardado(null);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No hay token de autenticación");
+      }
+
+      const formData = new FormData();
+      formData.append("titulo", nombrePublicacion);
+      formData.append("resumen", resumenPublicacion);
+      formData.append("contenido", editorContent);
+      formData.append("id_tipo", tipoSeleccionado.toString());
+      formData.append("referencias", referencias);
+
+      if (portada) {
+        formData.append("imagen_portada", portada);
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/borrador`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.mensaje || "Error al guardar el borrador");
+      }
+
+      const data: BorradorResponse = await response.json();
+      setIdBorradorActual(data.datos.id_publicacion);
+      setMensajeGuardado("Borrador guardado exitosamente");
+
+      // Limpiar mensaje de éxito después de 3 segundos
+      setTimeout(() => {
+        setMensajeGuardado(null);
+      }, 3000);
+    } catch (error) {
+      console.error("Error al guardar el borrador:", error);
+      setErrorGuardado(
+        error instanceof Error ? error.message : "Error al guardar el borrador"
+      );
+    } finally {
+      setGuardando(false);
+    }
+  };
   const manejarGuardadoPortada = (imagenPortada: string) => {
     setVistaPrevia(imagenPortada);
     setMostrarModal(false);
     // Aquí puedes implementar la llamada a la API para guardar la imagen
   };
-
   const validarDimensionesImagen = (archivo: File): Promise<boolean> => {
     return new Promise((resolve) => {
       const imagen = new window.Image();
@@ -132,9 +271,26 @@ const RedactarPage = () => {
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 h-24"
                 placeholder="Escribe un breve resumen de tu publicación"
               />
+
+              <label className="block font-medium text-gray-600 mt-4 mb-2">
+                Tipo de publicación
+              </label>
+              <select
+                value={tipoSeleccionado}
+                onChange={(e) => setTipoSeleccionado(Number(e.target.value))}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                <option value="">Selecciona un tipo</option>
+                {tiposPublicacion.map((tipo) => (
+                  <option key={tipo.id_tipo} value={tipo.id_tipo}>
+                    {tipo.nombre} - {tipo.descripcion}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div>
+            {/* Sección de portada */}
+            <div className="portada-section">
               <label className="block font-medium text-gray-600 mb-2">
                 Portada
               </label>
@@ -194,7 +350,7 @@ const RedactarPage = () => {
                   </>
                 )}
               </div>
-              <label className="block font-medium text-gray-600">
+              <label className="mt-4 block font-medium text-gray-600">
                 Si no cuentas con una portada, crea una a continuación:
               </label>
               <button
@@ -215,11 +371,47 @@ const RedactarPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <h2 className="text-xl font-semibold text-gray-700 mb-6">
-            Contenido de la publicación
-          </h2>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <EditorTexto />
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-700">
+              Contenido de la publicación
+            </h2>
+            <div className="flex items-center gap-2">
+              {mensajeGuardado && (
+                <span className="text-green-600 text-sm">
+                  {mensajeGuardado}
+                </span>
+              )}
+              <button
+                onClick={guardarBorrador}
+                disabled={!puedeGuardarBorrador() || guardando}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  puedeGuardarBorrador() && !guardando
+                    ? "bg-gray-600 hover:bg-gray-700 text-white"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
+                title={
+                  puedeGuardarBorrador()
+                    ? "Guardar borrador"
+                    : "Complete los campos requeridos para guardar"
+                }
+              >
+                <Save size={20} />
+                {guardando ? "Guardando..." : "Guardar borrador"}
+              </button>
+            </div>
+          </div>
+
+          {errorGuardado && (
+            <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+              {errorGuardado}
+            </div>
+          )}
+
+          <div className="border border-gray-200 rounded-lg">
+            <EditorTexto
+              onChange={(content) => setEditorContent(content)}
+              initialContent={editorContent}
+            />
           </div>
         </motion.section>
 
@@ -234,6 +426,8 @@ const RedactarPage = () => {
             Referencias bibliográficas
           </h2>
           <textarea
+            value={referencias}
+            onChange={(e) => setReferencias(e.target.value)}
             rows={5}
             placeholder="Ingresa tus referencias aquí"
             className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
@@ -241,11 +435,10 @@ const RedactarPage = () => {
         </motion.section>
 
         {/* Modal de generación de portada */}
-        {/* Modal de generación de portada */}
         <ModalPortada
           estaAbierto={mostrarModal}
           alCerrar={() => setMostrarModal(false)}
-          titulo={"Crear una portada para la publicación"}
+          titulo="Crear una portada para la publicación"
           autor={userProfile?.userName || ""}
           onGuardar={manejarGuardadoPortada}
           dimensiones={dimensionesPortada}
@@ -254,11 +447,11 @@ const RedactarPage = () => {
             tituloPublicacion={nombrePublicacion}
             nombreAutor={userProfile?.userName || ""}
             alGuardar={manejarGuardadoPortada}
+            dimensiones={dimensionesPortada}
           />
         </ModalPortada>
       </div>
     </div>
   );
 };
-
 export default RedactarPage;

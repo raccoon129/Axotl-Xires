@@ -85,7 +85,7 @@ const RedactarPage = () => {
       alert("No hay sesión iniciada");
       return;
     }
-
+    obtenerProximoId();
     obtenerTiposPublicacion();
   }, [isLoggedIn]);
 
@@ -114,6 +114,18 @@ const RedactarPage = () => {
     );
   };
 
+    // Función para obtener el próximo ID de publicación
+    const obtenerProximoId = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/proximoid`);
+        const data = await response.json();
+        const proximoId = data.id[0]?.proximo_id;
+        setIdBorradorActual(proximoId);
+      } catch (error) {
+        console.error("Error al obtener el próximo ID de publicación:", error);
+      }
+    };
+
   // Función para guardar borrador
   const guardarBorrador = async () => {
     if (!puedeGuardarBorrador()) {
@@ -127,8 +139,10 @@ const RedactarPage = () => {
       setMensajeGuardado(null);
 
       const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("No hay token de autenticación");
+      if (!token) throw new Error("No hay token de autenticación");
+
+      if (!idBorradorActual) {
+        await obtenerProximoId();
       }
 
       const formData = new FormData();
@@ -142,13 +156,17 @@ const RedactarPage = () => {
         formData.append("imagen_portada", portada);
       }
 
+      if (idBorradorActual) {
+        formData.append("id_publicacion", idBorradorActual.toString());
+      } else {
+        throw new Error("El ID de la publicación es obligatorio para guardar o actualizar un borrador.");
+      }
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/borrador`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           body: formData,
         }
       );
@@ -159,22 +177,17 @@ const RedactarPage = () => {
       }
 
       const data: BorradorResponse = await response.json();
-      setIdBorradorActual(data.datos.id_publicacion);
       setMensajeGuardado("Borrador guardado exitosamente");
 
-      // Limpiar mensaje de éxito después de 3 segundos
-      setTimeout(() => {
-        setMensajeGuardado(null);
-      }, 3000);
+      setTimeout(() => setMensajeGuardado(null), 3000);
     } catch (error) {
       console.error("Error al guardar el borrador:", error);
-      setErrorGuardado(
-        error instanceof Error ? error.message : "Error al guardar el borrador"
-      );
+      setErrorGuardado(error instanceof Error ? error.message : "Error al guardar el borrador");
     } finally {
       setGuardando(false);
     }
   };
+  
   const manejarGuardadoPortada = (imagenPortada: string) => {
     setVistaPrevia(imagenPortada);
     setMostrarModal(false);
@@ -415,7 +428,7 @@ const RedactarPage = () => {
           </div>
         </motion.section>
 
-        {/* Referencias bibliográficas */}
+        {/* Fuentes de consulta o  bibliográficas */}
         <motion.section
           className="p-6 mb-8 bg-white shadow-lg rounded-lg"
           initial={{ opacity: 0, y: 20 }}
@@ -423,7 +436,7 @@ const RedactarPage = () => {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           <h2 className="text-xl font-semibold text-gray-700 mb-6">
-            Referencias bibliográficas
+            Fuentes de consulta
           </h2>
           <textarea
             value={referencias}

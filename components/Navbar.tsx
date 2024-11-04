@@ -1,6 +1,3 @@
-// components/Navbar.tsx
-// Se añade en la mayoría de páginas para la navegación 
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,36 +15,50 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
   const router = useRouter();
 
-  const { isLoggedIn, userName } = useAuth();
+  // Usar el hook de autenticación mejorado
+  const { isLoggedIn, userName, isLoading, logout } = useAuth();
 
+  // Obtener el primer nombre del usuario
+  const getFirstName = (fullName: string | null) => {
+    if (!fullName) return '';
+    return fullName.split(' ')[0];
+  };
+
+  // Cerrar menús al cambiar de ruta
   useEffect(() => {
-    const checkAuth = async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      setIsAuthChecking(false);
+    const handleRouteChange = () => {
+      setIsMenuOpen(false);
+      setIsUserMenuOpen(false);
+      setIsNotificationsOpen(false);
     };
-    checkAuth();
+
+    // Limpiar los event listeners
+    return () => {
+      handleRouteChange();
+    };
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    router.push("/");
+  // Manejar el cierre de sesión
+  const handleLogout = async () => {
+    await logout();
+    setIsUserMenuOpen(false);
   };
 
   // Componente para los botones de autenticación con layout fijo
   const AuthButtons = () => {
     return (
       <div className="ml-4 w-32 h-10 flex items-center justify-end">
-        {isAuthChecking ? (
+        {isLoading ? (
           <Skeleton className="w-full h-9" />
         ) : isLoggedIn ? (
           <div className="flex items-center space-x-4">
             <div className="relative">
               <button
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                aria-label="Notificaciones"
               >
                 <Bell className="h-5 w-5 text-gray-600" />
               </button>
@@ -67,7 +78,8 @@ const Navbar = () => {
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 hover:bg-gray-100 rounded-full p-1 transition-colors duration-200"
+                aria-label="Menú de usuario"
               >
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                   <User className="h-5 w-5 text-gray-600" />
@@ -83,29 +95,29 @@ const Navbar = () => {
                   >
                     <div className="p-4">
                       <p className="text-gray-800 font-semibold truncate">
-                        Hola, {userName}
+                        Hola, {getFirstName(userName)}
                       </p>
                       <Link
                         href="/perfiles"
-                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md"
+                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition-colors duration-200"
                       >
                         Mi perfil
                       </Link>
                       <Link
                         href="/configuracion"
-                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md"
+                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition-colors duration-200"
                       >
                         Configuración
                       </Link>
                       <Link
                         href="/publicaciones"
-                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md"
+                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition-colors duration-200"
                       >
                         Administrar publicaciones
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left text-red-600 font-semibold mt-4 px-2 py-1 hover:bg-red-50 rounded-md"
+                        className="block w-full text-left text-red-600 font-semibold mt-4 px-2 py-1 hover:bg-red-50 rounded-md transition-colors duration-200"
                       >
                         Cerrar Sesión
                       </button>
@@ -156,19 +168,19 @@ const Navbar = () => {
               <div className="flex space-x-4">
                 <Link
                   href="/explorar"
-                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   Explorar
                 </Link>
                 <Link
                   href="/categorias"
-                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   Categorías
                 </Link>
                 <Link
                   href="/redactar"
-                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                 >
                   Redactar
                 </Link>
@@ -194,7 +206,7 @@ const Navbar = () => {
             <div className="sm:hidden flex items-center justify-end w-12">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500 transition-colors duration-200"
               >
                 <span className="sr-only">Abrir menú principal</span>
                 {isMenuOpen ? (
@@ -219,19 +231,19 @@ const Navbar = () => {
               <div className="px-2 pt-2 pb-3 space-y-1">
                 <Link
                   href="/explorar"
-                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Explorar
                 </Link>
                 <Link
                   href="/categorias"
-                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Categorías
                 </Link>
                 <Link
                   href="/redactar"
-                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium"
+                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Redactar
                 </Link>
@@ -248,17 +260,34 @@ const Navbar = () => {
                   </div>
                 </div>
                 <div className="mt-3">
-                  {isLoggedIn ? (
+                  {isLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                  ) : isLoggedIn ? (
                     <div className="flex flex-col space-y-2">
+                      <p className="text-gray-800 font-semibold px-3 py-2">
+                        Hola, {getFirstName(userName)}
+                      </p>
                       <Link
                         href="/perfiles"
-                        className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium"
+                        className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
                         Mi perfil
                       </Link>
+                      <Link
+                        href="/configuracion"
+                        className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                      >
+                        Configuración
+                      </Link>
+                      <Link
+                        href="/publicaciones"
+                        className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                      >
+                        Administrar publicaciones
+                      </Link>
                       <button
                         onClick={handleLogout}
-                        className="text-red-600 hover:bg-red-50 px-3 py-2 rounded-md text-base font-medium text-left"
+                        className="text-red-600 hover:bg-red-50 px-3 py-2 rounded-md text-base font-medium text-left transition-colors duration-200"
                       >
                         Cerrar Sesión
                       </button>

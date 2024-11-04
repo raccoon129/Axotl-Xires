@@ -1,5 +1,6 @@
 // app/redactar/page.tsx
-//Revisar a detalle su comportamiento al momento de guardar borradores junto con su ruta en la API
+//RFuncionalidad parcial. Revisar el manejo de imagenes (portada) y el envio de publicaciones finales
+//Pendiente añadir previsualizacion del trabajo en progreso
 
 "use client";
 
@@ -13,6 +14,7 @@ import ModalPortada from "@/components/Modal";
 import GeneradorPortada from "@/components/GeneradorPortada";
 import { motion } from "framer-motion";
 import { Save } from "lucide-react";
+import NotificacionChip from "@/components/NotificacionChip";
 
 // Interfaces
 interface TipoPublicacion {
@@ -78,6 +80,9 @@ const RedactarPage = () => {
   const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
   const [mensajeGuardado, setMensajeGuardado] = useState<string | null>(null);
   const [idBorradorActual, setIdBorradorActual] = useState<number | null>(null);
+  const [tipoNotificacion, setTipoNotificacion] = useState<
+    "confirmacion" | "excepcion" | "notificacion" | null
+  >(null);
 
   // Efecto inicial
   useEffect(() => {
@@ -114,17 +119,19 @@ const RedactarPage = () => {
     );
   };
 
-    // Función para obtener el próximo ID de publicación
-    const obtenerProximoId = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/proximoid`);
-        const data = await response.json();
-        const proximoId = data.id[0]?.proximo_id;
-        setIdBorradorActual(proximoId);
-      } catch (error) {
-        console.error("Error al obtener el próximo ID de publicación:", error);
-      }
-    };
+  // Función para obtener el próximo ID de publicación
+  const obtenerProximoId = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/proximoid`
+      );
+      const data = await response.json();
+      const proximoId = data.id[0]?.proximo_id;
+      setIdBorradorActual(proximoId);
+    } catch (error) {
+      console.error("Error al obtener el próximo ID de publicación:", error);
+    }
+  };
 
   // Función para guardar borrador
   const guardarBorrador = async () => {
@@ -159,7 +166,9 @@ const RedactarPage = () => {
       if (idBorradorActual) {
         formData.append("id_publicacion", idBorradorActual.toString());
       } else {
-        throw new Error("El ID de la publicación es obligatorio para guardar o actualizar un borrador.");
+        throw new Error(
+          "El ID de la publicación es obligatorio para guardar o actualizar un borrador."
+        );
       }
 
       const response = await fetch(
@@ -179,15 +188,27 @@ const RedactarPage = () => {
       const data: BorradorResponse = await response.json();
       setMensajeGuardado("Borrador guardado exitosamente");
 
-      setTimeout(() => setMensajeGuardado(null), 3000);
+      // Establece los detalles de la notificación de éxito
+      setTipoNotificacion("confirmacion");
+      setMensajeGuardado("Borrador guardado exitosamente");
+
+      setTimeout(() => setMensajeGuardado(null), 6000);
     } catch (error) {
       console.error("Error al guardar el borrador:", error);
-      setErrorGuardado(error instanceof Error ? error.message : "Error al guardar el borrador");
+      setErrorGuardado(
+        error instanceof Error ? error.message : "Error al guardar el borrador"
+      );
+
+      // Establece los detalles de la notificación de error
+      setTipoNotificacion("excepcion");
+      setMensajeGuardado(
+        error instanceof Error ? error.message : "Error al guardar el borrador"
+      );
     } finally {
       setGuardando(false);
     }
   };
-  
+
   const manejarGuardadoPortada = (imagenPortada: string) => {
     setVistaPrevia(imagenPortada);
     setMostrarModal(false);
@@ -412,6 +433,14 @@ const RedactarPage = () => {
                 {guardando ? "Guardando..." : "Guardar borrador"}
               </button>
             </div>
+            {/* Notificación al guardar el borrador */}
+            {mensajeGuardado && tipoNotificacion && (
+              <NotificacionChip
+                tipo={tipoNotificacion}
+                titulo={tipoNotificacion === "confirmacion" ? "Éxito" : "Error"}
+                contenido={mensajeGuardado}
+              />
+            )}
           </div>
 
           {errorGuardado && (

@@ -1,51 +1,43 @@
 // components/FormularioInicioSesion.tsx
-
 "use client";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from '@/hooks/useAuth';
 
 const FormularioInicioSesion = () => {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
   const router = useRouter();
+  const { updateAuthAfterLogin } = useAuth();
 
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
     setCargando(true);
 
     try {
-      // URL de la API obtenida de la variable de entorno
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`;
-
-      // Cuerpo de la petición con la estructura correcta
-      const body = {
-        correo,
-        contrasena,
-      };
-
       const respuesta = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body), // Enviamos los datos en el cuerpo de la solicitud
+        body: JSON.stringify({ correo, contrasena }),
       });
 
       const datos = await respuesta.json();
 
       if (respuesta.ok) {
+        await updateAuthAfterLogin(datos.token);
+        
         toast({
           title: "Inicio de sesión exitoso",
           description: "Has iniciado sesión correctamente.",
         });
 
-        // Guardar el token en localStorage o cookies
-        localStorage.setItem('token', datos.token);
-
-        // Redirigir a la página de inicio o al perfil del usuario
         router.push(`/perfiles/${datos.usuario.id}`);
       } else {
         toast({
@@ -67,7 +59,7 @@ const FormularioInicioSesion = () => {
   };
 
   return (
-    <form onSubmit={manejarEnvio} className="space-y-4">
+    <form onSubmit={manejarEnvio} className="space-y-4 w-full max-w-sm">
       <Input
         type="email"
         placeholder="Correo electrónico"
@@ -75,6 +67,7 @@ const FormularioInicioSesion = () => {
         onChange={(e) => setCorreo(e.target.value)}
         required
         disabled={cargando}
+        className="w-full"
       />
       <Input
         type="password"
@@ -83,12 +76,22 @@ const FormularioInicioSesion = () => {
         onChange={(e) => setContrasena(e.target.value)}
         required
         disabled={cargando}
+        className="w-full"
       />
-      <Button type="submit" className="w-full" disabled={cargando}>
+      <Button type="submit" disabled={cargando} className="w-full">
         {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
       </Button>
+      <div className="text-center mt-4">
+        <p className="text-sm text-gray-600">
+          ¿No tienes una cuenta?{' '}
+          <Link href="/registro" className="text-blue-600 hover:text-blue-800">
+            Regístrate
+          </Link>
+        </p>
+      </div>
     </form>
   );
 };
 
 export default FormularioInicioSesion;
+

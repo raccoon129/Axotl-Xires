@@ -1,0 +1,14 @@
+/* AuthGuard.module.css */
+.loaderContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  .loader {
+    width: 500px; /* Tamaño más compacto */
+    height: 500px; /* Tamaño más compacto */
+    animation: rotate 1s linear infinite; /* Animación de rotación */
+  }
+  

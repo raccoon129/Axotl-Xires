@@ -1,5 +1,5 @@
 // app/login/page.tsx
-import FormularioInicioSesion from '@/components/FormularioInicioSesion';
+import FormularioInicioSesion from '@/components/autenticacion/FormularioInicioSesion';
 
 export default function PaginaInicioSesion() {
   return (

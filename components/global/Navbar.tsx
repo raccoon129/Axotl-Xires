@@ -110,10 +110,10 @@ const Navbar = () => {
                         Configuración
                       </Link>
                       <Link
-                        href="/publicaciones"
+                        href="/perfiles/mispublicaciones"
                         className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition-colors duration-200"
                       >
-                        Administrar publicaciones
+                        Administrar mis publicaciones
                       </Link>
                       <button
                         onClick={handleLogout}
@@ -151,7 +151,7 @@ const Navbar = () => {
             <div className="flex-shrink-0 w-48 flex items-center">
               <Link href="/" className="flex items-center">
                 <Image
-                  src={`${process.env.NEXT_PUBLIC_ASSET_URL}/logoMorado2.png`}
+                  src={`${process.env.NEXT_PUBLIC_ASSET_URL}/AjoloteMorado.svg`}
                   alt="Axotl Xires Logo"
                   width={60}
                   height={60}
@@ -280,10 +280,10 @@ const Navbar = () => {
                         Configuración
                       </Link>
                       <Link
-                        href="/publicaciones"
+                        href="/perfiles/mispublicaciones"
                         className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
-                        Administrar publicaciones
+                        Administrar mis publicaciones
                       </Link>
                       <button
                         onClick={handleLogout}

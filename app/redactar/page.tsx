@@ -9,12 +9,12 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import dynamic from "next/dynamic";
-import Tooltip from "@/components/Tooltip";
-import ModalPortada from "@/components/Modal";
-import GeneradorPortada from "@/components/GeneradorPortada";
+import Tooltip from "@/components/global/Tooltip";
+import ModalPortada from "@/components/editor/Modal";
+import GeneradorPortada from "@/components/editor/GeneradorPortada";
 import { motion } from "framer-motion";
 import { Save } from "lucide-react";
-import NotificacionChip from "@/components/NotificacionChip";
+import NotificacionChip from "@/components/global/NotificacionChip";
 
 // Interfaces
 interface TipoPublicacion {
@@ -48,7 +48,7 @@ interface BorradorResponse {
 }
 
 // Importación dinámica del editor
-const EditorTexto = dynamic(() => import("@/components/EditorTexto"), {
+const EditorTexto = dynamic(() => import("@/components/editor/EditorTexto"), {
   ssr: false,
 });
 

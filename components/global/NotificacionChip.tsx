@@ -1,4 +1,13 @@
+//components/NotificacionChip
 
+/*
+Invocar como 
+      <NotificacionChip 
+        tipo="confirmacion" 
+        titulo="Éxito" 
+        contenido="La operación se completó correctamente." 
+      />
+*/
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -32,8 +41,8 @@ const NotificacionChip = ({ tipo, titulo, contenido }: NotificacionChipProps) =>
     const audio = new Audio(sonidos[tipo]);
     audio.play();
 
-    // Cierra el toast automáticamente después de 4 segundos
-    const timer = setTimeout(() => setVisible(false), 4000);
+    // Cierra el toast automáticamente después de 3 segundos
+    const timer = setTimeout(() => setVisible(false), 3000);
     return () => clearTimeout(timer);
   }, [tipo]);
 

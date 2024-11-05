@@ -1,5 +1,5 @@
 // app/registro/page.tsx
-import FormularioRegistro from '@/components/FormularioRegistro';
+import FormularioRegistro from '@/components/autenticacion/FormularioRegistro';
 
 export default function PaginaRegistro() {
   return (

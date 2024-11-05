@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Publication } from '@/type/typePublicacion';
+import { Publicacion } from '@/type/typePublicacion';
 
 // Función auxiliar para formatear la fecha
 function formatDate(date: string | Date | null): string {
@@ -13,7 +13,7 @@ function formatDate(date: string | Date | null): string {
 }
 
 // Función para obtener las publicaciones recientes
-async function fetchRecentPublications(limit: number): Promise<Publication[]> {
+async function fetchRecentPublications(limit: number): Promise<Publicacion[]> {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/recientes`);
   if (!response.ok) {
     throw new Error('Failed to fetch publications');
@@ -24,7 +24,7 @@ async function fetchRecentPublications(limit: number): Promise<Publication[]> {
 
 // Componente principal Home
 export default async function Home() {
-  let recentPublications: Publication[] = [];
+  let recentPublications: Publicacion[] = [];
   let error: string | undefined;
 
   try {

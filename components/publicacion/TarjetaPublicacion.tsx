@@ -1,23 +1,28 @@
-// components/TarjetaPublicacion.tsx
-import { FC } from 'react';
+// components/publicacion/TarjetaPublicacion.tsx
+import { FC, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Publicacion } from '@/type/typePublicacion';
 import { BookOpen, Edit, AlertCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PropsTarjetaPublicacion {
-    publicacion: Publicacion;
+    publicacion?: Publicacion;
     alLeer: (id: number) => void;
     alEditar: (id: number) => void;
     alSolicitarBaja: (id: number) => void;
+    isLoading?: boolean;
 }
 
 const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     publicacion,
     alLeer,
     alEditar,
-    alSolicitarBaja
+    alSolicitarBaja,
+    isLoading = false
 }) => {
+    const [imageLoaded, setImageLoaded] = useState(false);
+
     const obtenerColorEstado = (estado: Publicacion['estado']) => {
         const colores = {
             borrador: 'bg-gray-200 text-gray-700',
@@ -38,62 +43,91 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
         return formatos[estado];
     };
 
+    if (isLoading) {
+        return (
+            <Card className="w-full hover:shadow-lg transition-shadow duration-300">
+                <CardContent className="p-4">
+                    <div className="flex flex-row gap-4">
+                        <Skeleton className="w-48 h-64 flex-shrink-0" />
+                        <div className="flex flex-col flex-grow justify-between">
+                            <div className="space-y-3">
+                                <Skeleton className="h-6 w-3/4" />
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-6 w-24" />
+                            </div>
+                            <div className="flex gap-2 mt-4">
+                                <Skeleton className="h-10 w-24" />
+                                <Skeleton className="h-10 w-24" />
+                                <Skeleton className="h-10 w-36" />
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="w-full hover:shadow-lg transition-shadow duration-300">
             <CardContent className="p-4">
                 <div className="flex flex-row gap-4">
-                    {/* Imagen de portada - Dimensiones carta (8.5x11 pulgadas = 215.9x279.4 mm) */}
-                    <div className="w-48 h-64 flex-shrink-0"> {/* Proporción aproximada de carta */}
+                    <div className="w-48 h-64 flex-shrink-0 relative"> 
+                        {!imageLoaded && (
+                            <Skeleton className="w-full h-full absolute top-0 left-0" />
+                        )}
                         <img
-                            src={publicacion.imagen_portada || `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`}
-                            alt={publicacion.titulo}
-                            className="w-full h-full object-cover rounded-md shadow-sm"
+                            src={publicacion?.imagen_portada || `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`}
+                            alt={publicacion?.titulo}
+                            className={`w-full h-full object-cover rounded-md shadow-sm transition-opacity duration-300 ${
+                                imageLoaded ? 'opacity-100' : 'opacity-0'
+                            }`}
+                            onLoad={() => setImageLoaded(true)}
+                            onError={() => setImageLoaded(true)} // También manejamos el error para ocultar el skeleton
                         />
                     </div>
 
-                    {/* Contenido - Ajustado para mejor distribución */}
-                    <div className="flex flex-col flex-grow space-y-3">
-                        <div>
+                    <div className="flex flex-col flex-grow justify-between">
+                        <div className="space-y-3">
                             <h2 className="text-xl font-bold text-gray-900 line-clamp-2">
-                                {publicacion.titulo}
+                                {publicacion?.titulo}
                             </h2>
                             <p className="text-gray-600 mt-2 line-clamp-3 text-sm">
-                                {publicacion.resumen}
+                                {publicacion?.resumen}
                             </p>
+                            {publicacion?.estado && (
+                                <span className={`inline-block px-3 py-1 rounded-full text-sm ${obtenerColorEstado(publicacion.estado)}`}>
+                                    {formatearEstado(publicacion.estado)}
+                                </span>
+                            )}
                         </div>
                         
-                        {/* Estado y Acciones - Alineados al fondo */}
-                        <div className="mt-auto pt-2">
-                            <span className={`inline-block px-3 py-1 rounded-full text-sm ${obtenerColorEstado(publicacion.estado)} mb-3`}>
-                                {formatearEstado(publicacion.estado)}
-                            </span>
-                            
-                            <div className="flex gap-2">
-                                <Button 
-                                    variant="outline" 
-                                    onClick={() => alLeer(publicacion.id_publicacion)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <BookOpen className="w-4 h-4" />
-                                    Leer
-                                </Button>
-                                <Button 
-                                    variant="outline"
-                                    onClick={() => alEditar(publicacion.id_publicacion)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Edit className="w-4 h-4" />
-                                    Editar
-                                </Button>
-                                <Button 
-                                    variant="destructive"
-                                    onClick={() => alSolicitarBaja(publicacion.id_publicacion)}
-                                    className="flex items-center gap-2"
-                                >
-                                    <AlertCircle className="w-4 h-4" />
-                                    Solicitar Baja
-                                </Button>
-                            </div>
+                        <div className="flex gap-2 mt-4">
+                            <Button 
+                                variant="outline" 
+                                onClick={() => alLeer(publicacion!.id_publicacion)}
+                                className="flex items-center gap-2"
+                            >
+                                <BookOpen className="w-4 h-4" />
+                                Leer
+                            </Button>
+                            <Button 
+                                variant="outline"
+                                onClick={() => alEditar(publicacion!.id_publicacion)}
+                                className="flex items-center gap-2"
+                            >
+                                <Edit className="w-4 h-4" />
+                                Editar
+                            </Button>
+                            <Button 
+                                variant="destructive"
+                                onClick={() => alSolicitarBaja(publicacion!.id_publicacion)}
+                                className="flex items-center gap-2"
+                            >
+                                <AlertCircle className="w-4 h-4" />
+                                Solicitar Baja
+                            </Button>
                         </div>
                     </div>
                 </div>

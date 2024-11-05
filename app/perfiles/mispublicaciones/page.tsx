@@ -51,7 +51,7 @@ export default function PaginaPublicaciones() {
     };
 
     const manejarEdicion = (id: number) => {
-        enrutador.push(`/publicaciones/editar/${id}`);
+        enrutador.push(`/perfiles/mispublicaciones/editar/${id}`);
     };
 
     const manejarSolicitudBaja = async (id: number) => {

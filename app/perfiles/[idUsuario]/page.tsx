@@ -1,39 +1,36 @@
 // app/perfiles/[idUsuario]/page.tsx
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import PerfilUsuarioClient from './PerfilUsuarioClient';
+import { AuthGuard } from '@/components/autenticacion/AuthGuard';
 
-const PerfilUsuarioPage = () => {
-  const router = useRouter();
-  const { isLoggedIn } = useAuth();
+const PerfilUsuarioContent = () => {
   const { idUsuario } = useParams();
+  const { isLoggedIn, userProfile } = useAuth();
 
-  useEffect(() => {
-    // Redirige solo si no hay `idUsuario` y el usuario no está autenticado
-    if (!idUsuario && !isLoggedIn) {
-      router.replace('/');
-    }
-  }, [idUsuario, isLoggedIn, router]);
+  // Si hay un idUsuario en la URL, mostramos ese perfil
+  // Si no hay idUsuario y el usuario está autenticado, mostramos su propio perfil
+  const perfilId = idUsuario || (isLoggedIn ? userProfile?.id : null);
 
-  if (!isLoggedIn && !idUsuario) {
+  if (!perfilId) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center">
-          <img
-            src={`${process.env.NEXT_PUBLIC_ASSET_URL}/loader1.svg`}
-            alt="Espera un momento"
-            width={500}
-            height={500}
-          />
-        </div>
+        <p>No se ha encontrado un perfil para mostrar.</p>
       </div>
     );
   }
 
   return <PerfilUsuarioClient />;
+};
+
+const PerfilUsuarioPage = () => {
+  return (
+
+      <PerfilUsuarioContent />
+
+  );
 };
 
 export default PerfilUsuarioPage;

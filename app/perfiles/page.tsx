@@ -4,30 +4,29 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { AuthGuard } from '@/components/autenticacion/AuthGuard';
 
-const PerfilesPage = () => {
+const PerfilesContent = () => {
   const router = useRouter();
-  const { isLoggedIn, idUsuario } = useAuth();
+  const { idUsuario } = useAuth();
 
   useEffect(() => {
-    if (isLoggedIn && idUsuario) {
+    // Si tenemos el idUsuario, redirigimos al perfil específico
+    if (idUsuario) {
       router.replace(`/perfiles/${idUsuario}`);
-    } else {
-      router.replace('/');
     }
-  }, [isLoggedIn, idUsuario, router]);
+  }, [idUsuario, router]);
 
+  // No necesitamos mostrar nada aquí ya que esta página
+  // solo sirve como redirección
+  return null;
+};
+
+const PerfilesPage = () => {
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="text-center">
-        <img
-          src={`${process.env.NEXT_PUBLIC_ASSET_URL}/loader1.svg`}
-          alt="Lo estamos preparando"
-          width={500}
-          height={500}
-        />
-      </div>
-    </div>
+    <AuthGuard>
+      <PerfilesContent />
+    </AuthGuard>
   );
 };
 

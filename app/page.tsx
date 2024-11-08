@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Publicacion } from '@/type/typePublicacion';
+import { TarjetaVerticalPublicacion } from '@/components/publicacion/TarjetaVerticalPublicacion';
 
 // Función auxiliar para formatear la fecha
 function formatDate(date: string | Date | null): string {
@@ -66,24 +67,12 @@ export default async function Home() {
           <p className="text-red-500 text-center">{error}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentPublications.map((pub) => (
-              <Card key={pub.id_publicacion} className="overflow-hidden transition-all duration-500 ease-in-out max-h-72 hover:max-h-[500px] hover:shadow-lg">
-                <div className="relative w-full h-48 overflow-hidden transition-all duration-500 ease-in-out hover:h-80">
-                  <img
-                    src={pub.imagen_portada}
-                    alt={pub.titulo}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-                <CardHeader>
-                  <CardTitle>{pub.titulo}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-700 mb-4">{pub.resumen}</p>
-                  <p className="text-sm text-gray-600 mb-2">Por: {pub.autor}</p>
-                  <p className="text-sm text-gray-500">Publicado el: {formatDate(pub.fecha_publicacion)}</p>
-                </CardContent>
-              </Card>
+            {recentPublications.map((publicacion) => (
+              <TarjetaVerticalPublicacion
+                key={publicacion.id_publicacion}
+                publicacion={publicacion}
+                formatearFecha={formatDate}
+              />
             ))}
           </div>
         )}

@@ -22,7 +22,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     if (isLoading) {
       const script = document.createElement('script');
-      script.src = "https://cdn.svgator.com/js/player-SVGATOR-VERSION.min.js";
+      //script.src = "https://cdn.svgator.com/js/player-SVGATOR-VERSION.min.js";
       script.async = true;
       document.head.appendChild(script);
 

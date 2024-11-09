@@ -3,15 +3,23 @@
 // una petición de la API, recuperndo su el ID del perfil
 
 "use client";
+import { Publicacion } from '@/type/typePublicacion';
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import TarjetaPublicacionPerfil from '@/components/publicacion/TarjetaPublicacionPerfil';
+import { useRouter } from 'next/navigation';
+
+
 
 const PerfilUsuarioClient = () => {
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
+  const [isLoadingPublicaciones, setIsLoadingPublicaciones] = useState(true);
+  const router = useRouter();
   const { idUsuario } = useParams();
 
   useEffect(() => {
@@ -42,6 +50,42 @@ const PerfilUsuarioClient = () => {
       fetchUserData();
     }
   }, [idUsuario]);
+
+  useEffect(() => {
+    const cargarPublicaciones = async () => {
+      try {
+        setIsLoadingPublicaciones(true);
+        const token = localStorage.getItem("token");
+        const respuesta = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/usuario/${idUsuario}/publicadas`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!respuesta.ok) {
+          throw new Error('Error al cargar las publicaciones');
+        }
+
+        const datos = await respuesta.json();
+        setPublicaciones(datos || []);
+      } catch (error) {
+        console.error("Error al cargar las publicaciones:", error);
+      } finally {
+        setIsLoadingPublicaciones(false);
+      }
+    };
+
+    if (idUsuario) {
+      cargarPublicaciones();
+    }
+  }, [idUsuario]);
+
+  const handleLeerPublicacion = (id: number) => {
+    router.push(`/publicaciones/${id}`);
+  };
 
   const formatearFecha = (fecha: string) => {
     const date = new Date(fecha);
@@ -123,8 +167,46 @@ const PerfilUsuarioClient = () => {
       {/* Columna derecha: Publicaciones */}
       <div className="w-2/3">
         <h3 className="text-2xl font-semibold mb-6">Publicaciones</h3>
-        <div className="grid grid-cols-2 gap-6">
-          {/* Aquí cargarías las publicaciones asociadas al usuario */}
+        <div className="space-y-6">
+          {isLoadingPublicaciones ? (
+            // Mostrar skeletons mientras carga
+            [...Array(3)].map((_, index) => (
+              <TarjetaPublicacionPerfil
+                key={index}
+                publicacion={{} as any}
+                alLeer={() => {}}
+                isLoading={true}
+              />
+            ))
+          ) : publicaciones.length > 0 ? (
+            // Mostrar las publicaciones
+            publicaciones.map((publicacion) => (
+              <TarjetaPublicacionPerfil
+                key={publicacion.id_publicacion}
+                publicacion={{
+                  ...publicacion,
+                  autor: userData?.nombre || 'Autor',
+                  fecha_publicacion: publicacion.fecha_publicacion || publicacion.fecha_creacion,
+                  id_usuario: publicacion.id_usuario || 0,
+                  id_tipo: publicacion.id_tipo || 0,
+                  contenido: publicacion.contenido || '',
+                  referencias: publicacion.referencias || '',
+                  estado: publicacion.estado || 'borrador',
+                  es_privada: publicacion.es_privada || false,
+                  eliminado: publicacion.eliminado || false,
+                  fecha_eliminacion: publicacion.fecha_eliminacion || null
+                }}
+                alLeer={handleLeerPublicacion}
+              />
+            ))
+          ) : (
+            // Mensaje cuando no hay publicaciones
+            <div className="text-center py-8 bg-white rounded-lg shadow">
+              <p className="text-gray-500">
+                Este usuario aún no tiene publicaciones públicas.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

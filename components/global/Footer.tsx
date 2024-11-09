@@ -17,6 +17,7 @@ const Footer = () => {
             <Link href="/axotl/copyright" className="hover:text-purple-600">Copyright</Link>
             <Link href="/axotl/nosotros" className="hover:text-purple-600">Sobre Nosotros</Link>
             <Link href="/axotl" className="hover:text-purple-600">Acerca de</Link>
+            <Link href="https://buymeacoffee.com/axotlpublicaciones" className="hover:text-purple-600">Donaciones</Link>
             
           </div>
           <div>

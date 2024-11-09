@@ -21,10 +21,7 @@ export const SeccionPortada: React.FC<SeccionPortadaProps> = ({
     return new Promise((resolve) => {
       const imagen = new window.Image();
       imagen.onload = () => {
-        const dimensionesValidas =
-          (imagen.width === 612 && imagen.height === 792) ||
-          (imagen.width === 918 && imagen.height === 1188) ||
-          (imagen.width === 1224 && imagen.height === 1584);
+        const dimensionesValidas = imagen.width === 612 && imagen.height === 792;
         resolve(dimensionesValidas);
       };
       imagen.src = URL.createObjectURL(archivo);
@@ -43,7 +40,7 @@ export const SeccionPortada: React.FC<SeccionPortadaProps> = ({
       const tamanoValido = validarTamanoArchivo(archivo);
 
       if (!dimensionesCorrectas) {
-        alert("La imagen debe tener dimensiones de 612x792, 918x1188 o 1224x1584 píxeles");
+        alert("La imagen debe tener dimensiones de 612x792 píxeles");
         return;
       }
 

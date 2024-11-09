@@ -259,7 +259,7 @@ const RedactarContenido = () => {
             tituloPublicacion={nombrePublicacion}
             nombreAutor={userProfile?.userName || ""}
             alGuardar={manejarGuardadoPortada}
-            dimensiones={dimensionesPortada}
+            //dimensiones={dimensionesPortada}
           />
         </ModalPortada>
       </div>

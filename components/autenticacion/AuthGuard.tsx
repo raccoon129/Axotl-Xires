@@ -54,9 +54,10 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         <object
           ref={loaderRef}
           type="image/svg+xml"
+          //SVG Animado
           data={`${process.env.NEXT_PUBLIC_ASSET_URL}/1.svg`}
           className={styles.loader}
-          aria-label="Cargando"
+          aria-label="Trabajamos en ello..."
         />
       </div>
     );

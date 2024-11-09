@@ -43,6 +43,10 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
         return formatos[estado];
     };
 
+    const puedeEditar = (estado: Publicacion['estado']) => {
+        return estado === 'borrador' || estado === 'rechazado';
+    };
+
     if (isLoading) {
         return (
             <Card className="w-full hover:shadow-lg transition-shadow duration-300">
@@ -84,7 +88,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                 imageLoaded ? 'opacity-100' : 'opacity-0'
                             }`}
                             onLoad={() => setImageLoaded(true)}
-                            onError={() => setImageLoaded(true)} // También manejamos el error para ocultar el skeleton
+                            onError={() => setImageLoaded(true)}
                         />
                     </div>
 
@@ -107,23 +111,27 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                             <Button 
                                 variant="outline" 
                                 onClick={() => alLeer(publicacion!.id_publicacion)}
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-2 bg-white hover:bg-gray-50"
                             >
                                 <BookOpen className="w-4 h-4" />
                                 Leer
                             </Button>
-                            <Button 
-                                variant="outline"
-                                onClick={() => alEditar(publicacion!.id_publicacion)}
-                                className="flex items-center gap-2"
-                            >
-                                <Edit className="w-4 h-4" />
-                                Editar
-                            </Button>
+                            
+                            {publicacion?.estado && puedeEditar(publicacion.estado) && (
+                                <Button 
+                                    variant="outline"
+                                    onClick={() => alEditar(publicacion!.id_publicacion)}
+                                    className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Editar
+                                </Button>
+                            )}
+                            
                             <Button 
                                 variant="destructive"
                                 onClick={() => alSolicitarBaja(publicacion!.id_publicacion)}
-                                className="flex items-center gap-2"
+                                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
                             >
                                 <AlertCircle className="w-4 h-4" />
                                 Solicitar Baja

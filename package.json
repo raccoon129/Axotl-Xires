@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.0",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@next/swc-wasm-nodejs": "13.5.1",
@@ -71,8 +72,10 @@
     "eslint-config-next": "^15.0.2",
     "framer-motion": "^11.11.9",
     "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.10.2",
     "input-otp": "^1.2.4",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^2.5.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.446.0",
     "mysql2": "^3.11.3",

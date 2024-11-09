@@ -15,11 +15,12 @@ import { SeccionPortada } from "@/components/redactar/SeleccionPortada";
 import { ContenidoPublicacion } from "@/components/redactar/ContenidoPublicacion";
 import { Referencias } from "@/components/redactar/Referencias";
 import { TipoPublicacion, BorradorResponse } from "@/type/tipoPublicacion";
+import LoaderAxotl from "@/components/global/LoaderAxotl";
 
 const EditarPublicacionContenido = () => {
   const params = useParams();
   const idPublicacion = params.idPublicacion as string;
-  const { isLoggedIn, userProfile } = useAuth();
+  const { isLoggedIn, userProfile, idUsuario } = useAuth();
   const enrutador = useRouter();
 
   // Estados principales
@@ -45,48 +46,78 @@ const EditarPublicacionContenido = () => {
   const [mensajeGuardado, setMensajeGuardado] = useState<string | null>(null);
   const [tipoNotificacion, setTipoNotificacion] = useState<"confirmacion" | "excepcion" | "notificacion" | null>(null);
 
+  // Nuevo estado para controlar el acceso
+  const [accesoPermitido, setAccesoPermitido] = useState<boolean | null>(null);
+  const [mensajeError, setMensajeError] = useState<string | null>(null);
+
   useEffect(() => {
-    const cargarDatosIniciales = async () => {
-      await Promise.all([
-        obtenerTiposPublicacion(),
-        cargarPublicacion()
-      ]);
+    const verificarAcceso = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const respuesta = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/${idPublicacion}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+
+        const datos = await respuesta.json();
+
+        if (!respuesta.ok || datos.mensaje === "Publicación no encontrada") {
+          setAccesoPermitido(false);
+          setMensajeError("La publicación no existe");
+          return;
+        }
+
+        const publicacion = datos.datos;
+
+        // Verificar si el usuario es propietario y si es borrador
+        if (publicacion.id_usuario !== idUsuario) {
+          setAccesoPermitido(false);
+          setMensajeError("No tienes permiso para editar esta publicación");
+          return;
+        }
+
+        if (publicacion.estado !== "borrador") {
+          setAccesoPermitido(false);
+          setMensajeError("Solo se pueden editar publicaciones en estado borrador");
+          return;
+        }
+
+        setAccesoPermitido(true);
+        // Cargar los datos de la publicación
+        setNombrePublicacion(publicacion.titulo);
+        setResumenPublicacion(publicacion.resumen);
+        setEditorContent(publicacion.contenido);
+        setReferencias(publicacion.referencias);
+        setTipoSeleccionado(publicacion.id_tipo);
+        if (publicacion.imagen_portada) {
+          setVistaPrevia(publicacion.imagen_portada);
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        setAccesoPermitido(false);
+        setMensajeError("Error al cargar la publicación");
+      }
     };
 
-    cargarDatosIniciales();
-  }, [idPublicacion]);
-
-  const cargarPublicacion = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const respuesta = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/${idPublicacion}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
-      if (!respuesta.ok) {
-        throw new Error('Error al cargar la publicación');
-      }
-
-      const { datos } = await respuesta.json();
-      
-      setNombrePublicacion(datos.titulo);
-      setResumenPublicacion(datos.resumen);
-      setEditorContent(datos.contenido);
-      setReferencias(datos.referencias);
-      setTipoSeleccionado(datos.id_tipo);
-      if (datos.imagen_portada) {
-        setVistaPrevia(datos.imagen_portada);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setErrorGuardado('Error al cargar la publicación');
+    if (idPublicacion && idUsuario) {
+      verificarAcceso();
     }
-  };
+  }, [idPublicacion, idUsuario]);
+
+  useEffect(() => {
+    const cargarDatosIniciales = async () => {
+      await obtenerTiposPublicacion();
+    };
+
+    if (accesoPermitido) {
+      cargarDatosIniciales();
+    }
+  }, [accesoPermitido]);
 
   // Funciones auxiliares
   const obtenerTiposPublicacion = async () => {
@@ -179,6 +210,50 @@ const EditarPublicacionContenido = () => {
     }
   };
 
+  // Renderizado condicional basado en el estado de acceso
+  if (accesoPermitido === null) {
+    return <LoaderAxotl />;
+  }
+
+  if (accesoPermitido === false) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+          <div className="text-red-600 text-center mb-4">
+            <svg 
+              className="mx-auto h-12 w-12" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+            Acceso Denegado
+          </h2>
+          <p className="text-gray-600 text-center mb-6">
+            {mensajeError}
+          </p>
+          <div className="text-center">
+            <button
+              onClick={() => enrutador.push('/perfiles/mispublicaciones')}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Volver a Mis Publicaciones
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Renderizado normal del editor si el acceso está permitido
   return (
     <div className="min-h-screen bg-gray-100 py-10">
       <div className="container mx-auto px-4">
@@ -268,7 +343,7 @@ const EditarPublicacionContenido = () => {
             tituloPublicacion={nombrePublicacion}
             nombreAutor={userProfile?.userName || ""}
             alGuardar={manejarGuardadoPortada}
-            dimensiones={dimensionesPortada}
+            //dimensiones={dimensionesPortada}
           />
         </ModalPortada>
       </div>

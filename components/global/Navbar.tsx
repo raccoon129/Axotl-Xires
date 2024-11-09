@@ -57,7 +57,7 @@ const Navbar = () => {
             <div className="relative">
               <button
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 bg-white"
                 aria-label="Notificaciones"
               >
                 <Bell className="h-5 w-5 text-gray-600" />
@@ -78,10 +78,10 @@ const Navbar = () => {
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center space-x-2 hover:bg-gray-100 rounded-full p-1 transition-colors duration-200"
+                className="flex items-center space-x-2 hover:bg-gray-100 rounded-full p-1 transition-colors duration-200 bg-white"
                 aria-label="Menú de usuario"
               >
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-gray-200">
                   <User className="h-5 w-5 text-gray-600" />
                 </div>
               </button>
@@ -99,25 +99,25 @@ const Navbar = () => {
                       </p>
                       <Link
                         href="/perfiles"
-                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition-colors duration-200"
+                        className="block mt-2 text-sm text-gray-600 bg-white hover:bg-gray-50 px-2 py-1 rounded-md transition-colors duration-200"
                       >
                         Mi perfil
                       </Link>
                       <Link
                         href="/configuracion"
-                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition-colors duration-200"
+                        className="block mt-2 text-sm text-gray-600 bg-white hover:bg-gray-50 px-2 py-1 rounded-md transition-colors duration-200"
                       >
                         Configuración
                       </Link>
                       <Link
                         href="/perfiles/mispublicaciones"
-                        className="block mt-2 text-sm text-gray-600 hover:bg-gray-100 px-2 py-1 rounded-md transition-colors duration-200"
+                        className="block mt-2 text-sm text-gray-600 bg-white hover:bg-gray-50 px-2 py-1 rounded-md transition-colors duration-200"
                       >
                         Administrar mis publicaciones
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left text-red-600 font-semibold mt-4 px-2 py-1 hover:bg-red-50 rounded-md transition-colors duration-200"
+                        className="block w-full text-left text-red-600 font-semibold mt-4 px-2 py-1 bg-white hover:bg-red-50 rounded-md transition-colors duration-200"
                       >
                         Cerrar Sesión
                       </button>
@@ -129,7 +129,7 @@ const Navbar = () => {
           </div>
         ) : (
           <Link href="/login" passHref>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full bg-white hover:bg-gray-50">
               Iniciar Sesión
             </Button>
           </Link>
@@ -168,19 +168,19 @@ const Navbar = () => {
               <div className="flex space-x-4">
                 <Link
                   href="/explorar"
-                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-white hover:bg-gray-50"
                 >
                   Explorar
                 </Link>
                 <Link
                   href="/categorias"
-                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-white hover:bg-gray-50"
                 >
                   Categorías
                 </Link>
                 <Link
                   href="/redactar"
-                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-white hover:bg-gray-50"
                 >
                   Redactar
                 </Link>
@@ -193,7 +193,7 @@ const Navbar = () => {
                 <Input
                   type="text"
                   placeholder="Busca algo interesante"
-                  className="w-full pl-10 pr-4 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  className="w-full pl-10 pr-4 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white border-gray-200"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-gray-400" />
@@ -206,7 +206,7 @@ const Navbar = () => {
             <div className="sm:hidden flex items-center justify-end w-12">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500 transition-colors duration-200"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 bg-white hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500 transition-colors duration-200"
               >
                 <span className="sr-only">Abrir menú principal</span>
                 {isMenuOpen ? (
@@ -231,19 +231,19 @@ const Navbar = () => {
               <div className="px-2 pt-2 pb-3 space-y-1">
                 <Link
                   href="/explorar"
-                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                  className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Explorar
                 </Link>
                 <Link
                   href="/categorias"
-                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                  className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Categorías
                 </Link>
                 <Link
                   href="/redactar"
-                  className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                  className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Redactar
                 </Link>
@@ -253,7 +253,7 @@ const Navbar = () => {
                   <Input
                     type="text"
                     placeholder="Busca algo interesante"
-                    className="w-full pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    className="w-full pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white border-gray-200"
                   />
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-5 w-5 text-gray-400" />
@@ -269,25 +269,25 @@ const Navbar = () => {
                       </p>
                       <Link
                         href="/perfiles"
-                        className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                        className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
                         Mi perfil
                       </Link>
                       <Link
                         href="/configuracion"
-                        className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                        className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
                         Configuración
                       </Link>
                       <Link
                         href="/perfiles/mispublicaciones"
-                        className="text-gray-700 hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                        className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
                         Administrar mis publicaciones
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="text-red-600 hover:bg-red-50 px-3 py-2 rounded-md text-base font-medium text-left transition-colors duration-200"
+                        className="text-red-600 bg-white hover:bg-red-50 px-3 py-2 rounded-md text-base font-medium text-left transition-colors duration-200 w-full"
                       >
                         Cerrar Sesión
                       </button>

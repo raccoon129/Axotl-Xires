@@ -1,32 +1,33 @@
 // components/GeneradorPortada.tsx
 import { useState, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
+import { RadioGroup } from '@headlessui/react';
+
+// Agregar tipo para los estilos de portada
+type EstiloPortada = 'clasico' | 'moderno';
 
 interface PropiedadesGenerador {
   tituloPublicacion: string;
   nombreAutor: string;
   alGuardar: (imagenPortada: string) => void;
-  dimensiones?: { ancho: number; alto: number }; // Hacemos las dimensiones opcionales
 }
 
 const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
   tituloPublicacion,
   nombreAutor,
   alGuardar,
-  dimensiones = { ancho: 612, alto: 792 }, // Valor por defecto si no se proporcionan dimensiones
 }) => {
   const [imagenPortada, setImagenPortada] = useState<string | null>(null);
   const [tituloPersonalizado, setTituloPersonalizado] = useState(tituloPublicacion);
   const [autorPersonalizado, setAutorPersonalizado] = useState(nombreAutor);
   const [tamanoFuente, setTamanoFuente] = useState(70);
   const portadaRef = useRef<HTMLDivElement>(null);
+  const [estiloSeleccionado, setEstiloSeleccionado] = useState<EstiloPortada>('clasico');
 
-  // Factor de escala para la vista previa
+  // Dimensiones fijas para la portada
+  const ANCHO_BASE = 612;
+  const ALTO_BASE = 792;
   const FACTOR_ESCALA = 0.8;
-
-  // Usar las dimensiones proporcionadas
-  const ANCHO_BASE = dimensiones.ancho;
-  const ALTO_BASE = dimensiones.alto;
 
   // Dimensiones calculadas para el editor
   const ANCHO_EDITOR = Math.floor(ANCHO_BASE * FACTOR_ESCALA);
@@ -42,9 +43,71 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
       const img = new Image();
       img.onload = () => {
         if (img.width >= ANCHO_BASE) {
-          const lector = new FileReader();
-          lector.onloadend = () => setImagenPortada(lector.result as string);
-          lector.readAsDataURL(archivo);
+          // Crear un canvas temporal para recortar la imagen
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          if (ctx) {
+            let recorteAncho, recorteAlto, x, y;
+            
+            if (estiloSeleccionado === 'moderno') {
+              // Para el estilo moderno, la imagen ocupa la mitad superior sin la franja
+              const franjaAncho = ANCHO_BASE * 0.1; // 10% del ancho para la franja
+              const anchoDisponible = ANCHO_BASE - franjaAncho;
+              const altoDisponible = ALTO_BASE * 0.5; // Mitad de la altura
+              
+              // Calcular proporciones para el recorte
+              const aspectRatio = anchoDisponible / altoDisponible;
+              
+              if (img.width / img.height > aspectRatio) {
+                // La imagen es más ancha proporcionalmente
+                recorteAlto = img.height;
+                recorteAncho = img.height * aspectRatio;
+                x = (img.width - recorteAncho) / 2;
+                y = 0;
+              } else {
+                // La imagen es más alta proporcionalmente
+                recorteAncho = img.width;
+                recorteAlto = img.width / aspectRatio;
+                x = 0;
+                y = (img.height - recorteAlto) / 2;
+              }
+
+              // Establecer dimensiones del canvas para el estilo moderno
+              canvas.width = anchoDisponible;
+              canvas.height = altoDisponible;
+            } else {
+              // Mantener el recorte original para el estilo clásico
+              const aspectRatio = ANCHO_BASE / (ALTO_BASE * 0.6667);
+              
+              if (img.width / img.height > aspectRatio) {
+                recorteAlto = img.height;
+                recorteAncho = img.height * aspectRatio;
+                x = (img.width - recorteAncho) / 2;
+                y = 0;
+              } else {
+                recorteAncho = img.width;
+                recorteAlto = img.width / aspectRatio;
+                x = 0;
+                y = (img.height - recorteAlto) / 2;
+              }
+
+              // Establecer dimensiones del canvas para el estilo clásico
+              canvas.width = ANCHO_BASE;
+              canvas.height = Math.floor(ALTO_BASE * 0.6667);
+            }
+
+            // Dibujar la imagen recortada en el canvas
+            ctx.drawImage(
+              img,
+              x, y, recorteAncho, recorteAlto,
+              0, 0, canvas.width, canvas.height
+            );
+
+            // Convertir el canvas a base64 con alta calidad
+            const imagenRecortada = canvas.toDataURL('image/jpeg', 0.95);
+            setImagenPortada(imagenRecortada);
+          }
         } else {
           alert(`La imagen debe tener al menos ${ANCHO_BASE}px de ancho`);
         }
@@ -82,32 +145,232 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
     ajustarTamanoFuente();
   }, [tituloPersonalizado]);
 
-  const generarPortada = async () => {
-    if (portadaRef.current) {
-      const escala = 2; // Factor de escala para mejor calidad
+  const generarPortadaModerna = async () => {
+    if (portadaRef.current && imagenPortada) {
+      const canvas = document.createElement('canvas');
+      canvas.width = ANCHO_BASE;
+      canvas.height = ALTO_BASE;
+      const ctx = canvas.getContext('2d');
 
-      const canvas = await html2canvas(portadaRef.current, {
-        scale: escala,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        width: ANCHO_BASE,  // Usar dimensiones exactas recibidas
-        height: ALTO_BASE,
-        imageTimeout: 0,
-      });
+      if (ctx) {
+        // Fondo blanco base
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, ANCHO_BASE, ALTO_BASE);
 
-      const imagenFinal = canvas.toDataURL("image/png", 1.0);
-      alGuardar(imagenFinal);
+        // Franja decorativa lateral con el nuevo color
+        const franjaAncho = ANCHO_BASE * 0.1;
+        ctx.fillStyle = '#612c7d';
+        ctx.fillRect(0, 0, franjaAncho, ALTO_BASE);
+
+        // Cargar y dibujar la imagen
+        const imgTemp = new Image();
+        imgTemp.crossOrigin = 'anonymous';
+        
+        await new Promise((resolve) => {
+          imgTemp.onload = () => {
+            // Ajustar posición y tamaño de la imagen
+            const imgX = franjaAncho;
+            const imgY = 0;
+            const imgAncho = ANCHO_BASE - franjaAncho;
+            const imgAlto = ALTO_BASE * 0.5; // La mitad de la altura total
+
+            ctx.drawImage(imgTemp, imgX, imgY, imgAncho, imgAlto);
+
+            // Crear un gradiente más prolongado
+            const gradiente = ctx.createLinearGradient(imgX, imgY + (imgAlto * 0.5), imgX, imgY + imgAlto);
+            gradiente.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            gradiente.addColorStop(0.7, 'rgba(255, 255, 255, 0.9)');
+            gradiente.addColorStop(1, 'rgba(255, 255, 255, 1)');
+            ctx.fillStyle = gradiente;
+            ctx.fillRect(imgX, imgY, imgAncho, imgAlto);
+
+            resolve(null);
+          };
+          imgTemp.src = imagenPortada;
+        });
+
+        // Dibujar título centrado
+        ctx.fillStyle = '#1e293b';
+        ctx.font = `bold ${tamanoFuente}px 'Helvetica Neue', sans-serif`;
+        ctx.textBaseline = 'top';
+        
+        const maxAnchoTexto = (ANCHO_BASE - franjaAncho) * 0.8;
+        const lineasTitulo = dividirTexto(ctx, tituloPersonalizado, maxAnchoTexto);
+        const tituloY = ALTO_BASE * 0.6; // Ajustado para estar debajo de la imagen
+        
+        lineasTitulo.forEach((linea, index) => {
+          const medidas = ctx.measureText(linea);
+          const x = franjaAncho + ((ANCHO_BASE - franjaAncho) - medidas.width) / 2;
+          ctx.fillText(linea, x, tituloY + (index * tamanoFuente * 1.2));
+        });
+
+        // Dibujar autor en la parte inferior
+        ctx.fillStyle = '#64748b';
+        ctx.font = `normal 24px 'Helvetica Neue', sans-serif`;
+        const medidaAutor = ctx.measureText(autorPersonalizado);
+        const autorX = franjaAncho + ((ANCHO_BASE - franjaAncho) - medidaAutor.width) / 2;
+        ctx.fillText(autorPersonalizado, autorX, ALTO_BASE - 50); // 50px desde el fondo
+
+        const imagenFinal = canvas.toDataURL('image/png', 1.0);
+        alGuardar(imagenFinal);
+      }
     }
   };
 
+  const generarPortada = async () => {
+    if (estiloSeleccionado === 'moderno') {
+      await generarPortadaModerna();
+    } else {
+      // Llamar al generador clásico existente
+      await generarPortadaClasica();
+    }
+  };
+
+  // Renombrar el generador original
+  const generarPortadaClasica = async () => {
+    if (portadaRef.current && imagenPortada) {
+      const canvas = document.createElement('canvas');
+      canvas.width = ANCHO_BASE;
+      canvas.height = ALTO_BASE;
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        // Fondo blanco
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, ANCHO_BASE, ALTO_BASE);
+
+        // Cargar y dibujar la imagen (ya recortada)
+        const imgTemp = new Image();
+        imgTemp.crossOrigin = 'anonymous';
+        
+        await new Promise((resolve) => {
+          imgTemp.onload = () => {
+            // La imagen ya está recortada, solo la dibujamos en la parte superior
+            ctx.drawImage(imgTemp, 0, 0);
+            resolve(null);
+          };
+          imgTemp.src = imagenPortada;
+        });
+
+        // Sección de texto (1/3 inferior)
+        const inicioTexto = Math.floor(ALTO_BASE * 0.6667);
+        const padding = Math.floor(ANCHO_BASE * 0.05);
+
+        // Fondo blanco para la sección de texto
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, inicioTexto, ANCHO_BASE, ALTO_BASE - inicioTexto);
+
+        // Configurar y dibujar título
+        ctx.fillStyle = 'black';
+        ctx.font = `bold ${tamanoFuente}px sans-serif`;
+        ctx.textBaseline = 'top';
+        
+        const maxAnchoTexto = ANCHO_BASE - (padding * 2);
+        const lineasTitulo = dividirTexto(ctx, tituloPersonalizado, maxAnchoTexto);
+        lineasTitulo.forEach((linea, index) => {
+          ctx.fillText(linea, padding, inicioTexto + padding + (index * tamanoFuente));
+        });
+
+        // Dibujar autor
+        ctx.fillStyle = '#4B5563';
+        ctx.font = '18px sans-serif';
+        ctx.fillText(
+          autorPersonalizado, 
+          padding, 
+          ALTO_BASE - padding - 18
+        );
+
+        const imagenFinal = canvas.toDataURL('image/png', 1.0);
+        alGuardar(imagenFinal);
+      }
+    }
+  };
+
+  // Función auxiliar para dividir el texto en líneas
+  const dividirTexto = (ctx: CanvasRenderingContext2D, texto: string, maxAncho: number): string[] => {
+    const palabras = texto.split(' ');
+    const lineas: string[] = [];
+    let lineaActual = '';
+
+    palabras.forEach(palabra => {
+      const lineaPrueba = lineaActual + (lineaActual ? ' ' : '') + palabra;
+      const medidas = ctx.measureText(lineaPrueba);
+      
+      if (medidas.width <= maxAncho) {
+        lineaActual = lineaPrueba;
+      } else {
+        lineas.push(lineaActual);
+        lineaActual = palabra;
+      }
+    });
+    
+    if (lineaActual) {
+      lineas.push(lineaActual);
+    }
+
+    return lineas.slice(0, 2); // Limitar a 2 líneas
+  };
+
   return (
-    <div className="flex flex-col gap-6 h-full">
-      <div className="flex gap-6 h-full">
+    <div className="flex flex-col gap-6">
+      {/* Selector de estilo */}
+      <div className="w-full">
+        <RadioGroup value={estiloSeleccionado} onChange={setEstiloSeleccionado}>
+          <RadioGroup.Label className="block text-sm font-medium text-gray-700 mb-2">
+            Estilo de portada
+          </RadioGroup.Label>
+          <div className="flex gap-4">
+            <RadioGroup.Option value="clasico">
+              {({ checked }) => (
+                <div className={`
+                  p-4 rounded-lg cursor-pointer border-2
+                  ${checked ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}
+                `}>
+                  <div className="flex items-center">
+                    <div className={`
+                      w-4 h-4 rounded-full border-2 mr-2
+                      ${checked ? 'border-blue-600 bg-blue-600' : 'border-gray-400'}
+                    `} />
+                    <span className="font-medium">Clásico</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Diseño tradicional con imagen superior y texto inferior
+                  </p>
+                </div>
+              )}
+            </RadioGroup.Option>
+            <RadioGroup.Option value="moderno">
+              {({ checked }) => (
+                <div className={`
+                  p-4 rounded-lg cursor-pointer border-2
+                  ${checked ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}
+                `}>
+                  <div className="flex items-center">
+                    <div className={`
+                      w-4 h-4 rounded-full border-2 mr-2
+                      ${checked ? 'border-blue-600 bg-blue-600' : 'border-gray-400'}
+                    `} />
+                    <span className="font-medium">Moderno</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Diseño contemporáneo con franja lateral y efectos visuales
+                  </p>
+                </div>
+              )}
+            </RadioGroup.Option>
+          </div>
+        </RadioGroup>
+      </div>
+
+      <div className="flex gap-6">
+        {/* Panel izquierdo */}
         <div className="w-1/2">
           <div
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 h-[500px] flex items-center justify-center cursor-pointer"
+            className="border-2 border-dashed border-gray-300 rounded-lg p-6 aspect-[612/792] flex items-center justify-center cursor-pointer"
+            style={{
+              maxHeight: `${ALTO_EDITOR}px`,
+              maxWidth: `${ANCHO_EDITOR}px`,
+            }}
             onDrop={manejarSoltarImagen}
             onDragOver={(e) => e.preventDefault()}
             onClick={() => document.getElementById("inputImagenPortada")?.click()}
@@ -163,38 +426,111 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
           </div>
         </div>
 
+        {/* Panel derecho - Vista previa */}
         <div className="w-1/2 flex items-center justify-center bg-gray-50 rounded-lg">
           <div
             ref={portadaRef}
-            className="vista-previa-portada bg-white shadow-lg overflow-hidden"
+            className="vista-previa-portada bg-white shadow-lg relative"
             style={{
               width: `${ANCHO_EDITOR}px`,
               height: `${ALTO_EDITOR}px`,
+              aspectRatio: '612/792',
+              overflow: 'hidden',
             }}
           >
             {imagenPortada ? (
-              <>
-                <div className="h-2/3 overflow-hidden">
-                  <img
-                    src={imagenPortada}
-                    alt="Portada"
-                    className="w-full h-full object-cover"
-                  />
+              estiloSeleccionado === 'moderno' ? (
+                <div className="relative h-full bg-white">
+                  <div className="absolute left-0 top-0 h-full w-[10%] bg-[#612c7d]" />
+                  <div className="absolute left-[10%] top-0 right-0 h-1/2">
+                    <img
+                      src={imagenPortada}
+                      alt="Portada"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white"
+                         style={{
+                           background: 'linear-gradient(to bottom, transparent 50%, rgba(255,255,255,0.9) 85%, white 100%)'
+                         }}
+                    />
+                  </div>
+                  <div className="absolute top-[60%] left-[10%] right-0 px-8 text-center">
+                    <h1 className="text-[#1e293b] font-bold" style={{
+                      fontSize: `${Math.floor(tamanoFuente * FACTOR_ESCALA)}px`,
+                      lineHeight: '1.2'
+                    }}>
+                      {tituloPersonalizado}
+                    </h1>
+                  </div>
+                  <div className="absolute bottom-[20px] left-[10%] right-0 text-center">
+                    <p className="text-[#64748b]" style={{
+                      fontSize: `${Math.floor(24 * FACTOR_ESCALA)}px`
+                    }}>
+                      {autorPersonalizado}
+                    </p>
+                  </div>
                 </div>
-                <div className="h-1/3 p-8 bg-white contenedor-titulo">
-                  <h1
-                    className="titulo-publicacion font-bold leading-tight"
-                    style={{ fontSize: `${Math.floor(tamanoFuente * FACTOR_ESCALA)}px` }}
+              ) : (
+                // Vista previa estilo clásico (código existente)
+                <>
+                  {/* Contenedor de imagen con posición absoluta */}
+                  <div 
+                    className="absolute top-0 left-0 w-full"
+                    style={{
+                      height: `${ALTO_EDITOR * 0.6667}px`, // Exactamente 2/3 del alto
+                    }}
                   >
-                    {tituloPersonalizado}
-                  </h1>
-                  <p className="mt-4 text-lg text-gray-600">
-                    {autorPersonalizado}
-                  </p>
-                </div>
-              </>
+                    <img
+                      src={imagenPortada}
+                      alt="Portada"
+                      className="w-full h-full object-cover"
+                      style={{
+                        display: 'block', // Elimina espacio extra debajo de la imagen
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Contenedor de texto con posición absoluta */}
+                  <div 
+                    className="absolute bg-white"
+                    style={{
+                      top: `${ALTO_EDITOR * 0.6667}px`, // Comienza donde termina la imagen
+                      left: 0,
+                      width: '100%',
+                      height: `${ALTO_EDITOR * 0.3333}px`, // Exactamente 1/3 del alto
+                      padding: `${ALTO_EDITOR * 0.05}px ${ANCHO_EDITOR * 0.05}px`, // Padding proporcional
+                    }}
+                  >
+                    <h1
+                      className="titulo-publicacion font-bold leading-tight m-0"
+                      style={{ 
+                        fontSize: `${Math.floor(tamanoFuente * FACTOR_ESCALA)}px`,
+                        maxHeight: `${ALTO_EDITOR * 0.15}px`, // Limitar altura del título
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
+                      {tituloPersonalizado}
+                    </h1>
+                    <p 
+                      className="text-gray-600 m-0"
+                      style={{
+                        fontSize: `${Math.floor(18 * FACTOR_ESCALA)}px`,
+                        position: 'absolute',
+                        bottom: `${ALTO_EDITOR * 0.05}px`,
+                        left: `${ANCHO_EDITOR * 0.05}px`,
+                      }}
+                    >
+                      {autorPersonalizado}
+                    </p>
+                  </div>
+                </>
+              )
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">
+              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                 Vista previa de la portada
               </div>
             )}

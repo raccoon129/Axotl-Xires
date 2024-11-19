@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquare, Book, FileText, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,10 @@ const ModalDetallesPublicacion = ({
 }: PropiedadesModal) => {
   const [comentario, setComentario] = useState('');
   const [esFavorito, setEsFavorito] = useState(false);
+  const [cantidadFavoritos, setCantidadFavoritos] = useState(0);
+  const [actualizandoFavorito, setActualizandoFavorito] = useState(false);
   const [cargandoComentarios, setCargandoComentarios] = useState(false);
+  const [contadorAnimado, setContadorAnimado] = useState(false);
 
   const formatearFecha = (fecha: string) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -43,6 +46,103 @@ const ModalDetallesPublicacion = ({
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
       alCerrar();
+    }
+  };
+
+  // Verificar si el usuario ya marcó como favorito
+  const verificarFavorito = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const respuesta = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/favoritos/publicacion/${publicacion.id_publicacion}/usuario`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      if (respuesta.ok) {
+        const { es_favorito } = await respuesta.json();
+        setEsFavorito(es_favorito);
+      }
+    } catch (error) {
+      console.error('Error al verificar favorito:', error);
+    }
+  };
+
+  // Obtener cantidad de favoritos de forma independiente
+  const obtenerCantidadFavoritos = async () => {
+    try {
+      const respuesta = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/favoritos/publicacion/${publicacion.id_publicacion}`
+      );
+      
+      if (respuesta.ok) {
+        const { total_favoritos } = await respuesta.json();
+        setCantidadFavoritos(total_favoritos);
+      }
+    } catch (error) {
+      console.error('Error al obtener cantidad de favoritos:', error);
+      // Mantener el último valor válido en caso de error
+      setCantidadFavoritos(prev => prev);
+    }
+  };
+
+  // Cargar datos iniciales
+  useEffect(() => {
+    const inicializarDatos = async () => {
+      await Promise.all([
+        verificarFavorito(),
+        obtenerCantidadFavoritos()
+      ]);
+    };
+
+    if (estaAbierto) {
+      inicializarDatos();
+    }
+  }, [estaAbierto, publicacion.id_publicacion]);
+
+  // Manejar clic en favorito
+  const toggleFavorito = async () => {
+    try {
+      setActualizandoFavorito(true);
+      const token = localStorage.getItem('token');
+      const respuesta = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/favoritos`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id_publicacion: publicacion.id_publicacion
+          })
+        }
+      );
+
+      if (respuesta.ok) {
+        // Actualizar estado local inmediatamente para mejor UX
+        setEsFavorito(!esFavorito);
+        setContadorAnimado(true);
+        
+        // Actualizar contador localmente para feedback inmediato
+        setCantidadFavoritos(prev => esFavorito ? prev - 1 : prev + 1);
+        
+        // Obtener cantidad real del servidor
+        await obtenerCantidadFavoritos();
+
+        // Resetear animación después de un momento
+        setTimeout(() => setContadorAnimado(false), 300);
+      }
+    } catch (error) {
+      console.error('Error al actualizar favorito:', error);
+      // Revertir cambios locales en caso de error
+      await obtenerCantidadFavoritos();
+      setEsFavorito(!esFavorito);
+    } finally {
+      setActualizandoFavorito(false);
     }
   };
 
@@ -177,20 +277,52 @@ const ModalDetallesPublicacion = ({
                       <span className="text-sm text-gray-500">Categoría:</span>
                       <span className="ml-2 text-gray-900">{publicacion.categoria}</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl font-semibold text-gray-900">
-                        {publicacion.favoritos}
-                      </span>
-                      <button
-                        onClick={() => setEsFavorito(!esFavorito)}
-                        className="focus:outline-none"
+                    <div className="flex items-center gap-2">
+                      <motion.span 
+                        className="text-xl font-semibold text-gray-900"
+                        animate={{
+                          scale: contadorAnimado ? [1, 1.2, 1] : 1,
+                          color: contadorAnimado ? 
+                            esFavorito ? ["#1F2937", "#EAB308", "#1F2937"] : 
+                            ["#1F2937", "#DC2626", "#1F2937"] : "#1F2937"
+                        }}
+                        transition={{ duration: 0.3 }}
                       >
-                        <Star
-                          className={`h-6 w-6 transition-colors ${
-                            esFavorito ? "fill-yellow-400 text-yellow-400" : "text-gray-400"
-                          }`}
-                        />
-                      </button>
+                        {cantidadFavoritos}
+                      </motion.span>
+                      <motion.button
+                        onClick={toggleFavorito}
+                        className="focus:outline-none disabled:opacity-50 relative"
+                        disabled={actualizandoFavorito}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <motion.div
+                          animate={esFavorito ? {
+                            scale: [1, 1.2, 1],
+                            rotate: [0, 15, -15, 0]
+                          } : {}}
+                          transition={{
+                            duration: 0.4,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          <Star
+                            className={`h-6 w-6 transition-all duration-300 ${
+                              esFavorito 
+                                ? "fill-yellow-400 text-yellow-400 drop-shadow-lg" 
+                                : "text-gray-400 hover:text-yellow-400 hover:scale-110"
+                            } ${actualizandoFavorito ? 'animate-pulse' : ''}`}
+                          />
+                        </motion.div>
+                        {esFavorito && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: [0, 1.2, 0] }}
+                            transition={{ duration: 0.5 }}
+                            className="absolute inset-0 bg-yellow-400 rounded-full opacity-25"
+                          />
+                        )}
+                      </motion.button>
                     </div>
                   </div>
                 </div>

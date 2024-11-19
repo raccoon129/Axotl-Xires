@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SeccionComentarios } from './SeccionComentarios';
 
 interface PropiedadesModal {
   estaAbierto: boolean;
@@ -39,34 +40,74 @@ const ModalDetallesPublicacion = ({
     });
   };
 
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      alCerrar();
+    }
+  };
+
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {estaAbierto && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={handleBackdropClick}
+          transition={{ duration: 0.2 }}
         >
           <motion.div
             className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ 
+              scale: 1, 
+              opacity: 1, 
+              y: 0,
+              transition: {
+                type: "spring",
+                duration: 0.5,
+                bounce: 0.3
+              }
+            }}
+            exit={{ 
+              scale: 1.2, 
+              opacity: 0,
+              y: -20,
+              transition: {
+                duration: 0.2,
+                ease: "easeOut"
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800">Detalles de la publicación</h2>
-              <button
+              <motion.h2 
+                className="text-xl font-semibold text-gray-800"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                Detalles de la publicación
+              </motion.h2>
+              <motion.button
                 onClick={alCerrar}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
               >
                 <X className="h-5 w-5 text-gray-500" />
-              </button>
+              </motion.button>
             </div>
 
-            <div className="p-6">
+            <motion.div 
+              className="p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
               <div className="flex gap-6">
-                {/* Columna izquierda - Imagen y botones */}
+                {/* Columna izquierda - Imagen */}
                 <div className="w-1/2">
                   <Card className="aspect-[612/792] relative overflow-hidden">
                     <img
@@ -75,34 +116,11 @@ const ModalDetallesPublicacion = ({
                       className="w-full h-full object-cover"
                     />
                   </Card>
-
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    <Button 
-                      variant="outline"
-                      className="flex items-center gap-2 bg-white hover:bg-blue-50 text-blue-600"
-                    >
-                      <Book className="h-4 w-4" />
-                      Lectura inmersiva
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className="flex items-center gap-2 bg-white hover:bg-orange-50 text-orange-600"
-                    >
-                      <FileText className="h-4 w-4" />
-                      Lectura simplificada
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      className="flex items-center gap-2 bg-white hover:bg-green-50 text-green-600"
-                    >
-                      <Download className="h-4 w-4" />
-                      Descargar PDF
-                    </Button>
-                  </div>
                 </div>
 
-                {/* Columna derecha - Información y comentarios */}
+                {/* Columna derecha - Información, botones y comentarios */}
                 <div className="w-1/2 space-y-6">
+                  {/* Título y resumen */}
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900 mb-4">
                       {publicacion.titulo}
@@ -112,6 +130,7 @@ const ModalDetallesPublicacion = ({
                     </p>
                   </div>
 
+                  {/* Información del autor */}
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">
                       <img src={`${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`} alt={publicacion.autor} />
@@ -124,34 +143,35 @@ const ModalDetallesPublicacion = ({
                     </div>
                   </div>
 
-                  <Card className="p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-medium text-gray-900">Comentarios</h3>
-                      <MessageSquare className="h-5 w-5 text-gray-400" />
-                    </div>
-                    
-                    <div className="h-48 mb-4 overflow-y-auto">
-                      {cargandoComentarios ? (
-                        <div className="space-y-4">
-                          <Skeleton className="h-20 w-full" />
-                          <Skeleton className="h-20 w-full" />
-                        </div>
-                      ) : (
-                        <div className="text-center text-gray-500 mt-8">
-                          No hay comentarios aún
-                        </div>
-                      )}
-                    </div>
+                  {/* Botones de acción */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button 
+                      variant="outline"
+                      className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-blue-50 text-blue-600 h-auto"
+                    >
+                      <Book className="h-5 w-5" />
+                      <span className="text-sm font-medium">Lectura inmersiva</span>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-orange-50 text-orange-600 h-auto"
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span className="text-sm font-medium">Lectura simplificada</span>
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-green-50 text-green-600 h-auto"
+                    >
+                      <Download className="h-5 w-5" />
+                      <span className="text-sm font-medium">Descargar PDF</span>
+                    </Button>
+                  </div>
 
-                    <Textarea
-                      placeholder="Escribe un comentario..."
-                      value={comentario}
-                      onChange={(e) => setComentario(e.target.value)}
-                      className="resize-none bg-white"
-                      rows={3}
-                    />
-                  </Card>
+                  {/* Sección de comentarios */}
+                  <SeccionComentarios idPublicacion={publicacion.id_publicacion} />
 
+                  {/* Categoría y favoritos */}
                   <div className="flex justify-between items-center">
                     <div>
                       <span className="text-sm text-gray-500">Categoría:</span>
@@ -175,7 +195,7 @@ const ModalDetallesPublicacion = ({
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       )}

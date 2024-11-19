@@ -3,16 +3,14 @@
 // una petición de la API, recuperndo su el ID del perfil
 
 "use client";
-import { Publicacion } from '@/type/typePublicacion';
+import { Publicacion } from "@/type/typePublicacion";
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import TarjetaPublicacionPerfil from '@/components/publicacion/TarjetaPublicacionPerfil';
-import { useRouter } from 'next/navigation';
-
-
+import TarjetaPublicacionPerfil from "@/components/publicacion/TarjetaPublicacionPerfil";
+import { useRouter } from "next/navigation";
 
 const PerfilUsuarioClient = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -66,7 +64,7 @@ const PerfilUsuarioClient = () => {
         );
 
         if (!respuesta.ok) {
-          throw new Error('Error al cargar las publicaciones');
+          throw new Error("Error al cargar las publicaciones");
         }
 
         const datos = await respuesta.json();
@@ -109,104 +107,113 @@ const PerfilUsuarioClient = () => {
   };
 
   return (
-    <div className="flex p-8">
-      {/* Columna izquierda */}
-      <div className="w-1/3 pr-8">
-        {/* Info del perfil */}
-        <div className="bg-white shadow-lg p-6 rounded-lg mb-6">
-          {isLoading ? (
-            <div className="flex flex-col items-center">
-              <Skeleton className="w-[150px] h-[150px] rounded-full mb-4" />
-              <Skeleton className="h-8 w-48 mb-2" />
-              <Skeleton className="h-4 w-40 mb-2" />
-              <Skeleton className="h-4 w-56 mb-2" />
-              <Skeleton className="h-4 w-44" />
-            </div>
-          ) : (
-            <>
-              <Image
-                src={
-                  userData?.foto_perfil ||
-                  `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`
-                }
-                alt="Foto de perfil"
-                width={150}
-                height={150}
-                className="rounded-full mx-auto mb-4"
-              />
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Panel lateral - Info del usuario */}
+        <div className="lg:w-1/4">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            {isLoading ? (
+              <div className="p-4 space-y-4">
+                <div className="flex justify-center">
+                  <Skeleton className="w-24 h-24 rounded-full" />
+                </div>
+                <Skeleton className="h-6 w-3/4 mx-auto" />
+                <Skeleton className="h-4 w-2/3 mx-auto" />
+                <div className="border-t pt-4 mt-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full mt-2" />
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Sección de perfil */}
+                <div className="p-6 text-center border-b border-gray-100">
+                  <div className="relative mx-auto w-24 h-24 mb-4">
+                    <Image
+                      src={userData?.foto_perfil || `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`}
+                      alt="Foto de perfil"
+                      width={96}
+                      height={96}
+                      className="rounded-full shadow-sm object-cover"
+                    />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-1">
+                    {userData?.nombre}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {userData?.nombramiento}
+                  </p>
+                </div>
 
-              <h2 className="text-center text-2xl font-semibold">
-                {userData?.nombre}
-              </h2>
-              <p className="text-center text-gray-500">
-                {userData?.nombramiento}
-              </p>
-              <p className="text-center text-sm text-gray-400 mt-2">
-                Miembro desde el{" "}
-                {userData?.fecha_creacion &&
-                  formatearFecha(userData.fecha_creacion)}
-              </p>
-              <p className="text-center text-sm text-gray-400 mt-2">
-                Último acceso:{" "}
-                {userData?.ultimo_acceso &&
-                  formatearUltimoAcceso(userData.ultimo_acceso)}
-              </p>
-            </>
-          )}
+                {/* Estadísticas */}
+                <div className="px-6 py-4 bg-gray-50">
+                  <div className="flex justify-center items-center space-x-2">
+                    <span className="text-gray-600 text-sm">Publicaciones</span>
+                    <span className="text-lg font-bold text-gray-900">
+                      {userData?.total_publicaciones || 0}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Información adicional */}
+                <div className="px-6 py-4">
+                  <div className="space-y-2 text-center">
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">
+                        Miembro desde
+                      </span>
+                      <p className="text-sm text-gray-900 font-medium">
+                        {userData?.fecha_creacion && formatearFecha(userData.fecha_creacion)}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-gray-500 uppercase tracking-wide">
+                        Último acceso
+                      </span>
+                      <p className="text-sm text-gray-900 font-medium">
+                        {userData?.ultimo_acceso && formatearUltimoAcceso(userData.ultimo_acceso)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-        {/* Estadísticas */}
-        <div className="bg-white shadow-lg p-6 rounded-lg">
-          <h3 className="text-xl font-semibold mb-4">Estadísticas</h3>
-          {isLoading ? (
-            <Skeleton className="h-4 w-32" />
-          ) : (
-            <p>Publicaciones: {userData?.total_publicaciones || 0}</p>
-          )}
-        </div>
-      </div>
-      {/* Columna derecha: Publicaciones */}
-      <div className="w-2/3">
-        <h3 className="text-2xl font-semibold mb-6">Publicaciones</h3>
-        <div className="space-y-6">
-          {isLoadingPublicaciones ? (
-            // Mostrar skeletons mientras carga
-            [...Array(3)].map((_, index) => (
-              <TarjetaPublicacionPerfil
-                key={index}
-                publicacion={{} as any}
-                alLeer={() => {}}
-                isLoading={true}
-              />
-            ))
-          ) : publicaciones.length > 0 ? (
-            // Mostrar las publicaciones
-            publicaciones.map((publicacion) => (
-              <TarjetaPublicacionPerfil
-                key={publicacion.id_publicacion}
-                publicacion={{
-                  ...publicacion,
-                  autor: userData?.nombre || 'Autor',
-                  fecha_publicacion: publicacion.fecha_publicacion || publicacion.fecha_creacion,
-                  id_usuario: publicacion.id_usuario || 0,
-                  id_tipo: publicacion.id_tipo || 0,
-                  contenido: publicacion.contenido || '',
-                  referencias: publicacion.referencias || '',
-                  estado: publicacion.estado || 'borrador',
-                  es_privada: publicacion.es_privada || false,
-                  eliminado: publicacion.eliminado || false,
-                  fecha_eliminacion: publicacion.fecha_eliminacion || null
-                }}
-                alLeer={handleLeerPublicacion}
-              />
-            ))
-          ) : (
-            // Mensaje cuando no hay publicaciones
-            <div className="text-center py-8 bg-white rounded-lg shadow">
-              <p className="text-gray-500">
-                Este usuario aún no tiene publicaciones públicas.
-              </p>
-            </div>
-          )}
+
+        {/* Contenido principal - Publicaciones */}
+        <div className="lg:w-3/4">
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">Publicaciones</h3>
+          <div className="space-y-4">
+            {isLoadingPublicaciones ? (
+              [...Array(2)].map((_, index) => (
+                <TarjetaPublicacionPerfil
+                  key={index}
+                  publicacion={{} as any}
+                  alLeer={() => {}}
+                  isLoading={true}
+                />
+              ))
+            ) : publicaciones.length > 0 ? (
+              publicaciones.map((publicacion) => (
+                <TarjetaPublicacionPerfil
+                  key={publicacion.id_publicacion}
+                  publicacion={{
+                    ...publicacion,
+                    autor: userData?.nombre || "Autor",
+                    fecha_publicacion: publicacion.fecha_publicacion || publicacion.fecha_creacion,
+                  }}
+                  alLeer={handleLeerPublicacion}
+                />
+              ))
+            ) : (
+              <div className="text-center py-8 bg-white rounded-lg shadow-md">
+                <p className="text-gray-500">
+                  Este usuario aún no tiene publicaciones públicas.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

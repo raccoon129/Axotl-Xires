@@ -1,3 +1,5 @@
+'use client';
+
 import { FC, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +49,12 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
         }
     };
 
+    // Función para construir la URL de la portada
+    const obtenerUrlPortada = (nombreImagen: string | null) => {
+        if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+        return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+    };
+
     if (isLoading) {
         return (
             <Card className="w-full hover:shadow-lg transition-shadow duration-300">
@@ -80,7 +88,7 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                                 <Skeleton className="w-full h-full absolute top-0 left-0" />
                             )}
                             <img
-                                src={publicacion.imagen_portada || `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`}
+                                src={obtenerUrlPortada(publicacion.imagen_portada)}
                                 alt={publicacion.titulo}
                                 className={`w-full h-full object-cover rounded-md shadow-sm transition-opacity duration-300 ${
                                     imageLoaded ? 'opacity-100' : 'opacity-0'

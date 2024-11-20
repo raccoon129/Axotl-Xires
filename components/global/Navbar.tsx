@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Search, Menu, X, Bell, User } from "lucide-react";
@@ -15,16 +15,60 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   const router = useRouter();
+  const menuRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
-  // Usar el hook de autenticación mejorado
-  const { isLoggedIn, userName, isLoading, logout } = useAuth();
+  const { isLoggedIn, isLoading, logout, idUsuario } = useAuth();
+
+  // Obtener datos del usuario
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (idUsuario) {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/${idUsuario}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            setUserData(data.datos);
+          }
+        } catch (error) {
+          console.error('Error al obtener datos del usuario:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [idUsuario]);
 
   // Obtener el primer nombre del usuario
-  const getFirstName = (fullName: string | null) => {
-    if (!fullName) return '';
-    return fullName.split(' ')[0];
+  const getFirstName = () => {
+    if (!userData?.nombre) return '';
+    return userData.nombre.split(' ')[0];
   };
+
+  // Manejar clics fuera de los menús
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Cerrar menús al cambiar de ruta
   useEffect(() => {
@@ -54,7 +98,7 @@ const Navbar = () => {
           <Skeleton className="w-full h-9" />
         ) : isLoggedIn ? (
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            <div className="relative" ref={notificationsRef}>
               <button
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 bg-white"
@@ -68,6 +112,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
                     className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50"
                   >
                     <p className="text-gray-500 text-sm">No tienes notificaciones</p>
@@ -75,7 +120,7 @@ const Navbar = () => {
                 )}
               </AnimatePresence>
             </div>
-            <div className="relative">
+            <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center space-x-2 hover:bg-gray-100 rounded-full p-1 transition-colors duration-200 bg-white"
@@ -88,14 +133,15 @@ const Navbar = () => {
               <AnimatePresence>
                 {isUserMenuOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.2 }}
                     className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
                   >
                     <div className="p-4">
                       <p className="text-gray-800 font-semibold truncate">
-                        Hola, {getFirstName(userName)}
+                        Hola, {getFirstName()}
                       </p>
                       <Link
                         href="/perfiles"
@@ -265,7 +311,7 @@ const Navbar = () => {
                   ) : isLoggedIn ? (
                     <div className="flex flex-col space-y-2">
                       <p className="text-gray-800 font-semibold px-3 py-2">
-                        Hola, {getFirstName(userName)}
+                        Hola, {getFirstName()}
                       </p>
                       <Link
                         href="/perfiles"

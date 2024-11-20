@@ -28,9 +28,8 @@ export interface TipoPublicacion {
       resumen: string;
       contenido: string;
       referencias: string;
-      estado: string;
-      es_privada: number;
-      imagen_portada: string | null;
       id_tipo: number;
+      imagen_portada: string | null;
+      fecha_creacion: string;
     };
   }

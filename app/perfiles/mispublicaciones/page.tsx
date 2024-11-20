@@ -83,7 +83,7 @@ export default function PaginaPublicaciones() {
 
     return (
         <AuthGuard>
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-8 md:px-16 lg:px-24 py-8">
                 <h1 className="text-3xl font-bold mb-6">Administrar mis publicaciones</h1>
                 
                 {error && (

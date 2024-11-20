@@ -71,7 +71,6 @@ export default async function Home() {
               <TarjetaVerticalPublicacion
                 key={publicacion.id_publicacion}
                 publicacion={publicacion}
-                formatearFecha={formatDate}
               />
             ))}
           </div>

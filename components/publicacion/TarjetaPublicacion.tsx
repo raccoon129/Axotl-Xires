@@ -1,4 +1,5 @@
-// components/publicacion/TarjetaPublicacion.tsx
+'use client';
+
 import { FC, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,11 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
         return estado === 'borrador' || estado === 'rechazado';
     };
 
+    const obtenerUrlPortada = (nombreImagen: string | undefined | null) => {
+        if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+        return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+    };
+
     if (isLoading) {
         return (
             <Card className="w-full hover:shadow-lg transition-shadow duration-300">
@@ -76,28 +82,27 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     return (
         <Card className="w-full hover:shadow-lg transition-shadow duration-300">
             <CardContent className="p-4">
-                <div className="flex flex-row gap-4">
-                    <div className="w-48 h-64 flex-shrink-0 relative"> 
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="w-full md:w-48 h-64 flex-shrink-0 relative"> 
                         {!imageLoaded && (
                             <Skeleton className="w-full h-full absolute top-0 left-0" />
                         )}
                         <img
-                            src={publicacion?.imagen_portada || `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`}
+                            src={obtenerUrlPortada(publicacion?.imagen_portada)}
                             alt={publicacion?.titulo}
-                            className={`w-full h-full object-cover rounded-md shadow-sm transition-opacity duration-300 ${
-                                imageLoaded ? 'opacity-100' : 'opacity-0'
-                            }`}
+                            className="w-full h-full object-cover rounded-md shadow-sm transition-opacity duration-300"
+                            style={{ opacity: imageLoaded ? 1 : 0 }}
                             onLoad={() => setImageLoaded(true)}
                             onError={() => setImageLoaded(true)}
                         />
                     </div>
 
-                    <div className="flex flex-col flex-grow justify-between">
+                    <div className="flex flex-col flex-grow justify-between space-y-4 md:space-y-0">
                         <div className="space-y-3">
                             <h2 className="text-xl font-bold text-gray-900 line-clamp-2">
                                 {publicacion?.titulo}
                             </h2>
-                            <p className="text-gray-600 mt-2 line-clamp-3 text-sm">
+                            <p className="text-gray-600 line-clamp-3 text-sm">
                                 {publicacion?.resumen}
                             </p>
                             {publicacion?.estado && (
@@ -107,11 +112,11 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                             )}
                         </div>
                         
-                        <div className="flex gap-2 mt-4">
+                        <div className="flex flex-wrap gap-2">
                             <Button 
                                 variant="outline" 
                                 onClick={() => alLeer(publicacion!.id_publicacion)}
-                                className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                className="flex items-center gap-2 bg-white hover:bg-gray-50 w-full sm:w-auto"
                             >
                                 <BookOpen className="w-4 h-4" />
                                 Leer
@@ -121,7 +126,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                 <Button 
                                     variant="outline"
                                     onClick={() => alEditar(publicacion!.id_publicacion)}
-                                    className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                    className="flex items-center gap-2 bg-white hover:bg-gray-50 w-full sm:w-auto"
                                 >
                                     <Edit className="w-4 h-4" />
                                     Editar
@@ -131,7 +136,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                             <Button 
                                 variant="destructive"
                                 onClick={() => alSolicitarBaja(publicacion!.id_publicacion)}
-                                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200 w-full sm:w-auto"
                             >
                                 <AlertCircle className="w-4 h-4" />
                                 Solicitar Baja

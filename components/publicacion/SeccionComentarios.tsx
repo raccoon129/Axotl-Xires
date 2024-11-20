@@ -53,11 +53,19 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
         }
       );
 
-      if (!respuesta.ok) throw new Error('Error al cargar comentarios');
+      if (!respuesta.ok) {
+        if (respuesta.status === 404) {
+          setComentarios([]);
+          return;
+        }
+        throw new Error('Error al cargar comentarios');
+      }
+
       const datos = await respuesta.json();
-      setComentarios(datos);
+      setComentarios(Array.isArray(datos) ? datos : []);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error al cargar comentarios:', error);
+      setComentarios([]);
     } finally {
       setCargando(false);
     }
@@ -223,7 +231,7 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
             ))
           ) : (
             <div className="text-center text-gray-500 mt-8">
-              No hay comentarios aún
+              Sé el primero en comentar esta publicación
             </div>
           )}
         </div>

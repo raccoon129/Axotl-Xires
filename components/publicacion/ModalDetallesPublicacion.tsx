@@ -34,6 +34,7 @@ const ModalDetallesPublicacion = ({
   const [actualizandoFavorito, setActualizandoFavorito] = useState(false);
   const [cargandoComentarios, setCargandoComentarios] = useState(false);
   const [contadorAnimado, setContadorAnimado] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const formatearFecha = (fecha: string) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -146,6 +147,12 @@ const ModalDetallesPublicacion = ({
     }
   };
 
+  // Función para construir la URL de la portada
+  const obtenerUrlPortada = (nombreImagen: string | null) => {
+    if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+    return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+  };
+
   return (
     <AnimatePresence mode="wait">
       {estaAbierto && (
@@ -210,10 +217,17 @@ const ModalDetallesPublicacion = ({
                 {/* Columna izquierda - Imagen */}
                 <div className="w-1/2">
                   <Card className="aspect-[612/792] relative overflow-hidden">
+                    {!imageLoaded && (
+                      <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                    )}
                     <img
-                      src={publicacion.imagen_portada || `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`}
+                      src={obtenerUrlPortada(publicacion.imagen_portada)}
                       alt={publicacion.titulo}
-                      className="w-full h-full object-cover"
+                      className={`w-full h-full object-cover transition-opacity duration-300 ${
+                        imageLoaded ? 'opacity-100' : 'opacity-0'
+                      }`}
+                      onLoad={() => setImageLoaded(true)}
+                      onError={() => setImageLoaded(true)}
                     />
                   </Card>
                 </div>

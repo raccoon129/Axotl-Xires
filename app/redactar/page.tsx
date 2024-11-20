@@ -96,18 +96,6 @@ const RedactarContenido = () => {
     );
   };
 
-  const manejarGuardadoPortada = (imagenPortada: string) => {
-    setVistaPrevia(imagenPortada);
-    setMostrarModal(false);
-  };
-
-  const manejarCambioPortada = (archivo: File) => {
-    setPortada(archivo);
-    const lector = new FileReader();
-    lector.onloadend = () => setVistaPrevia(lector.result as string);
-    lector.readAsDataURL(archivo);
-  };
-
   const guardarBorrador = async () => {
     if (!puedeGuardarBorrador()) {
       setErrorGuardado("Por favor completa todos los campos requeridos");
@@ -133,8 +121,15 @@ const RedactarContenido = () => {
       formData.append("id_tipo", tipoSeleccionado.toString());
       formData.append("referencias", referencias);
 
-      if (portada) {
-        formData.append("imagen_portada", portada);
+      // Manejar la imagen de portada
+      if (vistaPrevia) {
+        if (vistaPrevia.startsWith('data:')) {
+          const response = await fetch(vistaPrevia);
+          const blob = await response.blob();
+          formData.append("imagen_portada", blob, "portada.png");
+        } else if (portada instanceof File) {
+          formData.append("imagen_portada", portada);
+        }
       }
 
       if (idBorradorActual) {
@@ -149,7 +144,9 @@ const RedactarContenido = () => {
         `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/borrador`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { 
+            Authorization: `Bearer ${token}`,
+          },
           body: formData,
         }
       );
@@ -164,10 +161,15 @@ const RedactarContenido = () => {
       setTipoNotificacion("confirmacion");
       setMensajeGuardado("Borrador guardado exitosamente");
 
+      // Actualizar la vista previa con la URL completa de la imagen
+      if (data.datos.imagen_portada) {
+        const urlPortada = `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${data.datos.imagen_portada}`;
+        setVistaPrevia(urlPortada);
+      }
+
       setTimeout(() => setMensajeGuardado(null), 6000);
     } catch (error) {
       console.error("Error al guardar el borrador:", error);
-
       setTipoNotificacion("excepcion");
       setMensajeGuardado(
         error instanceof Error ? error.message : "Error al guardar el borrador"
@@ -175,6 +177,20 @@ const RedactarContenido = () => {
     } finally {
       setGuardando(false);
     }
+  };
+
+  // Función para manejar la portada generada
+  const manejarGuardadoPortada = (imagenPortada: string) => {
+    setVistaPrevia(imagenPortada);
+    setMostrarModal(false);
+  };
+
+  // Función para manejar la portada subida
+  const manejarCambioPortada = (archivo: File) => {
+    setPortada(archivo);
+    const lector = new FileReader();
+    lector.onloadend = () => setVistaPrevia(lector.result as string);
+    lector.readAsDataURL(archivo);
   };
 
   return (

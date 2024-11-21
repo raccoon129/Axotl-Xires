@@ -11,6 +11,7 @@ import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import TarjetaPublicacionPerfil from "@/components/publicacion/TarjetaPublicacionPerfil";
 import { useRouter } from "next/navigation";
+import Head from "next/head";
 
 const PerfilUsuarioClient = () => {
   const [userData, setUserData] = useState<any>(null);
@@ -80,6 +81,16 @@ const PerfilUsuarioClient = () => {
       cargarPublicaciones();
     }
   }, [idUsuario]);
+
+  //Acá se añade el nombre de la pestaña
+  useEffect(() => {
+    if (userData?.nombre) {
+      // Actualiza el título del documento
+      document.title = `Perfil de ${userData.nombre} - Axotl Xires`;
+    } else {
+      document.title = "Perfil - Axotl Xires";
+    }
+  }, [userData?.nombre]);
 
   const handleLeerPublicacion = (id: number) => {
     router.push(`/publicaciones/${id}`);

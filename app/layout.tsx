@@ -7,7 +7,7 @@ import Footer from '@/components/global/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Axotl Xires Publicaciones',
+  title: 'Axotl Xires',
   description: 'Plataforma para la divulgación de artículos científicos y académicos',
 };
 

@@ -16,6 +16,9 @@ export default function PaginaPublicaciones() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        // Establecer el título de la página
+        document.title = "Mis Publicaciones - Axotl Xires";
+        
         const obtenerPublicaciones = async () => {
             if (!idUsuario) return;
 

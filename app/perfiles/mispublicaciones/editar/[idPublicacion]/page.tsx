@@ -68,6 +68,7 @@ const EditarPublicacionContenido = () => {
         if (!respuesta.ok || datos.mensaje === "Publicación no encontrada") {
           setAccesoPermitido(false);
           setMensajeError("La publicación no existe");
+          document.title = "Publicación no encontrada - Axotl Xires";
           return;
         }
 
@@ -77,16 +78,20 @@ const EditarPublicacionContenido = () => {
         if (publicacion.id_usuario !== idUsuario) {
           setAccesoPermitido(false);
           setMensajeError("No tienes permiso para editar esta publicación");
+          document.title = "Sin acceso - Axotl Xires";
           return;
         }
 
         if (publicacion.estado !== "borrador") {
           setAccesoPermitido(false);
           setMensajeError("Solo se pueden editar publicaciones en estado borrador");
+          document.title = "Publicación no editable - Axotl Xires";
           return;
         }
 
         setAccesoPermitido(true);
+        // Actualizar el título con el nombre de la publicación
+        document.title = `Editando Borrador ${publicacion.titulo} - Axotl Xires`;
         // Cargar los datos de la publicación
         setNombrePublicacion(publicacion.titulo);
         setResumenPublicacion(publicacion.resumen);

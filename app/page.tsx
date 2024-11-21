@@ -25,6 +25,7 @@ async function fetchRecentPublications(limit: number): Promise<Publicacion[]> {
 
 // Componente principal Home
 export default async function Home() {
+  
   let recentPublications: Publicacion[] = [];
   let error: string | undefined;
 

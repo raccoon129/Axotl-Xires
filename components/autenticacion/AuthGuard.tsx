@@ -1,4 +1,5 @@
 // components/AuthGuard.tsx
+
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';

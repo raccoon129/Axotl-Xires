@@ -59,6 +59,10 @@ const RedactarContenido = () => {
     obtenerTiposPublicacion();
   }, [isLoggedIn]);
 
+  useEffect(() => {
+    document.title = "Redactar Nueva Publicación - Axotl Xires";
+  }, []); // Array vacío para que solo se ejecute al montar el componente
+
   // Funciones auxiliares
   const obtenerTiposPublicacion = async () => {
     try {

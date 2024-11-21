@@ -17,12 +17,43 @@ import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
 import MenuEditor from './MenuEditor';
+import { useState, useEffect } from 'react';
 
 interface EditorTextoProps {
   onChange?: (content: string) => void;
   initialContent?: string;
   onGuardadoExitoso?: () => void;
 }
+
+interface ContadorPalabrasProps {
+  palabrasActuales: number;
+  maxPalabras: number;
+}
+
+const ContadorPalabras: React.FC<ContadorPalabrasProps> = ({ palabrasActuales, maxPalabras }) => {
+  const porcentaje = (palabrasActuales / maxPalabras) * 100;
+  
+  const obtenerColorBarra = () => {
+    if (porcentaje <= 60) return 'bg-green-500';
+    if (porcentaje <= 85) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  return (
+    <div className="px-4 py-2 border-t">
+      <div className="flex justify-between text-sm text-gray-600 mb-1">
+        <span>{palabrasActuales.toLocaleString()} / {maxPalabras.toLocaleString()} palabras</span>
+        <span>{Math.round(porcentaje)}%</span>
+      </div>
+      <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className={`h-full transition-all duration-300 ${obtenerColorBarra()}`}
+          style={{ width: `${Math.min(porcentaje, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+};
 
 // Estilos CSS para la fuente Crimson Text y listas
 const estilosEditor = `
@@ -103,6 +134,25 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
   initialContent = '', 
   onGuardadoExitoso 
 }) => {
+  const [contadorPalabras, setContadorPalabras] = useState(0);
+  const MAX_PALABRAS = 5000;
+
+  // Función para contar palabras
+  const contarPalabras = (texto: string) => {
+    const textoLimpio = texto.replace(/<[^>]*>/g, ' ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+    return textoLimpio ? textoLimpio.split(' ').length : 0;
+  };
+
+  // Efecto para inicializar el contador con el contenido inicial
+  useEffect(() => {
+    if (initialContent) {
+      const palabrasIniciales = contarPalabras(initialContent);
+      setContadorPalabras(palabrasIniciales);
+    }
+  }, [initialContent]);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -159,7 +209,10 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       }
     },
     onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML());
+      const contenido = editor.getHTML();
+      const numeroPalabras = contarPalabras(contenido);
+      setContadorPalabras(numeroPalabras);
+      onChange?.(contenido);
     }
   });
 
@@ -168,6 +221,10 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       <style>{estilosEditor}</style>
       <MenuEditor editor={editor} />
       <EditorContent editor={editor} />
+      <ContadorPalabras 
+        palabrasActuales={contadorPalabras}
+        maxPalabras={MAX_PALABRAS}
+      />
     </div>
   );
 };

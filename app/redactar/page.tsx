@@ -15,6 +15,7 @@ import { SeccionPortada } from "@/components/redactar/SeleccionPortada";
 import { ContenidoPublicacion } from "@/components/redactar/ContenidoPublicacion";
 import { Referencias } from "@/components/redactar/Referencias";
 import { TipoPublicacion, BorradorResponse } from "@/type/tipoPublicacion";
+import BotonEnviarParaRevision from '@/components/redactar/BotonEnviarParaRevision';
 
 const RedactarContenido = () => {
   
@@ -48,6 +49,7 @@ const RedactarContenido = () => {
   const [tipoNotificacion, setTipoNotificacion] = useState<
     "confirmacion" | "excepcion" | "notificacion" | null
   >(null);
+  const [borradorGuardado, setBorradorGuardado] = useState(false);
 
   // Efecto inicial
   useEffect(() => {
@@ -115,7 +117,13 @@ const RedactarContenido = () => {
       if (!token) throw new Error("No hay token de autenticación");
 
       if (!idBorradorActual) {
-        await obtenerProximoId();
+        const idResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/proximoid`
+        );
+        const idData = await idResponse.json();
+        const proximoId = idData.id[0]?.proximo_id;
+        if (!proximoId) throw new Error("No se pudo obtener un ID para el borrador");
+        setIdBorradorActual(proximoId);
       }
 
       const formData = new FormData();
@@ -161,7 +169,7 @@ const RedactarContenido = () => {
       }
 
       const data: BorradorResponse = await response.json();
-
+      setBorradorGuardado(true);
       setTipoNotificacion("confirmacion");
       setMensajeGuardado("Borrador guardado exitosamente");
 
@@ -195,6 +203,84 @@ const RedactarContenido = () => {
     const lector = new FileReader();
     lector.onloadend = () => setVistaPrevia(lector.result as string);
     lector.readAsDataURL(archivo);
+  };
+
+  // Nueva función para verificar si todos los campos están completos
+  const camposCompletos = (): boolean => {
+    return Boolean(
+      nombrePublicacion.trim() &&
+      resumenPublicacion.trim() &&
+      editorContent.trim() &&
+      tipoSeleccionado &&
+      referencias.trim() // Añadimos validación de referencias
+    );
+  };
+
+  const enviarParaRevision = async () => {
+    try {
+      if (!camposCompletos()) {
+        setTipoNotificacion("excepcion");
+        setMensajeGuardado("Todos los campos son obligatorios, incluyendo las fuentes de consulta");
+        return { exito: false };
+      }
+
+      if (!idBorradorActual) {
+        setTipoNotificacion("excepcion");
+        setMensajeGuardado("Debes guardar el borrador primero");
+        return { exito: false };
+      }
+
+      const formData = new FormData();
+      formData.append('id_publicacion', idBorradorActual.toString());
+      formData.append('titulo', nombrePublicacion.trim());
+      formData.append('resumen', resumenPublicacion.trim());
+      formData.append('contenido', editorContent.trim());
+      formData.append('referencias', referencias.trim());
+      formData.append('id_tipo', tipoSeleccionado.toString());
+
+      // Manejar la imagen de portada
+      if (vistaPrevia) {
+        if (vistaPrevia.startsWith('data:')) {
+          const response = await fetch(vistaPrevia);
+          const blob = await response.blob();
+          formData.append('imagen_portada', blob, 'portada.png');
+        } else if (portada instanceof File) {
+          formData.append('imagen_portada', portada);
+        }
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No hay token de autenticación');
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/nuevapublicacionrevision`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setTipoNotificacion("excepcion");
+        setMensajeGuardado(data.mensaje || 'Error al enviar para revisión');
+        return { exito: false };
+      }
+
+      setTipoNotificacion("confirmacion");
+      setMensajeGuardado("Publicación enviada a revisión exitosamente");
+      return { exito: true };
+    } catch (error) {
+      setTipoNotificacion("excepcion");
+      setMensajeGuardado("Error al enviar la publicación para revisión");
+      return { exito: false };
+    }
   };
 
   return (
@@ -282,6 +368,16 @@ const RedactarContenido = () => {
             //dimensiones={dimensionesPortada}
           />
         </ModalPortada>
+
+        <div className="flex justify-end gap-4 mt-6">
+          <BotonEnviarParaRevision
+            idBorradorActual={idBorradorActual}
+            onEnviar={enviarParaRevision}
+            className="shadow-md"
+            habilitado={borradorGuardado}
+            camposCompletos={camposCompletos()}
+          />
+        </div>
       </div>
     </div>
   );

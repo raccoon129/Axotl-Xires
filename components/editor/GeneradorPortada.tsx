@@ -4,7 +4,9 @@ import html2canvas from "html2canvas";
 import { RadioGroup } from '@headlessui/react';
 
 // Agregar tipo para los estilos de portada
-type EstiloPortada = 'clasico' | 'moderno';
+type EstiloPortada = 'clasico' | 'moderno' | 'academico';
+// Agregar el tipo Tipografia
+type Tipografia = 'serif' | 'sans-serif';
 
 interface PropiedadesGenerador {
   tituloPublicacion: string;
@@ -23,6 +25,8 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
   const [tamanoFuente, setTamanoFuente] = useState(70);
   const portadaRef = useRef<HTMLDivElement>(null);
   const [estiloSeleccionado, setEstiloSeleccionado] = useState<EstiloPortada>('clasico');
+  // Añadir el estado para la tipografía
+  const [tipografiaSeleccionada, setTipografiaSeleccionada] = useState<Tipografia>('sans-serif');
 
   // Dimensiones fijas para la portada
   const ANCHO_BASE = 612;
@@ -191,7 +195,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
 
         // Dibujar título centrado
         ctx.fillStyle = '#1e293b';
-        ctx.font = `bold ${tamanoFuente}px 'Helvetica Neue', sans-serif`;
+        ctx.font = `bold ${tamanoFuente}px ${tipografiaSeleccionada === 'serif' ? "'Times New Roman', serif" : "'Helvetica Neue', sans-serif"}`;
         ctx.textBaseline = 'top';
         
         const maxAnchoTexto = (ANCHO_BASE - franjaAncho) * 0.8;
@@ -206,7 +210,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
 
         // Dibujar autor en la parte inferior
         ctx.fillStyle = '#64748b';
-        ctx.font = `normal 24px 'Helvetica Neue', sans-serif`;
+        ctx.font = `normal 24px ${tipografiaSeleccionada === 'serif' ? "'Times New Roman', serif" : "'Helvetica Neue', sans-serif"}`;
         const medidaAutor = ctx.measureText(autorPersonalizado);
         const autorX = franjaAncho + ((ANCHO_BASE - franjaAncho) - medidaAutor.width) / 2;
         ctx.fillText(autorPersonalizado, autorX, ALTO_BASE - 50); // 50px desde el fondo
@@ -220,8 +224,9 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
   const generarPortada = async () => {
     if (estiloSeleccionado === 'moderno') {
       await generarPortadaModerna();
+    } else if (estiloSeleccionado === 'academico') {
+      await generarPortadaAcademica();
     } else {
-      // Llamar al generador clásico existente
       await generarPortadaClasica();
     }
   };
@@ -262,7 +267,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
 
         // Configurar y dibujar título
         ctx.fillStyle = 'black';
-        ctx.font = `bold ${tamanoFuente}px sans-serif`;
+        ctx.font = `bold ${tamanoFuente}px ${tipografiaSeleccionada === 'serif' ? "'Times New Roman', serif" : 'sans-serif'}`;
         ctx.textBaseline = 'top';
         
         const maxAnchoTexto = ANCHO_BASE - (padding * 2);
@@ -273,12 +278,69 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
 
         // Dibujar autor
         ctx.fillStyle = '#4B5563';
-        ctx.font = '18px sans-serif';
+        ctx.font = `18px ${tipografiaSeleccionada === 'serif' ? "'Times New Roman', serif" : 'sans-serif'}`;
         ctx.fillText(
           autorPersonalizado, 
           padding, 
           ALTO_BASE - padding - 18
         );
+
+        const imagenFinal = canvas.toDataURL('image/png', 1.0);
+        alGuardar(imagenFinal);
+      }
+    }
+  };
+
+  // Implementar la función generarPortadaAcademica
+  const generarPortadaAcademica = async () => {
+    if (portadaRef.current && imagenPortada) {
+      const canvas = document.createElement('canvas');
+      canvas.width = ANCHO_BASE;
+      canvas.height = ALTO_BASE;
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        // Fondo blanco
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, ANCHO_BASE, ALTO_BASE);
+
+        // Cargar y dibujar la imagen en la parte superior
+        const imgTemp = new Image();
+        imgTemp.crossOrigin = 'anonymous';
+
+        await new Promise((resolve) => {
+          imgTemp.onload = () => {
+            const imgAltura = ALTO_BASE * 0.2; // 20% de la altura total
+            ctx.drawImage(imgTemp, 0, 0, ANCHO_BASE, imgAltura);
+
+            // Aplicar un degradado suave
+            const gradiente = ctx.createLinearGradient(0, 0, 0, imgAltura);
+            gradiente.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            gradiente.addColorStop(1, 'rgba(255, 255, 255, 1)');
+            ctx.fillStyle = gradiente;
+            ctx.fillRect(0, 0, ANCHO_BASE, imgAltura);
+
+            resolve(null);
+          };
+          imgTemp.src = imagenPortada;
+        });
+
+        // Dibujar título centrado
+        ctx.fillStyle = '#1e293b';
+        ctx.font = `bold ${tamanoFuente}px ${tipografiaSeleccionada === 'serif' ? "'Times New Roman', serif" : 'sans-serif'}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const tituloY = ALTO_BASE * 0.5;
+        const lineasTitulo = dividirTexto(ctx, tituloPersonalizado, ANCHO_BASE * 0.8);
+        lineasTitulo.forEach((linea, index) => {
+          ctx.fillText(linea, ANCHO_BASE / 2, tituloY + index * tamanoFuente * 1.2);
+        });
+
+        // Dibujar autor en la parte inferior
+        ctx.fillStyle = '#374151';
+        ctx.font = `italic 24px ${tipografiaSeleccionada === 'serif' ? "'Times New Roman', serif" : 'sans-serif'}`;
+        const autorY = ALTO_BASE * 0.9;
+        ctx.fillText(autorPersonalizado, ANCHO_BASE / 2, autorY);
 
         const imagenFinal = canvas.toDataURL('image/png', 1.0);
         alGuardar(imagenFinal);
@@ -358,6 +420,25 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                 </div>
               )}
             </RadioGroup.Option>
+            <RadioGroup.Option value="academico">
+              {({ checked }) => (
+                <div className={`
+                  p-4 rounded-lg cursor-pointer border-2
+                  ${checked ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}
+                `}>
+                  <div className="flex items-center">
+                    <div className={`
+                      w-4 h-4 rounded-full border-2 mr-2
+                      ${checked ? 'border-blue-600 bg-blue-600' : 'border-gray-400'}
+                    `} />
+                    <span className="font-medium">Académico</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Estilo formal con imagen superior y degradado suave
+                  </p>
+                </div>
+              )}
+            </RadioGroup.Option>
           </div>
         </RadioGroup>
       </div>
@@ -423,6 +504,34 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                 className="mt-1 w-full px-3 py-2 border rounded-md"
               />
             </div>
+            {/* Añadir el selector de tipografía en el JSX */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tipografía
+              </label>
+              <RadioGroup value={tipografiaSeleccionada} onChange={setTipografiaSeleccionada} className="flex gap-4">
+                <RadioGroup.Option value="serif">
+                  {({ checked }) => (
+                    <div className={`
+                      p-2 rounded-lg cursor-pointer border
+                      ${checked ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}
+                    `}>
+                      <span className="font-serif">Serif</span>
+                    </div>
+                  )}
+                </RadioGroup.Option>
+                <RadioGroup.Option value="sans-serif">
+                  {({ checked }) => (
+                    <div className={`
+                      p-2 rounded-lg cursor-pointer border
+                      ${checked ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}
+                    `}>
+                      <span className="font-sans">Sans-serif</span>
+                    </div>
+                  )}
+                </RadioGroup.Option>
+              </RadioGroup>
+            </div>
           </div>
         </div>
 
@@ -455,7 +564,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                     />
                   </div>
                   <div className="absolute top-[60%] left-[10%] right-0 px-8 text-center">
-                    <h1 className="text-[#1e293b] font-bold" style={{
+                    <h1 className={`text-[#1e293b] font-bold ${tipografiaSeleccionada === 'serif' ? 'font-serif' : 'font-sans'}`} style={{
                       fontSize: `${Math.floor(tamanoFuente * FACTOR_ESCALA)}px`,
                       lineHeight: '1.2'
                     }}>
@@ -463,9 +572,70 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                     </h1>
                   </div>
                   <div className="absolute bottom-[20px] left-[10%] right-0 text-center">
-                    <p className="text-[#64748b]" style={{
+                    <p className={`${tipografiaSeleccionada === 'serif' ? 'font-serif' : 'font-sans'}`} style={{
                       fontSize: `${Math.floor(24 * FACTOR_ESCALA)}px`
                     }}>
+                      {autorPersonalizado}
+                    </p>
+                  </div>
+                </div>
+              ) : estiloSeleccionado === 'academico' ? (
+                // Vista previa para el estilo 'académico'
+                <div className="relative h-full bg-white">
+                  {/* Imagen en la parte superior */}
+                  <div
+                    className="absolute top-0 left-0 w-full overflow-hidden"
+                    style={{ height: `${ALTO_EDITOR * 0.2}px` }}
+                  >
+                    <img
+                      src={imagenPortada}
+                      alt="Portada"
+                      className="w-full h-full object-cover"
+                    />
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1))',
+                      }}
+                    />
+                  </div>
+                  {/* Título */}
+                  <div
+                    className="absolute"
+                    style={{
+                      top: `${ALTO_EDITOR * 0.35}px`,
+                      left: '0',
+                      width: '100%',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <h1
+                      className={`font-bold ${tipografiaSeleccionada === 'serif' ? 'font-serif' : 'font-sans'}`}
+                      style={{
+                        fontSize: `${Math.floor(tamanoFuente * FACTOR_ESCALA)}px`,
+                        color: '#1e293b',
+                      }}
+                    >
+                      {tituloPersonalizado}
+                    </h1>
+                  </div>
+                  {/* Autor */}
+                  <div
+                    className="absolute"
+                    style={{
+                      bottom: `${ALTO_EDITOR * 0.1}px`,
+                      left: '0',
+                      width: '100%',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <p
+                      className={`${tipografiaSeleccionada === 'serif' ? 'font-serif' : 'font-sans'} italic`}
+                      style={{
+                        fontSize: `${Math.floor(24 * FACTOR_ESCALA)}px`,
+                        color: '#374151',
+                      }}
+                    >
                       {autorPersonalizado}
                     </p>
                   </div>
@@ -502,7 +672,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                     }}
                   >
                     <h1
-                      className="titulo-publicacion font-bold leading-tight m-0"
+                      className={`titulo-publicacion font-bold leading-tight m-0 ${tipografiaSeleccionada === 'serif' ? 'font-serif' : 'font-sans'}`}
                       style={{ 
                         fontSize: `${Math.floor(tamanoFuente * FACTOR_ESCALA)}px`,
                         maxHeight: `${ALTO_EDITOR * 0.15}px`, // Limitar altura del título
@@ -516,7 +686,7 @@ const GeneradorPortada: React.FC<PropiedadesGenerador> = ({
                       {tituloPersonalizado}
                     </h1>
                     <p 
-                      className="text-gray-600 m-0"
+                      className={`text-gray-600 m-0 ${tipografiaSeleccionada === 'serif' ? 'font-serif' : 'font-sans'}`}
                       style={{
                         fontSize: `${Math.floor(18 * FACTOR_ESCALA)}px`,
                         position: 'absolute',

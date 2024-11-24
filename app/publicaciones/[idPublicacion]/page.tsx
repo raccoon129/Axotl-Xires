@@ -9,6 +9,7 @@ import { Calendar, MessageSquare, Star, BookOpen, X } from 'lucide-react';
 import Link from 'next/link';
 import { SeccionComentarios } from '@/components/publicacion/SeccionComentarios';
 import { useAuth } from '@/hooks/useAuth';
+import SEOMetadata from '@/components/global/SEOMetadata';
 
 interface Publicacion {
   id_publicacion: number;
@@ -30,7 +31,7 @@ interface Publicacion {
 }
 
 const EsqueletoLectura = () => (
-  <div className="min-h-screen bg-gray-50">
+  <div className="min-h-screen">
     <div className="grid grid-cols-12 gap-6 max-w-screen-2xl mx-auto px-4 py-8">
       {/* Skeleton columna izquierda */}
       <div className="col-span-3">
@@ -108,31 +109,52 @@ const PanelComentarios = ({
   if (!mostrar) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.2 }}
-      className="absolute top-0 left-0 right-0 bg-white rounded-lg shadow-xl z-10"
-      style={{ maxHeight: '400px' }}
+    <div 
+      className="fixed inset-0 z-50"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
     >
-      <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white">
-        <h3 className="text-lg font-semibold">Comentarios</h3>
-        <button 
-          onClick={onClose}
-          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+        className="absolute top-[220px] left-0 right-0"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <motion.div
+          className="bg-white rounded-lg shadow-xl mx-auto"
+          style={{ 
+            maxHeight: '500px',
+            maxWidth: '100%',
+            width: '100%',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+          }}
         >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
-      <div className="overflow-y-auto" style={{ maxHeight: 'calc(400px - 57px)' }}>
-        <SeccionComentarios idPublicacion={idPublicacion} />
-      </div>
-    </motion.div>
+          <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+            <h3 className="text-lg font-semibold">Comentarios</h3>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="overflow-y-auto" style={{ maxHeight: 'calc(500px - 57px)' }}>
+            <SeccionComentarios idPublicacion={idPublicacion} />
+          </div>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
-export default function LecturaSimplificada() {
+export default function PublicacionPage() {
   const params = useParams();
   const [publicacion, setPublicacion] = useState<Publicacion | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -188,6 +210,14 @@ export default function LecturaSimplificada() {
 
     cargarPublicacion();
   }, [params.idPublicacion, idUsuario]);
+
+  useEffect(() => {
+    if (publicacion?.titulo) {
+      document.title = `${publicacion.titulo} - Publicación en Axotl Xires`;
+    } else {
+      document.title = "Publicación no encontrada - Axotl Xires";
+    }
+  }, [publicacion?.titulo]);
 
   const formatearFecha = (fecha: string) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -283,7 +313,7 @@ export default function LecturaSimplificada() {
 
   if (!accesoPermitido) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -330,6 +360,9 @@ export default function LecturaSimplificada() {
   }
 
   if (error || !publicacion) {
+    useEffect(() => {
+      document.title = "Publicación no encontrada - Axotl Xires";
+    }, []);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -343,242 +376,265 @@ export default function LecturaSimplificada() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Contenedor principal con grid de 3 columnas */}
-      <div className="grid grid-cols-12 gap-6 max-w-screen-2xl mx-auto px-4 py-8">
-        {/* Columna izquierda - Portada y detalles */}
-        <div className="col-span-3">
-          <motion.div 
-            className="sticky top-24 space-y-6"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Mensaje de publicación privada */}
-            {publicacion?.es_privada === 1 && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center gap-3"
-              >
-                <div className="bg-purple-100 rounded-full p-2">
-                  <svg
-                    className="w-5 h-5 text-purple-600"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M12 15v2m0 0v2m0-2h2m-2 0H8m4-6V4"></path>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-purple-700 font-medium">Publicación Privada</p>
-                  <p className="text-purple-600 text-sm">Solo tú puedes ver esta publicación</p>
-                </div>
-              </motion.div>
-            )}
+    <>
+      {publicacion && (
+        <SEOMetadata 
+          titulo={publicacion.titulo}
+          descripcion={publicacion.resumen}
+          imagen={publicacion.imagen_portada ? 
+            `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` : 
+            undefined
+          }
+          autor={publicacion.autor}
+          fechaPublicacion={publicacion.fecha_publicacion}
+          tipoPublicacion={publicacion.tipo_publicacion}
+          url={`/publicaciones/${publicacion.id_publicacion}`}
+        />
+      )}
+      
+      <div className="min-h-screen">
+        {/* Contenedor principal con grid de 3 columnas */}
+        <div className="grid grid-cols-12 gap-6 max-w-screen-2xl mx-auto px-4 py-8">
+          {/* Columna izquierda - Portada y detalles */}
+          <div className="col-span-3">
+            <motion.div 
+              className="sticky top-24 space-y-6"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Mensaje de publicación privada */}
+              {publicacion?.es_privada === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-purple-50 border border-purple-200 rounded-lg p-4 flex items-center gap-3"
+                >
+                  <div className="bg-purple-100 rounded-full p-2">
+                    <svg
+                      className="w-5 h-5 text-purple-600"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M12 15v2m0 0v2m0-2h2m-2 0H8m4-6V4"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-purple-700 font-medium">Publicación Privada</p>
+                    <p className="text-purple-600 text-sm">Solo tú puedes ver esta publicación</p>
+                  </div>
+                </motion.div>
+              )}
 
-            {/* Portada */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="aspect-[612/792]">
-                <img
-                  src={publicacion?.imagen_portada ? 
-                    `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
-                    `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
-                  }
-                  alt={publicacion?.titulo}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            {/* Detalles del autor */}
-            <div className="bg-white rounded-lg shadow-lg p-6 relative">
-              <div className="flex items-center gap-4 mb-4">
-                <Avatar className="h-12 w-12">
-                  <img 
-                    src={publicacion?.autor_foto || `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`}
-                    alt={publicacion?.autor}
+              {/* Portada */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="aspect-[612/792]">
+                  <img
+                    src={publicacion?.imagen_portada ? 
+                      `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
+                      `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
+                    }
+                    alt={publicacion?.titulo}
+                    className="w-full h-full object-cover"
                   />
-                </Avatar>
-                <div>
-                  <Link 
-                    href={`/perfiles/${publicacion?.id_usuario}`}
-                    className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                  >
-                    {publicacion?.autor}
-                  </Link>
-                  <p className="text-sm text-gray-500">
-                    {publicacion?.tipo_publicacion}
-                  </p>
                 </div>
               </div>
-              <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  {formatearFecha(publicacion?.fecha_publicacion || '')}
-                </div>
-                <motion.button
-                  onClick={toggleFavorito}
-                  disabled={actualizandoFavorito}
-                  className="flex items-center gap-2 w-full hover:bg-gray-50 p-1 rounded transition-colors"
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.div
-                    animate={esFavorito ? {
-                      scale: [1, 1.2, 1],
-                      rotate: [0, 15, -15, 0]
-                    } : {}}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <Star className={`h-4 w-4 ${
-                      esFavorito ? "fill-yellow-400 text-yellow-400" : "text-gray-400"
-                    }`} />
-                  </motion.div>
-                  <motion.span
-                    animate={{
-                      scale: contadorAnimado ? [1, 1.2, 1] : 1,
-                      color: contadorAnimado ? 
-                        esFavorito ? ["#1F2937", "#EAB308", "#1F2937"] : 
-                        ["#1F2937", "#DC2626", "#1F2937"] : "#1F2937"
-                    }}
-                  >
-                    {cantidadFavoritos} favoritos
-                  </motion.span>
-                </motion.button>
-                <button
-                  onClick={() => setMostrarComentarios(true)}
-                  className="flex items-center gap-2 w-full hover:bg-gray-50 p-1 rounded transition-colors"
-                >
-                  <MessageSquare className="h-4 w-4 text-blue-500" />
-                  {publicacion?.total_comentarios} comentarios
-                </button>
 
-                {/* Panel de comentarios */}
-                <AnimatePresence>
-                  {mostrarComentarios && (
-                    <PanelComentarios
-                      mostrar={mostrarComentarios}
-                      onClose={() => setMostrarComentarios(false)}
-                      idPublicacion={Number(params.idPublicacion)}
+              {/* Detalles del autor */}
+              <div className="bg-white rounded-lg shadow-lg p-6 relative" onClick={(e) => {
+                if (mostrarComentarios) {
+                  e.stopPropagation();
+                  setMostrarComentarios(false);
+                }
+              }}>
+                <div className="flex items-center gap-4 mb-4">
+                  <Avatar className="h-12 w-12">
+                    <img 
+                      src={publicacion?.autor_foto || `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`}
+                      alt={publicacion?.autor}
                     />
-                  )}
-                </AnimatePresence>
+                  </Avatar>
+                  <div>
+                    <Link 
+                      href={`/perfiles/${publicacion?.id_usuario}`}
+                      className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
+                    >
+                      {publicacion?.autor}
+                    </Link>
+                    <p className="text-sm text-gray-500">
+                      {publicacion?.tipo_publicacion}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {formatearFecha(publicacion?.fecha_publicacion || '')}
+                  </div>
+                  <motion.button
+                    onClick={toggleFavorito}
+                    disabled={actualizandoFavorito}
+                    className="flex items-center gap-2 w-full hover:bg-gray-50 p-1 rounded transition-colors"
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <motion.div
+                      animate={esFavorito ? {
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 15, -15, 0]
+                      } : {}}
+                      transition={{ duration: 0.4 }}
+                    >
+                      <Star className={`h-4 w-4 ${
+                        esFavorito ? "fill-yellow-400 text-yellow-400" : "text-gray-400"
+                      }`} />
+                    </motion.div>
+                    <motion.span
+                      animate={{
+                        scale: contadorAnimado ? [1, 1.2, 1] : 1,
+                        color: contadorAnimado ? 
+                          esFavorito ? ["#1F2937", "#EAB308", "#1F2937"] : 
+                          ["#1F2937", "#DC2626", "#1F2937"] : "#1F2937"
+                      }}
+                    >
+                      {cantidadFavoritos} favoritos
+                    </motion.span>
+                  </motion.button>
+                  <button
+                    onClick={() => setMostrarComentarios(true)}
+                    className="flex items-center gap-2 w-full hover:bg-gray-50 p-1 rounded transition-colors"
+                  >
+                    <MessageSquare className="h-4 w-4 text-blue-500" />
+                    {publicacion?.total_comentarios} comentarios
+                  </button>
+
+                  {/* Panel de comentarios */}
+                  <AnimatePresence>
+                    {mostrarComentarios && (
+                      <PanelComentarios
+                        mostrar={mostrarComentarios}
+                        onClose={() => setMostrarComentarios(false)}
+                        idPublicacion={Number(params.idPublicacion)}
+                      />
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Columna central - Contenido principal */}
-        <motion.article 
-          className="col-span-7 bg-white shadow-lg rounded-lg overflow-hidden"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Título y resumen */}
-          <header className="p-8 border-b">
-            <h1 className="text-4xl font-bold text-gray-900 mb-6 font-crimson">
-              {publicacion?.titulo}
-            </h1>
-            <p className="text-xl text-gray-600 font-crimson leading-relaxed">
-              {publicacion?.resumen}
-            </p>
-          </header>
-
-          {/* Contenido */}
-          <div className="p-8">
-            <style jsx global>{`
-              @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
-              
-              .contenido-publicacion {
-                font-family: 'Crimson Text', serif;
-                font-size: 1.125rem;
-                line-height: 1.8;
-                color: #1a1a1a;
-              }
-
-              .contenido-publicacion h1,
-              .contenido-publicacion h2,
-              .contenido-publicacion h3 {
-                font-weight: 700;
-                color: #111827;
-                margin: 1.5em 0 0.5em;
-              }
-
-              .contenido-publicacion h1 { font-size: 2em; }
-              .contenido-publicacion h2 { font-size: 1.75em; }
-              .contenido-publicacion h3 { font-size: 1.5em; }
-
-              .contenido-publicacion p { margin: 1em 0; }
-
-              .contenido-publicacion img {
-                max-width: 100%;
-                height: auto;
-                margin: 2em auto;
-                border-radius: 0.5rem;
-              }
-
-              .contenido-publicacion a {
-                color: #2563eb;
-                text-decoration: underline;
-              }
-
-              .contenido-publicacion blockquote {
-                border-left: 4px solid #e5e7eb;
-                padding-left: 1em;
-                margin: 1.5em 0;
-                font-style: italic;
-                color: #4b5563;
-              }
-            `}</style>
-            <div 
-              className="contenido-publicacion"
-              dangerouslySetInnerHTML={{ __html: publicacion?.contenido || '' }}
-            />
+            </motion.div>
           </div>
 
-          {/* Referencias */}
-          {publicacion?.referencias && (
-            <footer className="p-8 bg-gray-50 border-t">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 font-crimson">
-                Referencias
-              </h2>
-              <div className="prose max-w-none font-crimson">
-                <pre className="whitespace-pre-wrap text-lg text-gray-600">
-                  {publicacion.referencias}
-                </pre>
-              </div>
-            </footer>
-          )}
-        </motion.article>
-
-        {/* Columna derecha - Navegación y acciones */}
-        <div className="col-span-2">
-          <motion.div 
-            className="sticky top-24 space-y-4"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+          {/* Columna central - Contenido principal */}
+          <motion.article 
+            className="col-span-7 bg-white shadow-lg rounded-lg overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <h3 className="font-medium text-gray-900 mb-3">
-                Acciones
-              </h3>
-              <div className="space-y-2">
-                <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                  <BookOpen className="h-4 w-4" />
-                  Modo lectura
-                </button>
-                {/* Más acciones aquí */}
-              </div>
+            {/* Título y resumen */}
+            <header className="p-8 border-b">
+              <h1 className="text-4xl font-bold text-gray-900 mb-6 font-crimson">
+                {publicacion?.titulo}
+              </h1>
+              <p className="text-xl text-gray-600 font-crimson leading-relaxed">
+                {publicacion?.resumen}
+              </p>
+            </header>
+
+            {/* Contenido */}
+            <div className="p-8">
+              <style jsx global>{`
+                @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
+                
+                .contenido-publicacion {
+                  font-family: 'Crimson Text', serif;
+                  font-size: 1.125rem;
+                  line-height: 1.8;
+                  color: #1a1a1a;
+                }
+
+                .contenido-publicacion h1,
+                .contenido-publicacion h2,
+                .contenido-publicacion h3 {
+                  font-weight: 700;
+                  color: #111827;
+                  margin: 1.5em 0 0.5em;
+                }
+
+                .contenido-publicacion h1 { font-size: 2em; }
+                .contenido-publicacion h2 { font-size: 1.75em; }
+                .contenido-publicacion h3 { font-size: 1.5em; }
+
+                .contenido-publicacion p { margin: 1em 0; }
+
+                .contenido-publicacion img {
+                  max-width: 100%;
+                  height: auto;
+                  margin: 2em auto;
+                  border-radius: 0.5rem;
+                }
+
+                .contenido-publicacion a {
+                  color: #2563eb;
+                  text-decoration: underline;
+                }
+
+                .contenido-publicacion blockquote {
+                  border-left: 4px solid #e5e7eb;
+                  padding-left: 1em;
+                  margin: 1.5em 0;
+                  font-style: italic;
+                  color: #4b5563;
+                }
+              `}</style>
+              <div 
+                className="contenido-publicacion"
+                dangerouslySetInnerHTML={{ __html: publicacion?.contenido || '' }}
+              />
             </div>
-          </motion.div>
+
+            {/* Referencias */}
+            {publicacion?.referencias && (
+              <footer className="p-8 bg-gray-50 border-t">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 font-crimson">
+                  Referencias
+                </h2>
+                <div className="prose max-w-none font-crimson">
+                  <pre className="whitespace-pre-wrap text-lg text-gray-600">
+                    {publicacion.referencias}
+                  </pre>
+                </div>
+              </footer>
+            )}
+          </motion.article>
+
+          {/* Columna derecha - Navegación y acciones */}
+          <div className="col-span-2">
+            <motion.div 
+              className="sticky top-24 space-y-4"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+                {/* Sección para agregar acciones de lectura */}
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <h3 className="font-medium text-gray-900 mb-3">
+                  Acciones
+                </h3>
+                <div className="space-y-2">
+                  <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                    <BookOpen className="h-4 w-4" />
+                    Modo lectura
+                  </button>
+                  {/* Más acciones aquí */}
+                </div>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
-} 
+}

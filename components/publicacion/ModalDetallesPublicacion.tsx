@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquare, Book, FileText, Download, X } from 'lucide-react';
@@ -8,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SeccionComentarios } from './SeccionComentarios';
 import { useRouter } from 'next/navigation';
+import Tooltip from "@/components/global/Tooltip";
 
 interface PropiedadesModal {
   estaAbierto: boolean;
@@ -23,6 +26,64 @@ interface PropiedadesModal {
     favoritos: number;
   };
 }
+
+interface Categoria {
+  id_tipo: number;
+  categoria: string;
+  descripcion: string;
+}
+
+interface CategoriaProps {
+  idPublicacion: number;
+}
+
+export const CategoriaPublicacion = ({ idPublicacion }: CategoriaProps) => {
+  const [categoria, setCategoria] = useState<Categoria | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const obtenerCategoria = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/categoria`
+        );
+
+        if (!response.ok) {
+          throw new Error('Error al obtener la categoría');
+        }
+
+        const data = await response.json();
+        setCategoria(data.datos);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+        console.error('Error al cargar la categoría:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    obtenerCategoria();
+  }, [idPublicacion]);
+
+  if (isLoading) {
+    return <span className="animate-pulse bg-gray-200 rounded h-5 w-24 inline-block" />;
+  }
+
+  if (error || !categoria) {
+    return <span className="text-gray-500">Categoría no disponible</span>;
+  }
+
+  return (
+    <Tooltip message={categoria.descripcion}>
+      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 cursor-help">
+        {categoria.categoria}
+      </span>
+    </Tooltip>
+  );
+};
 
 const ModalDetallesPublicacion = ({
   estaAbierto,
@@ -297,7 +358,7 @@ const ModalDetallesPublicacion = ({
                   <div className="flex justify-between items-center">
                     <div>
                       <span className="text-sm text-gray-500">Categoría:</span>
-                      <span className="ml-2 text-gray-900">{publicacion.categoria}</span>
+                      <span className="ml-2 text-gray-900"><CategoriaPublicacion idPublicacion={publicacion.id_publicacion} /></span>
                     </div>
                     <div className="flex items-center gap-2">
                       <motion.span 
@@ -357,4 +418,4 @@ const ModalDetallesPublicacion = ({
   );
 };
 
-export default ModalDetallesPublicacion; 
+export default ModalDetallesPublicacion;

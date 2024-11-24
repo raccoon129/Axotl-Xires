@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Publicacion } from '@/type/typePublicacion';
 import { BookOpen, Edit, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 interface PropsTarjetaPublicacion {
     publicacion?: Publicacion;
@@ -22,6 +23,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     alSolicitarBaja,
     isLoading = false
 }) => {
+    const router = useRouter();
     const [imageLoaded, setImageLoaded] = useState(false);
 
     const obtenerColorEstado = (estado: Publicacion['estado']) => {
@@ -51,6 +53,10 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     const obtenerUrlPortada = (nombreImagen: string | undefined | null) => {
         if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
         return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+    };
+
+    const irALectura = () => {
+        router.push(`/publicaciones/${publicacion?.id_publicacion}`);
     };
 
     if (isLoading) {
@@ -115,7 +121,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                         <div className="flex flex-wrap gap-2">
                             <Button 
                                 variant="outline" 
-                                onClick={() => alLeer(publicacion!.id_publicacion)}
+                                onClick={irALectura}
                                 className="flex items-center gap-2 bg-white hover:bg-gray-50 w-full sm:w-auto"
                             >
                                 <BookOpen className="w-4 h-4" />

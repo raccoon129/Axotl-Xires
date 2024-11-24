@@ -7,6 +7,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SeccionComentarios } from './SeccionComentarios';
+import { useRouter } from 'next/navigation';
 
 interface PropiedadesModal {
   estaAbierto: boolean;
@@ -35,6 +36,7 @@ const ModalDetallesPublicacion = ({
   const [cargandoComentarios, setCargandoComentarios] = useState(false);
   const [contadorAnimado, setContadorAnimado] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const router = useRouter();
 
   const formatearFecha = (fecha: string) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -153,6 +155,11 @@ const ModalDetallesPublicacion = ({
     return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
   };
 
+  const irALecturaSimplificada = () => {
+    router.push(`/publicaciones/${publicacion.id_publicacion}`);
+    alCerrar(); // Cerramos el modal después de la redirección
+  };
+
   return (
     <AnimatePresence mode="wait">
       {estaAbierto && (
@@ -268,6 +275,7 @@ const ModalDetallesPublicacion = ({
                     </Button>
                     <Button 
                       variant="outline"
+                      onClick={irALecturaSimplificada}
                       className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-orange-50 text-orange-600 h-auto"
                     >
                       <FileText className="h-5 w-5" />

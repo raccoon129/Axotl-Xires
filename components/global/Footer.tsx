@@ -36,7 +36,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-gray-200 text-center">
-          <p>Axotl Xires Publicaciones © 2024 - Algunos derechos reservados.</p>
+          <p>Axotl Xires Publicaciones © 2024 - Derechos reservados.</p>
         </div>
       </div>
     </footer>

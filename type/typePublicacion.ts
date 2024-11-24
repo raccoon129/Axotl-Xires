@@ -14,5 +14,7 @@ export interface Publicacion {
   eliminado: boolean;
   fecha_eliminacion: string | null;
   autor:  string;
+  tipo_publicacion: string;
+  total_favoritos: number;
 
   }

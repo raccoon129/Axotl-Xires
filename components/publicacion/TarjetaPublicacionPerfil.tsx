@@ -4,9 +4,10 @@ import { FC, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Publicacion } from '@/type/typePublicacion';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ModalDetallesPublicacion from './ModalDetallesPublicacion';
+import { useRouter } from 'next/navigation';
 
 interface PropsTarjetaPublicacionPerfil {
     publicacion: Publicacion;
@@ -19,6 +20,7 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
     alLeer,
     isLoading = false
 }) => {
+    const router = useRouter();
     const [imageLoaded, setImageLoaded] = useState(false);
     const [modalAbierto, setModalAbierto] = useState(false);
     const [cargandoDetalles, setCargandoDetalles] = useState(false);
@@ -55,6 +57,10 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
         return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
     };
 
+    const irALectura = () => {
+        router.push(`/publicaciones/${publicacion.id_publicacion}`);
+    };
+
     if (isLoading) {
         return (
             <Card className="w-full hover:shadow-lg transition-shadow duration-300">
@@ -69,6 +75,7 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                                 <Skeleton className="h-4 w-1/2" />
                             </div>
                             <div className="flex gap-2 mt-4">
+                                <Skeleton className="h-10 w-24" />
                                 <Skeleton className="h-10 w-24" />
                             </div>
                         </div>
@@ -120,12 +127,19 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                             <div className="flex gap-2 mt-4">
                                 <Button 
                                     variant="outline" 
-                                    onClick={obtenerDetallesPublicacion}
+                                    onClick={irALectura}
                                     className="flex items-center gap-2 bg-white hover:bg-gray-50"
-                                    disabled={cargandoDetalles}
                                 >
                                     <BookOpen className="w-4 h-4" />
-                                    {cargandoDetalles ? 'Cargando...' : 'Leer publicación'}
+                                    Leer publicación
+                                </Button>
+                                <Button 
+                                    variant="outline" 
+                                    onClick={obtenerDetallesPublicacion}
+                                    className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                >
+                                    <Info className="w-4 h-4" />
+                                    Ver detalles
                                 </Button>
                             </div>
                         </div>

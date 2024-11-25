@@ -38,7 +38,7 @@ const FormularioInicioSesion = () => {
           description: "Has iniciado sesión correctamente.",
         });
 
-        router.push(`/perfiles/${datos.usuario.id}`);
+        window.location.href = `/perfiles/${datos.usuario.id}`;
       } else {
         toast({
           title: "Error de inicio de sesión",
@@ -67,7 +67,7 @@ const FormularioInicioSesion = () => {
         onChange={(e) => setCorreo(e.target.value)}
         required
         disabled={cargando}
-        className="w-full"
+        className="w-full bg-white/50 backdrop-blur-sm"
       />
       <Input
         type="password"
@@ -76,15 +76,19 @@ const FormularioInicioSesion = () => {
         onChange={(e) => setContrasena(e.target.value)}
         required
         disabled={cargando}
-        className="w-full"
+        className="w-full bg-white/50 backdrop-blur-sm"
       />
-      <Button type="submit" disabled={cargando} className="w-full">
+      <Button 
+        type="submit" 
+        disabled={cargando}
+        className="w-full bg-[#612c7d] hover:bg-[#7d3ba3] transition-colors"
+      >
         {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
       </Button>
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600">
           ¿No tienes una cuenta?{' '}
-          <Link href="/registro" className="text-blue-600 hover:text-blue-800">
+          <Link href="/registro" className="text-[#612c7d] hover:text-[#7d3ba3] font-semibold">
             Regístrate
           </Link>
         </p>

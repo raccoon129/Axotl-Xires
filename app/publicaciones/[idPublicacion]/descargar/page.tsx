@@ -42,6 +42,7 @@ export default function DescargarPublicacion() {
 
         const data = await respuesta.json();
         setPublicacion(data.datos);
+        document.title = `Descargando "${data.datos.titulo}" - Axotl Xires`;
       } catch (error) {
         setError('Error al cargar la publicación');
         console.error('Error:', error);

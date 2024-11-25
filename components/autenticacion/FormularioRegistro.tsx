@@ -100,8 +100,8 @@ const FormularioRegistro = () => {
         description: datos.mensaje || "Tu cuenta ha sido creada correctamente.",
       });
 
-      // Redirigir al perfil
-      router.push(`/perfiles/${datos.usuario.id}`);
+      // Forzar actualización de la página
+      window.location.href = `/perfiles/${datos.usuario.id}`;
       
     } catch (error) {
       console.error('Error durante el registro:', error);
@@ -116,108 +116,100 @@ const FormularioRegistro = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#612c7d] py-16 flex items-center justify-center">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8 m-4 transform transition-all hover:scale-105">
-        <h2 className="text-3xl font-bold text-center mb-8 text-[#612c7d]">
-          Crear Cuenta
-        </h2>
-        
-        <form onSubmit={manejarEnvio} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
-              Nombre
-            </label>
-            <Input
-              id="nombre"
-              type="text"
-              name="nombre"
-              placeholder="Tu nombre completo"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-              disabled={cargando}
-              className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#612c7d] focus:border-transparent ${
-                errores.nombre ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {errores.nombre && (
-              <p className="text-red-500 text-xs italic mt-1">{errores.nombre}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="correo" className="block text-sm font-medium text-gray-700">
-              Correo Electrónico
-            </label>
-            <Input
-              id="correo"
-              type="email"
-              name="correo"
-              placeholder="tucorreo@ejemplo.com"
-              value={formData.correo}
-              onChange={handleChange}
-              required
-              disabled={cargando}
-              className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#612c7d] focus:border-transparent ${
-                errores.correo ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {errores.correo && (
-              <p className="text-red-500 text-xs italic mt-1">{errores.correo}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="contrasena" className="block text-sm font-medium text-gray-700">
-              Contraseña
-            </label>
-            <Input
-              id="contrasena"
-              type="password"
-              name="contrasena"
-              placeholder="••••••••"
-              value={formData.contrasena}
-              onChange={handleChange}
-              required
-              disabled={cargando}
-              className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#612c7d] focus:border-transparent ${
-                errores.contrasena ? 'border-red-500' : 'border-gray-300'
-              }`}
-            />
-            {errores.contrasena && (
-              <p className="text-red-500 text-xs italic mt-1">{errores.contrasena}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Button 
-              type="submit" 
-              disabled={cargando}
-              className="w-full bg-[#612c7d] hover:bg-[#4a2161] text-white py-2 px-4 rounded-lg transition-colors duration-300"
-            >
-              {cargando ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Registrando...
-                </div>
-              ) : (
-                'Crear Cuenta'
-              )}
-            </Button>
-          </div>
-        </form>
-
-        <p className="mt-8 text-center text-sm text-gray-600">
-          ¿Ya tienes una cuenta?{' '}
-          <a href="/login" className="font-medium text-[#612c7d] hover:text-[#4a2161]">
-            Inicia sesión
-          </a>
-        </p>
+    <form onSubmit={manejarEnvio} className="space-y-6">
+      <div className="space-y-2">
+        <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
+          Nombre
+        </label>
+        <Input
+          id="nombre"
+          type="text"
+          name="nombre"
+          placeholder="Tu nombre completo"
+          value={formData.nombre}
+          onChange={handleChange}
+          required
+          disabled={cargando}
+          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#612c7d] focus:border-transparent ${
+            errores.nombre ? 'border-red-500' : 'border-gray-300'
+          }`}
+        />
+        {errores.nombre && (
+          <p className="text-red-500 text-xs italic mt-1">{errores.nombre}</p>
+        )}
       </div>
-    </div>
+
+      <div className="space-y-2">
+        <label htmlFor="correo" className="block text-sm font-medium text-gray-700">
+          Correo Electrónico
+        </label>
+        <Input
+          id="correo"
+          type="email"
+          name="correo"
+          placeholder="tucorreo@ejemplo.com"
+          value={formData.correo}
+          onChange={handleChange}
+          required
+          disabled={cargando}
+          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#612c7d] focus:border-transparent ${
+            errores.correo ? 'border-red-500' : 'border-gray-300'
+          }`}
+        />
+        {errores.correo && (
+          <p className="text-red-500 text-xs italic mt-1">{errores.correo}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="contrasena" className="block text-sm font-medium text-gray-700">
+          Contraseña
+        </label>
+        <Input
+          id="contrasena"
+          type="password"
+          name="contrasena"
+          placeholder="••••••••"
+          value={formData.contrasena}
+          onChange={handleChange}
+          required
+          disabled={cargando}
+          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#612c7d] focus:border-transparent ${
+            errores.contrasena ? 'border-red-500' : 'border-gray-300'
+          }`}
+        />
+        {errores.contrasena && (
+          <p className="text-red-500 text-xs italic mt-1">{errores.contrasena}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Button 
+          type="submit" 
+          disabled={cargando}
+          className="w-full bg-[#612c7d] hover:bg-[#4a2161] text-white py-2 px-4 rounded-lg transition-colors duration-300"
+        >
+          {cargando ? (
+            <div className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Registrando...
+            </div>
+          ) : (
+            'Crear Cuenta'
+          )}
+        </Button>
+      </div>
+
+      <p className="mt-8 text-center text-sm text-gray-600">
+        ¿Ya tienes una cuenta?{' '}
+        <a href="/login" className="font-medium text-[#612c7d] hover:text-[#4a2161]">
+          Inicia sesión
+        </a>
+      </p>
+    </form>
   );
 };
 

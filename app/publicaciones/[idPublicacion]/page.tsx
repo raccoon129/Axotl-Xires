@@ -599,7 +599,7 @@ export default function PublicacionPage() {
             {publicacion?.referencias && (
               <footer className="p-8 bg-gray-50 border-t">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4 font-crimson">
-                  Referencias
+                  Fuentes de consulta
                 </h2>
                 <div className="prose max-w-none font-crimson">
                   <pre className="whitespace-pre-wrap text-lg text-gray-600">

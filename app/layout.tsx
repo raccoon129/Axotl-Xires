@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Navbar from '@/components/global/Navbar';
 import Footer from '@/components/global/Footer';
+import BannerRegistro from '@/components/global/BannerRegistro';
+import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -31,8 +33,12 @@ export default function RootLayout({
     <html lang="es">
       <body className={inter.className}>
         <Navbar />
-        <main className="min-h-screen bg-[#f3f4f6]">{children}</main>
+        <main>
+          {children}
+        </main>
         <Footer />
+        <BannerRegistro />
+        <Toaster />
       </body>
     </html>
   );

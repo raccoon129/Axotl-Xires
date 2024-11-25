@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import TarjetaPublicacion from '@/components/publicacion/TarjetaPublicacion';
+import TarjetaPublicacion from '@/components/publicacion/TarjetaPublicacionAdministrador';
 import { Publicacion } from '@/type/typePublicacion';
 import { AuthGuard } from '@/components/autenticacion/AuthGuard';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -109,6 +109,20 @@ export default function PaginaPublicaciones() {
         return colores[estado as keyof typeof colores] || 'bg-gray-200 hover:bg-gray-300';
     };
 
+    const handlePrivacidadCambiada = (idPublicacion: number, nuevoEstado: number) => {
+        setPublicaciones(prevPublicaciones => 
+            prevPublicaciones.map(pub => {
+                if (pub.id_publicacion === idPublicacion) {
+                    return {
+                        ...pub,
+                        es_privada: nuevoEstado
+                    };
+                }
+                return pub;
+            })
+        );
+    };
+
     return (
         <AuthGuard>
             <div className="container mx-auto px-8 md:px-16 lg:px-24 py-8">
@@ -170,6 +184,7 @@ export default function PaginaPublicaciones() {
                                     alLeer={manejarLectura}
                                     alEditar={manejarEdicion}
                                     alSolicitarBaja={manejarSolicitudBaja}
+                                    onPrivacidadCambiada={handlePrivacidadCambiada}
                                 />
                             </motion.div>
                         ))}

@@ -28,7 +28,7 @@ export const TarjetaVerticalPublicacion = ({
     // Simular un tiempo mínimo de carga para el skeleton
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, []);
@@ -66,7 +66,10 @@ export const TarjetaVerticalPublicacion = ({
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-10 w-full" />
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Skeleton className="h-10 w-full sm:w-1/2" />
+            <Skeleton className="h-10 w-full sm:w-auto" />
+          </div>
         </CardContent>
       </Card>
     );
@@ -74,7 +77,7 @@ export const TarjetaVerticalPublicacion = ({
 
   return (
     <>
-      <Card className={`relative ${className} overflow-hidden transition-shadow duration-300 hover:shadow-lg group`}>
+      <Card className={`relative ${className} overflow-hidden transition-shadow duration-300 hover:shadow-lg`}>
         {Boolean(publicacion.es_privada) && (
           <div className="absolute top-2 right-2 z-10 bg-black/70 text-white px-2 py-1 rounded-full flex items-center gap-1">
             <Lock className="w-3 h-3" />
@@ -82,58 +85,74 @@ export const TarjetaVerticalPublicacion = ({
           </div>
         )}
         
-        {/* Contenedor de imagen con animación en hover */}
-        <div className="relative w-full h-48 overflow-hidden transition-all duration-500 ease-in-out group-hover:h-80">
-          {!imageLoaded && (
-            <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-          )}
-          <div className="relative w-full h-full transform transition-transform duration-500 ease-in-out group-hover:scale-110">
-            <Image
-              src={obtenerUrlPortada(publicacion.imagen_portada)}
-              alt={publicacion.titulo}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              className={`object-cover transition-all duration-500 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)}
-              priority
-            />
+        {/* Contenedor de imagen con ratio fijo y animación */}
+        <div className="relative w-full overflow-hidden transition-all duration-300 ease-in-out">
+          <div 
+            className="relative w-full h-48 transition-all duration-300 ease-in-out hover:h-72"
+            onMouseEnter={(e) => {
+              // Detener la propagación del evento para que solo afecte a esta tarjeta
+              e.stopPropagation();
+              const target = e.currentTarget;
+              target.style.height = '18rem'; // h-72 equivale a 18rem
+            }}
+            onMouseLeave={(e) => {
+              const target = e.currentTarget;
+              target.style.height = '12rem'; // h-48 equivale a 12rem
+            }}
+          >
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+            )}
+            <div className="relative w-full h-full">
+              <Image
+                src={obtenerUrlPortada(publicacion.imagen_portada)}
+                alt={publicacion.titulo}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+                className={`object-cover transition-all duration-300 ease-in-out ${
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                }`}
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageLoaded(true)}
+                priority
+              />
+            </div>
           </div>
         </div>
 
-        <CardHeader>
+        <CardHeader className="space-y-2">
           <CardTitle 
-            className="cursor-pointer hover:text-blue-600 transition-colors duration-200 line-clamp-2"
+            className="cursor-pointer hover:text-blue-600 transition-colors duration-200 line-clamp-2 text-lg sm:text-xl"
             onClick={() => setModalAbierto(true)}
           >
             {publicacion.titulo}
           </CardTitle>
         </CardHeader>
 
-        <CardContent>
-          <p className="text-sm text-gray-700 mb-4 line-clamp-3">{publicacion.resumen}</p>
-          <p className="text-sm text-gray-600 mb-2">Por: {publicacion.autor}</p>
-          <p className="text-sm text-gray-500 mb-4">
-            Publicado el: {formatearFecha(publicacion.fecha_publicacion)}
-          </p>
-          <div className="flex gap-2">
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-700 line-clamp-3">{publicacion.resumen}</p>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-600">Por: {publicacion.autor}</p>
+            <p className="text-sm text-gray-500">
+              Publicado el: {formatearFecha(publicacion.fecha_publicacion)}
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button 
               variant="outline" 
               onClick={irALectura}
-              className="flex-1 flex items-center justify-center gap-2 bg-white hover:bg-gray-50"
+              className="w-full sm:flex-1 flex items-center justify-center gap-2 bg-white hover:bg-gray-50"
             >
               <BookOpen className="w-4 h-4" />
-              Leer publicación
+              <span className="whitespace-nowrap">Leer publicación</span>
             </Button>
             <Button 
               variant="outline" 
               onClick={() => setModalAbierto(true)}
-              className="flex items-center gap-2 bg-white hover:bg-gray-50"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white hover:bg-gray-50"
             >
               <Info className="w-4 h-4" />
-              Ver detalles
+              <span className="whitespace-nowrap">Ver detalles</span>
             </Button>
           </div>
         </CardContent>
@@ -148,7 +167,7 @@ export const TarjetaVerticalPublicacion = ({
             titulo: publicacion.titulo,
             resumen: publicacion.resumen,
             autor: publicacion.autor,
-            fecha_publicacion: publicacion.fecha_publicacion || publicacion.fecha_creacion || "Fecha no disponible",
+            fecha_publicacion: publicacion.fecha_publicacion || "Fecha no disponible",
             imagen_portada: publicacion.imagen_portada,
             categoria: publicacion.tipo_publicacion,
             favoritos: publicacion.total_favoritos

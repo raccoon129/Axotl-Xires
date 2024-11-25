@@ -4,9 +4,20 @@ import { FC, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Publicacion } from '@/type/typePublicacion';
-import { BookOpen, Edit, AlertCircle } from 'lucide-react';
+import { BookOpen, Edit, AlertCircle, Lock, Unlock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import NotificacionChip from '@/components/global/NotificacionChip';
 
 interface PropsTarjetaPublicacion {
     publicacion?: Publicacion;
@@ -14,6 +25,7 @@ interface PropsTarjetaPublicacion {
     alEditar: (id: number) => void;
     alSolicitarBaja: (id: number) => void;
     isLoading?: boolean;
+    onPrivacidadCambiada?: (idPublicacion: number, nuevoEstado: number) => void;
 }
 
 const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
@@ -21,10 +33,19 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     alLeer,
     alEditar,
     alSolicitarBaja,
-    isLoading = false
+    isLoading = false,
+    onPrivacidadCambiada
 }) => {
     const router = useRouter();
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [mostrarDialogo, setMostrarDialogo] = useState(false);
+    const [actualizandoPrivacidad, setActualizandoPrivacidad] = useState(false);
+    const [notificaciones, setNotificaciones] = useState<Array<{
+        id: number;
+        tipo: "excepcion" | "confirmacion" | "notificacion";
+        titulo: string;
+        contenido: string;
+    }>>([]);
 
     const obtenerColorEstado = (estado: Publicacion['estado']) => {
         const colores = {
@@ -57,6 +78,66 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
 
     const irALectura = () => {
         router.push(`/publicaciones/${publicacion?.id_publicacion}`);
+    };
+
+    const agregarNotificacion = (notificacion: {
+        tipo: "excepcion" | "confirmacion" | "notificacion";
+        titulo: string;
+        contenido: string;
+    }) => {
+        const nuevaNotificacion = {
+            id: Date.now(),
+            ...notificacion
+        };
+        setNotificaciones(prev => [...prev, nuevaNotificacion]);
+
+        // Remover la notificación después de 3 segundos
+        setTimeout(() => {
+            setNotificaciones(prev => prev.filter(n => n.id !== nuevaNotificacion.id));
+        }, 5000);
+    };
+
+    const togglePrivacidad = async () => {
+        if (!publicacion || publicacion.estado !== 'publicado') return;
+        
+        try {
+            setActualizandoPrivacidad(true);
+            const token = localStorage.getItem('token');
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/${publicacion.id_publicacion}/privacidad`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+                agregarNotificacion({
+                    tipo: "confirmacion",
+                    titulo: "Privacidad actualizada",
+                    contenido: `La publicación ahora es ${data.datos.es_privada ? 'privada' : 'pública'}`
+                });
+                
+                if (onPrivacidadCambiada) {
+                    onPrivacidadCambiada(publicacion.id_publicacion, data.datos.es_privada);
+                }
+            } else {
+                throw new Error(data.mensaje || 'Error al actualizar la privacidad');
+            }
+        } catch (error) {
+            agregarNotificacion({
+                tipo: "excepcion",
+                titulo: "Error",
+                contenido: "No se pudo actualizar la privacidad de la publicación"
+            });
+        } finally {
+            setActualizandoPrivacidad(false);
+            setMostrarDialogo(false);
+        }
     };
 
     if (isLoading) {
@@ -147,9 +228,64 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                 <AlertCircle className="w-4 h-4" />
                                 Solicitar Baja
                             </Button>
+                            
+                            {publicacion?.estado === 'publicado' && (
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setMostrarDialogo(true)}
+                                    disabled={actualizandoPrivacidad}
+                                    className="flex items-center gap-2 bg-white hover:bg-gray-50 w-full sm:w-auto"
+                                >
+                                    {publicacion.es_privada === 1 ? (
+                                        <>
+                                            <Lock className="w-4 h-4" />
+                                            Privada
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Unlock className="w-4 h-4" />
+                                            Pública
+                                        </>
+                                    )}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
+
+                <AlertDialog open={mostrarDialogo} onOpenChange={setMostrarDialogo}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {publicacion?.es_privada ? 
+                                    "¿Hacer pública esta publicación?" : 
+                                    "¿Hacer privada esta publicación?"
+                                }
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {publicacion?.es_privada ?
+                                    "Al hacer pública la publicación, todos los usuarios podrán verla." :
+                                    "Al hacer privada la publicación, solo tú podrás verla."
+                                }
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={togglePrivacidad}>
+                                Confirmar
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {notificaciones.map((notificacion) => (
+                    <NotificacionChip
+                        key={notificacion.id}
+                        tipo={notificacion.tipo}
+                        titulo={notificacion.titulo}
+                        contenido={notificacion.contenido}
+                    />
+                ))}
             </CardContent>
         </Card>
     );

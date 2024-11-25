@@ -114,6 +114,7 @@ const PerfilUsuarioClient = () => {
 
     if (diferenciaDias === 0) return "Hoy";
     if (diferenciaDias === 1) return "Ayer";
+    if (diferenciaDias === 2) return "Antes de ayer";
     return formatearFecha(fecha);
   };
 
@@ -124,15 +125,35 @@ const PerfilUsuarioClient = () => {
         <div className="lg:w-1/4">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             {isLoading ? (
-              <div className="p-4 space-y-4">
-                <div className="flex justify-center">
-                  <Skeleton className="w-24 h-24 rounded-full" />
+              <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div className="p-6 text-center border-b border-gray-100">
+                  <div className="relative mx-auto w-24 h-24 mb-4">
+                    <Skeleton className="w-full h-full rounded-full" />
+                  </div>
+                  <Skeleton className="h-7 w-48 mx-auto mb-2" />
+                  <Skeleton className="h-4 w-32 mx-auto" />
                 </div>
-                <Skeleton className="h-6 w-3/4 mx-auto" />
-                <Skeleton className="h-4 w-2/3 mx-auto" />
-                <div className="border-t pt-4 mt-4">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full mt-2" />
+
+                {/* Estadísticas */}
+                <div className="px-6 py-4 bg-gray-50">
+                  <div className="flex justify-center items-center space-x-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-6 w-8" />
+                  </div>
+                </div>
+
+                {/* Información adicional */}
+                <div className="px-6 py-4">
+                  <div className="space-y-4 text-center">
+                    <div>
+                      <Skeleton className="h-3 w-24 mx-auto mb-1" />
+                      <Skeleton className="h-4 w-32 mx-auto" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-3 w-24 mx-auto mb-1" />
+                      <Skeleton className="h-4 w-32 mx-auto" />
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -212,7 +233,7 @@ const PerfilUsuarioClient = () => {
                   publicacion={{
                     ...publicacion,
                     autor: userData?.nombre || "Autor",
-                    fecha_publicacion: publicacion.fecha_publicacion || publicacion.fecha_creacion,
+                    fecha_publicacion: publicacion.fecha_publicacion || "Fecha no disponible",
                   }}
                   alLeer={handleLeerPublicacion}
                 />

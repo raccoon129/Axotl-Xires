@@ -34,12 +34,10 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                 titulo: publicacion.titulo,
                 resumen: publicacion.resumen,
                 autor: publicacion.autor,
-                fecha_publicacion: publicacion.fecha_publicacion || publicacion.fecha_creacion,
+                fecha_publicacion: publicacion.fecha_publicacion || "No se ha publicado",
                 imagen_portada: publicacion.imagen_portada,
                 categoria: 'Artículo científico',
-                favoritos: 0,
-                contenido: publicacion.contenido,
-                referencias: publicacion.referencias
+                favoritos: 0
             };
 
             setModalAbierto(true);
@@ -65,8 +63,8 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
         return (
             <Card className="w-full hover:shadow-lg transition-shadow duration-300">
                 <CardContent className="p-4">
-                    <div className="flex flex-row gap-4">
-                        <Skeleton className="w-48 h-64 flex-shrink-0" />
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Skeleton className="w-full sm:w-48 h-64 flex-shrink-0" />
                         <div className="flex flex-col flex-grow justify-between">
                             <div className="space-y-3">
                                 <Skeleton className="h-6 w-3/4" />
@@ -74,9 +72,9 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                                 <Skeleton className="h-4 w-full" />
                                 <Skeleton className="h-4 w-1/2" />
                             </div>
-                            <div className="flex gap-2 mt-4">
-                                <Skeleton className="h-10 w-24" />
-                                <Skeleton className="h-10 w-24" />
+                            <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                                <Skeleton className="h-10 w-full sm:w-32" />
+                                <Skeleton className="h-10 w-full sm:w-32" />
                             </div>
                         </div>
                     </div>
@@ -89,8 +87,8 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
         <>
             <Card className="w-full hover:shadow-lg transition-shadow duration-300 bg-white">
                 <CardContent className="p-4">
-                    <div className="flex flex-row gap-4">
-                        <div className="w-48 h-64 flex-shrink-0 relative"> 
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="w-full sm:w-48 h-64 flex-shrink-0 relative"> 
                             {!imageLoaded && (
                                 <Skeleton className="w-full h-full absolute top-0 left-0" />
                             )}
@@ -115,7 +113,7 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                                 </p>
                                 <div className="flex flex-col gap-1">
                                     <p className="text-sm text-gray-500">
-                                        Publicado el: {new Date(publicacion.fecha_publicacion || publicacion.fecha_creacion).toLocaleDateString('es-ES', {
+                                        Publicado el: {new Date(publicacion.fecha_publicacion).toLocaleDateString('es-ES', {
                                             year: 'numeric',
                                             month: 'long',
                                             day: 'numeric'
@@ -124,22 +122,22 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                                 </div>
                             </div>
                             
-                            <div className="flex gap-2 mt-4">
+                            <div className="flex flex-col sm:flex-row gap-2 mt-4">
                                 <Button 
                                     variant="outline" 
                                     onClick={irALectura}
-                                    className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white hover:bg-gray-50"
                                 >
                                     <BookOpen className="w-4 h-4" />
-                                    Leer publicación
+                                    <span className="whitespace-nowrap">Leer publicación</span>
                                 </Button>
                                 <Button 
                                     variant="outline" 
                                     onClick={obtenerDetallesPublicacion}
-                                    className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-white hover:bg-gray-50"
                                 >
                                     <Info className="w-4 h-4" />
-                                    Ver detalles
+                                    <span className="whitespace-nowrap">Ver detalles</span>
                                 </Button>
                             </div>
                         </div>
@@ -156,7 +154,7 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                         titulo: publicacion.titulo,
                         resumen: publicacion.resumen,
                         autor: publicacion.autor,
-                        fecha_publicacion: publicacion.fecha_publicacion || publicacion.fecha_creacion,
+                        fecha_publicacion: publicacion.fecha_publicacion || "No se ha publicado",
                         imagen_portada: publicacion.imagen_portada,
                         categoria: 'Artículo científico',
                         favoritos: 0

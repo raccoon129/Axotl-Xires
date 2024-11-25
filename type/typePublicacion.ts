@@ -1,20 +1,18 @@
 export interface Publicacion {
   id_publicacion: number;
-  id_usuario: number;
-  id_tipo: number;
   titulo: string;
   resumen: string;
   contenido: string;
   referencias: string;
-  estado: 'borrador' | 'en_revision' | 'publicado' | 'rechazado';
-  imagen_portada: string;
-  es_privada: boolean;
-  fecha_creacion: string;
-  fecha_publicacion: string | null;
-  eliminado: boolean;
-  fecha_eliminacion: string | null;
-  autor:  string;
+  fecha_publicacion: string;
+  imagen_portada: string | null;
+  id_tipo: number;
+  id_usuario: number;
+  autor: string;
+  autor_foto: string | null;
   tipo_publicacion: string;
   total_favoritos: number;
-
-  }
+  total_comentarios: number;
+  estado: 'borrador' | 'en_revision' | 'publicado' | 'rechazado';
+  es_privada: number;
+}

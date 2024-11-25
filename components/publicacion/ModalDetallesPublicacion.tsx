@@ -221,6 +221,11 @@ const ModalDetallesPublicacion = ({
     alCerrar(); // Cerramos el modal después de la redirección
   };
 
+  const irADescarga = () => {
+    router.push(`/publicaciones/${publicacion.id_publicacion}/descargar`);
+    alCerrar(); // Cerramos el modal después de la redirección
+  };
+
   return (
     <AnimatePresence mode="wait">
       {estaAbierto && (
@@ -344,6 +349,7 @@ const ModalDetallesPublicacion = ({
                     </Button>
                     <Button 
                       variant="outline"
+                      onClick={irADescarga}
                       className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-green-50 text-green-600 h-auto"
                     >
                       <Download className="h-5 w-5" />

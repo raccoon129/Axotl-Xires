@@ -27,9 +27,7 @@ const PerfilUsuarioContent = () => {
 
 const PerfilUsuarioPage = () => {
   return (
-
       <PerfilUsuarioContent />
-
   );
 };
 

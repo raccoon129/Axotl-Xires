@@ -9,13 +9,13 @@ export const Banner = () => {
           className="w-full h-auto max-w-xs mb-2"
         />
         <p className="text-xs lg:text-sm text-left opacity-80">
-          Tu plataforma de publicaciones académicas
+          Tu plataforma de divulgación de publicaciones científicas y académicas
         </p>
       </div>
 
       {/* Columna derecha: Título y subtítulo principal */}
       <div className="lg:w-1/2 text-center lg:text-left">
-        <h1 className="text-4xl font-bold">Bienvenido a Axotl Publicaciones</h1>
+        <h1 className="text-4xl font-bold">Bienvenido a Axotl Xires</h1>
         <p className="text-xl mt-4">
           Descubre las publicaciones científicas y académicas más relevantes del momento, por la comunidad y para la comunidad.
         </p>

@@ -6,10 +6,11 @@ import Image from "next/image";
 import { Search, Menu, X, Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
+import BarraProgreso from "./Navbar_BarraProgreso";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,6 +20,8 @@ const Navbar = () => {
   const router = useRouter();
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const pathname = usePathname();
 
   const { isLoggedIn, isLoading, logout, idUsuario } = useAuth();
 
@@ -184,6 +187,19 @@ const Navbar = () => {
     );
   };
 
+  useEffect(() => {
+    setIsPageLoading(true);
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  const handleLinkClick = () => {
+    setIsPageLoading(true);
+  };
+
   return (
     <>
       {/* Espacio reservado para el navbar */}
@@ -191,6 +207,7 @@ const Navbar = () => {
       
       {/* Navbar fijo */}
       <nav className="bg-white shadow-md fixed top-0 left-0 right-0 z-40">
+        <BarraProgreso isLoading={isPageLoading} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-20">
             {/* Logo y texto - ancho fijo */}
@@ -214,18 +231,21 @@ const Navbar = () => {
               <div className="flex space-x-4">
                 <Link
                   href="/explorar"
+                  onClick={handleLinkClick}
                   className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-white hover:bg-gray-50"
                 >
                   Explorar
                 </Link>
                 <Link
                   href="/categorias"
+                  onClick={handleLinkClick}
                   className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-white hover:bg-gray-50"
                 >
                   Categorías
                 </Link>
                 <Link
                   href="/redactar"
+                  onClick={handleLinkClick}
                   className="text-gray-700 hover:text-gray-900 px-2 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-white hover:bg-gray-50"
                 >
                   Redactar
@@ -277,18 +297,21 @@ const Navbar = () => {
               <div className="px-2 pt-2 pb-3 space-y-1">
                 <Link
                   href="/explorar"
+                  onClick={handleLinkClick}
                   className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Explorar
                 </Link>
                 <Link
                   href="/categorias"
+                  onClick={handleLinkClick}
                   className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Categorías
                 </Link>
                 <Link
                   href="/redactar"
+                  onClick={handleLinkClick}
                   className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 >
                   Redactar
@@ -315,18 +338,21 @@ const Navbar = () => {
                       </p>
                       <Link
                         href="/perfiles"
+                        onClick={handleLinkClick}
                         className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
                         Mi perfil
                       </Link>
                       <Link
                         href="/configuracion"
+                        onClick={handleLinkClick}
                         className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
                         Configuración
                       </Link>
                       <Link
                         href="/perfiles/mispublicaciones"
+                        onClick={handleLinkClick}
                         className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                       >
                         Administrar mis publicaciones

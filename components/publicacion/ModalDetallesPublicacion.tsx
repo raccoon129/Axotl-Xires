@@ -167,6 +167,22 @@ const ModalDetallesPublicacion = ({
     }
   }, [estaAbierto, publicacion.id_publicacion]);
 
+  // Efecto para controlar el scroll
+  useEffect(() => {
+    if (estaAbierto) {
+      // Deshabilitar scroll
+      document.body.style.overflow = 'hidden';
+      // Opcional: Añadir padding para compensar la scrollbar
+      document.body.style.paddingRight = 'var(--scrollbar-width)';
+    }
+
+    return () => {
+      // Rehabilitar scroll al desmontar
+      document.body.style.overflow = 'unset';
+      document.body.style.paddingRight = '0';
+    };
+  }, [estaAbierto]);
+
   // Manejar clic en favorito
   const toggleFavorito = async () => {
     try {
@@ -230,7 +246,7 @@ const ModalDetallesPublicacion = ({
     <AnimatePresence mode="wait">
       {estaAbierto && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-2 sm:p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -238,32 +254,26 @@ const ModalDetallesPublicacion = ({
           transition={{ duration: 0.2 }}
         >
           <motion.div
-            className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[95vh] overflow-y-auto"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ 
               scale: 1, 
               opacity: 1, 
               y: 0,
-              transition: {
-                type: "spring",
-                duration: 0.5,
-                bounce: 0.3
-              }
+              transition: { type: "spring", duration: 0.5, bounce: 0.3 }
             }}
             exit={{ 
               scale: 1.2, 
               opacity: 0,
               y: -20,
-              transition: {
-                duration: 0.2,
-                ease: "easeOut"
-              }
+              transition: { duration: 0.2, ease: "easeOut" }
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b flex justify-between items-center">
+            {/* Header */}
+            <div className="sticky top-0 bg-white z-10 px-4 sm:px-6 py-3 sm:py-4 border-b flex justify-between items-center">
               <motion.h2 
-                className="text-xl font-semibold text-gray-800"
+                className="text-lg sm:text-xl font-semibold text-gray-800 truncate"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
@@ -272,7 +282,7 @@ const ModalDetallesPublicacion = ({
               </motion.h2>
               <motion.button
                 onClick={alCerrar}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >
@@ -280,15 +290,16 @@ const ModalDetallesPublicacion = ({
               </motion.button>
             </div>
 
+            {/* Contenido */}
             <motion.div 
-              className="p-6"
+              className="p-4 sm:p-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <div className="flex gap-6">
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                 {/* Columna izquierda - Imagen */}
-                <div className="w-1/2">
+                <div className="w-full lg:w-1/2">
                   <Card className="aspect-[612/792] relative overflow-hidden">
                     {!imageLoaded && (
                       <div className="absolute inset-0 bg-gray-200 animate-pulse" />
@@ -305,55 +316,55 @@ const ModalDetallesPublicacion = ({
                   </Card>
                 </div>
 
-                {/* Columna derecha - Información, botones y comentarios */}
-                <div className="w-1/2 space-y-6">
+                {/* Columna derecha - Información */}
+                <div className="w-full lg:w-1/2 space-y-4 sm:space-y-6">
                   {/* Título y resumen */}
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 sm:mb-4">
                       {publicacion.titulo}
                     </h1>
-                    <p className="text-gray-600">
+                    <p className="text-sm sm:text-base text-gray-600">
                       {publicacion.resumen}
                     </p>
                   </div>
 
                   {/* Información del autor */}
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                       <img src={`${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`} alt={publicacion.autor} />
                     </Avatar>
                     <div>
-                      <p className="font-medium text-gray-900">{publicacion.autor}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium text-gray-900 text-sm sm:text-base">{publicacion.autor}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">
                         Publicado el {formatearFecha(publicacion.fecha_publicacion)}
                       </p>
                     </div>
                   </div>
 
                   {/* Botones de acción */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                     <Button 
                       variant="outline"
-                      className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-blue-50 text-blue-600 h-auto"
+                      className="flex flex-row sm:flex-col items-center justify-center gap-2 py-2 sm:py-4 bg-white hover:bg-blue-50 text-blue-600 h-auto"
                     >
-                      <Book className="h-5 w-5" />
-                      <span className="text-sm font-medium">Lectura inmersiva</span>
+                      <Book className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-xs sm:text-sm font-medium">Lectura inmersiva</span>
                     </Button>
                     <Button 
                       variant="outline"
                       onClick={irALecturaSimplificada}
-                      className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-orange-50 text-orange-600 h-auto"
+                      className="flex flex-row sm:flex-col items-center justify-center gap-2 py-2 sm:py-4 bg-white hover:bg-orange-50 text-orange-600 h-auto"
                     >
-                      <FileText className="h-5 w-5" />
-                      <span className="text-sm font-medium">Lectura simplificada</span>
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-xs sm:text-sm font-medium">Lectura simplificada</span>
                     </Button>
                     <Button 
                       variant="outline"
                       onClick={irADescarga}
-                      className="flex flex-col items-center gap-2 py-4 bg-white hover:bg-green-50 text-green-600 h-auto"
+                      className="flex flex-row sm:flex-col items-center justify-center gap-2 py-2 sm:py-4 bg-white hover:bg-green-50 text-green-600 h-auto"
                     >
-                      <Download className="h-5 w-5" />
-                      <span className="text-sm font-medium">Descargar PDF</span>
+                      <Download className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-xs sm:text-sm font-medium">Descargar PDF</span>
                     </Button>
                   </div>
 
@@ -361,14 +372,14 @@ const ModalDetallesPublicacion = ({
                   <SeccionComentarios idPublicacion={publicacion.id_publicacion} />
 
                   {/* Categoría y favoritos */}
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="text-sm text-gray-500">Categoría:</span>
-                      <span className="ml-2 text-gray-900"><CategoriaPublicacion idPublicacion={publicacion.id_publicacion} /></span>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm text-gray-500">Categoría:</span>
+                      <CategoriaPublicacion idPublicacion={publicacion.id_publicacion} />
                     </div>
                     <div className="flex items-center gap-2">
                       <motion.span 
-                        className="text-xl font-semibold text-gray-900"
+                        className="text-lg sm:text-xl font-semibold text-gray-900"
                         animate={{
                           scale: contadorAnimado ? [1, 1.2, 1] : 1,
                           color: contadorAnimado ? 

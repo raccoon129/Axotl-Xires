@@ -98,6 +98,7 @@ const ModalDetallesPublicacion = ({
   const [contadorAnimado, setContadorAnimado] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
+  const [isClosing, setIsClosing] = useState(false);
 
   const formatearFecha = (fecha: string) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -242,6 +243,26 @@ const ModalDetallesPublicacion = ({
     alCerrar(); // Cerramos el modal después de la redirección
   };
 
+  // Agregar después de los otros useEffect, antes del return
+  useEffect(() => {
+    const handleEscapeKey = async (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && estaAbierto) {
+        setIsClosing(true);
+        // Esperar a que termine la animación antes de cerrar
+        await new Promise(resolve => setTimeout(resolve, 200));
+        alCerrar();
+      }
+    };
+
+    if (estaAbierto) {
+      document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [estaAbierto, alCerrar]);
+
   return (
     <AnimatePresence mode="wait">
       {estaAbierto && (
@@ -257,15 +278,19 @@ const ModalDetallesPublicacion = ({
             className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[95vh] overflow-y-auto"
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ 
-              scale: 1, 
-              opacity: 1, 
-              y: 0,
-              transition: { type: "spring", duration: 0.5, bounce: 0.3 }
+              scale: isClosing ? 0.9 : 1, 
+              opacity: isClosing ? 0 : 1, 
+              y: isClosing ? 20 : 0,
+              transition: { 
+                type: "spring", 
+                duration: isClosing ? 0.2 : 0.5, 
+                bounce: isClosing ? 0 : 0.3 
+              }
             }}
             exit={{ 
-              scale: 1.2, 
+              scale: 0.9, 
               opacity: 0,
-              y: -20,
+              y: 20,
               transition: { duration: 0.2, ease: "easeOut" }
             }}
             onClick={(e) => e.stopPropagation()}

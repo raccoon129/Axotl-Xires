@@ -393,12 +393,12 @@ export default function PublicacionPage() {
       )}
       
       <div className="min-h-screen">
-        {/* Contenedor principal con grid de 3 columnas */}
-        <div className="grid grid-cols-12 gap-6 max-w-screen-2xl mx-auto px-4 py-8">
+        {/* Contenedor principal con grid responsivo */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-screen-2xl mx-auto px-4 py-8">
           {/* Columna izquierda - Portada y detalles */}
-          <div className="col-span-3">
+          <div className="lg:col-span-3 order-2 lg:order-1">
             <motion.div 
-              className="sticky top-24 space-y-6"
+              className="lg:sticky lg:top-24 space-y-6"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
@@ -445,12 +445,7 @@ export default function PublicacionPage() {
               </div>
 
               {/* Detalles del autor */}
-              <div className="bg-white rounded-lg shadow-lg p-6 relative" onClick={(e) => {
-                if (mostrarComentarios) {
-                  e.stopPropagation();
-                  setMostrarComentarios(false);
-                }
-              }}>
+              <div className="bg-white rounded-lg shadow-lg p-6 relative">
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar className="h-12 w-12">
                     <img 
@@ -510,17 +505,6 @@ export default function PublicacionPage() {
                     <MessageSquare className="h-4 w-4 text-blue-500" />
                     {publicacion?.total_comentarios} comentarios
                   </button>
-
-                  {/* Panel de comentarios */}
-                  <AnimatePresence>
-                    {mostrarComentarios && (
-                      <PanelComentarios
-                        mostrar={mostrarComentarios}
-                        onClose={() => setMostrarComentarios(false)}
-                        idPublicacion={Number(params.idPublicacion)}
-                      />
-                    )}
-                  </AnimatePresence>
                 </div>
               </div>
             </motion.div>
@@ -528,23 +512,35 @@ export default function PublicacionPage() {
 
           {/* Columna central - Contenido principal */}
           <motion.article 
-            className="col-span-7 bg-white shadow-lg rounded-lg overflow-hidden"
+            className="lg:col-span-7 bg-white shadow-lg rounded-lg overflow-hidden order-1 lg:order-2"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
+            {/* Portada móvil */}
+            <div className="lg:hidden aspect-[16/9] relative overflow-hidden">
+              <img
+                src={publicacion?.imagen_portada ? 
+                  `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
+                  `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
+                }
+                alt={publicacion?.titulo}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
             {/* Título y resumen */}
-            <header className="p-8 border-b">
-              <h1 className="text-4xl font-bold text-gray-900 mb-6 font-crimson">
+            <header className="p-4 lg:p-8 border-b">
+              <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 mb-4 lg:mb-6 font-crimson">
                 {publicacion?.titulo}
               </h1>
-              <p className="text-xl text-gray-600 font-crimson leading-relaxed">
+              <p className="text-lg lg:text-xl text-gray-600 font-crimson leading-relaxed">
                 {publicacion?.resumen}
               </p>
             </header>
 
             {/* Contenido */}
-            <div className="p-8">
+            <div className="p-4 lg:p-8">
               <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
                 
@@ -597,12 +593,12 @@ export default function PublicacionPage() {
 
             {/* Referencias */}
             {publicacion?.referencias && (
-              <footer className="p-8 bg-gray-50 border-t">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 font-crimson">
+              <footer className="p-4 lg:p-8 bg-gray-50 border-t">
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2 lg:mb-4 font-crimson">
                   Fuentes de consulta
                 </h2>
                 <div className="prose max-w-none font-crimson">
-                  <pre className="whitespace-pre-wrap text-lg text-gray-600">
+                  <pre className="whitespace-pre-wrap text-base lg:text-lg text-gray-600">
                     {publicacion.referencias}
                   </pre>
                 </div>
@@ -611,29 +607,34 @@ export default function PublicacionPage() {
           </motion.article>
 
           {/* Columna derecha - Navegación y acciones */}
-          <div className="col-span-2">
+          <div className="lg:col-span-2 order-3">
             <motion.div 
-              className="sticky top-24 space-y-4"
+              className="fixed bottom-0 left-0 right-0 bg-white lg:bg-transparent lg:static lg:sticky lg:top-24 shadow-inner lg:shadow-none p-4 z-20"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-                {/* Sección para agregar acciones de lectura */}
-              <div className="bg-white rounded-lg shadow-lg p-4">
-                <h3 className="font-medium text-gray-900 mb-3">
-                  Acciones
-                </h3>
-                <div className="space-y-2">
-                  <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                    <BookOpen className="h-4 w-4" />
-                    Modo lectura
-                  </button>
-                  {/* Más acciones aquí */}
-                </div>
+              <div className="flex justify-around lg:flex-col lg:space-y-4">
+                <button className="flex items-center gap-2 px-4 py-2 text-sm bg-white hover:bg-gray-50 rounded-lg transition-colors shadow-sm">
+                  <BookOpen className="h-5 w-5" />
+                  <span className="hidden lg:inline">Modo lectura</span>
+                </button>
+                {/* Otros botones de acción */}
               </div>
             </motion.div>
           </div>
         </div>
+
+        {/* Panel de comentarios responsivo */}
+        <AnimatePresence>
+          {mostrarComentarios && (
+            <PanelComentarios
+              mostrar={mostrarComentarios}
+              onClose={() => setMostrarComentarios(false)}
+              idPublicacion={Number(params.idPublicacion)}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

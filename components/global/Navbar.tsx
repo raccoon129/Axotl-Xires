@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import BarraProgreso from "./Navbar_BarraProgreso";
+import { ResultadosBusqueda } from "../busqueda/ResultadosBusqueda";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,6 +23,10 @@ const Navbar = () => {
   const notificationsRef = useRef<HTMLDivElement>(null);
   const [isPageLoading, setIsPageLoading] = useState(false);
   const pathname = usePathname();
+  const [terminoBusqueda, setTerminoBusqueda] = useState('');
+  const [mostrarResultados, setMostrarResultados] = useState(false);
+  const busquedaRef = useRef<HTMLDivElement>(null);
+  const verMasRef = useRef<HTMLButtonElement>(null);
 
   const { isLoggedIn, isLoading, logout, idUsuario } = useAuth();
 
@@ -200,6 +205,14 @@ const Navbar = () => {
     setIsPageLoading(true);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && terminoBusqueda.trim()) {
+      e.preventDefault();
+      // Simular clic en el botón "Ver más"
+      verMasRef.current?.click();
+    }
+  };
+
   return (
     <>
       {/* Espacio reservado para el navbar */}
@@ -255,15 +268,42 @@ const Navbar = () => {
 
             {/* Barra de búsqueda y autenticación - ancho fijo */}
             <div className="hidden sm:flex items-center w-96 justify-end">
-              <div className="relative w-64">
-                <Input
-                  type="text"
-                  placeholder="Busca algo interesante"
-                  className="w-full pl-10 pr-4 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-600 bg-white border-gray-200"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+              <div className="relative flex-1 max-w-xl" ref={busquedaRef}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder="Busca algo interesante"
+                    value={terminoBusqueda}
+                    onChange={(e) => {
+                      setTerminoBusqueda(e.target.value);
+                      setMostrarResultados(e.target.value.length > 0);
+                    }}
+                    onKeyDown={handleKeyDown}
+                    onFocus={() => {
+                      if (terminoBusqueda.length > 0) {
+                        setMostrarResultados(true);
+                      }
+                    }}
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg 
+                             focus:outline-none focus:ring-2 focus:ring-[#612c7d] focus:ring-opacity-50 
+                             focus:border-transparent transition-all duration-200
+                             placeholder:text-gray-400 text-gray-900"
+                  />
                 </div>
+
+                <AnimatePresence>
+                  {mostrarResultados && terminoBusqueda.length > 0 && (
+                    <ResultadosBusqueda
+                      busqueda={terminoBusqueda}
+                      onClose={() => {
+                        setMostrarResultados(false);
+                        setTerminoBusqueda('');
+                      }}
+                      verMasRef={verMasRef}
+                    />
+                  )}
+                </AnimatePresence>
               </div>
               <AuthButtons />
             </div>

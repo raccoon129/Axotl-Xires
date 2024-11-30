@@ -5,6 +5,8 @@ import { TarjetaPublicacionMiniCategorias } from '@/components/publicacion/Tarje
 import { Publicacion } from '@/type/typePublicacion';
 import { motion, AnimatePresence } from 'framer-motion';
 import ModalDetallesPublicacion from '@/components/publicacion/ModalDetallesPublicacion';
+import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Categoria {
   id_tipo: number;
@@ -18,6 +20,7 @@ export default function PaginaCategorias() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [publicacionSeleccionada, setPublicacionSeleccionada] = useState<Publicacion | null>(null);
+  const [activeSlide, setActiveSlide] = useState<Record<number, number>>({});
 
   useEffect(() => {
     document.title = "Categorías - Axotl Xires";
@@ -61,6 +64,19 @@ export default function PaginaCategorias() {
     setPublicacionSeleccionada(publicacion);
   };
 
+  const CategoriaSkeleton = () => (
+    <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="mb-4">
+        <Skeleton className="h-7 w-48 mb-2" />
+        <Skeleton className="h-4 w-full max-w-md" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Skeleton className="h-48 w-full rounded-lg" />
+        <Skeleton className="h-48 w-full rounded-lg" />
+      </div>
+    </div>
+  );
+
   if (error) {
     return (
       <div className="text-center py-12">
@@ -81,35 +97,98 @@ export default function PaginaCategorias() {
       </div>
 
       <div className="space-y-8">
-        {categorias.map((categoria) => (
-          <div key={categoria.id_tipo} className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold text-purple-800 mb-2">
-                {categoria.categoria}
-              </h2>
-              <p className="text-sm text-gray-600">
-                {categoria.descripcion}
-              </p>
-            </div>
+        {cargando ? (
+          // Mostrar 3 skeletons mientras carga
+          <>
+            <CategoriaSkeleton />
+            <CategoriaSkeleton />
+            <CategoriaSkeleton />
+          </>
+        ) : (
+          categorias.map((categoria) => {
+            const publicacionesCategoria = publicacionesPorCategoria[categoria.id_tipo] || [];
+            const totalSlides = Math.ceil(publicacionesCategoria.length / 2);
+            const currentSlide = activeSlide[categoria.id_tipo] || 0;
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {publicacionesPorCategoria[categoria.id_tipo]?.map((publicacion) => (
-                <motion.div
-                  key={publicacion.id_publicacion}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <TarjetaPublicacionMiniCategorias
-                    publicacion={publicacion}
-                    categoria={categoria}
-                    onVerDetalles={handleVerDetalles}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        ))}
+            return (
+              <div key={categoria.id_tipo} className="bg-white rounded-lg shadow-sm border p-6">
+                <div className="mb-4">
+                  <h2 className="text-xl font-semibold text-purple-800 mb-2">
+                    {categoria.categoria}
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {categoria.descripcion}
+                  </p>
+                </div>
+
+                <div className="relative">
+                  {publicacionesCategoria.length > 2 && (
+                    <>
+                      <button
+                        onClick={() => setActiveSlide(prev => ({
+                          ...prev,
+                          [categoria.id_tipo]: (currentSlide - 1 + totalSlides) % totalSlides
+                        }))}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100"
+                      >
+                        <ChevronLeft className="w-6 h-6 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={() => setActiveSlide(prev => ({
+                          ...prev,
+                          [categoria.id_tipo]: (currentSlide + 1) % totalSlides
+                        }))}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100"
+                      >
+                        <ChevronRight className="w-6 h-6 text-gray-600" />
+                      </button>
+                    </>
+                  )}
+
+                  <div className="overflow-hidden">
+                    <motion.div
+                      className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                      animate={{ x: `-${currentSlide * 100}%` }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    >
+                      {publicacionesCategoria.map((publicacion) => (
+                        <motion.div
+                          key={publicacion.id_publicacion}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <TarjetaPublicacionMiniCategorias
+                            publicacion={publicacion}
+                            categoria={categoria}
+                            onVerDetalles={handleVerDetalles}
+                          />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </div>
+
+                  {publicacionesCategoria.length > 2 && (
+                    <div className="flex justify-center mt-4 gap-2">
+                      {Array.from({ length: totalSlides }).map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setActiveSlide(prev => ({
+                            ...prev,
+                            [categoria.id_tipo]: index
+                          }))}
+                          className={`h-2 w-2 rounded-full transition-all ${
+                            currentSlide === index ? 'bg-purple-600 w-4' : 'bg-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {publicacionSeleccionada && (

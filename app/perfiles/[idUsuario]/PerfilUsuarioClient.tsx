@@ -64,14 +64,19 @@ const PerfilUsuarioClient = () => {
           }
         );
 
+        // Modificamos esta parte para manejar mejor la respuesta
+        const datos = await respuesta.json();
+        
         if (!respuesta.ok) {
-          throw new Error("Error al cargar las publicaciones");
+          console.warn("No se pudieron cargar las publicaciones:", datos.mensaje || "Error desconocido");
+          setPublicaciones([]);
+          return;
         }
 
-        const datos = await respuesta.json();
         setPublicaciones(datos || []);
       } catch (error) {
-        console.error("Error al cargar las publicaciones:", error);
+        console.warn("Error al cargar las publicaciones:", error);
+        setPublicaciones([]); // En caso de error, establecemos un array vacío
       } finally {
         setIsLoadingPublicaciones(false);
       }

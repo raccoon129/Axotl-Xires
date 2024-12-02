@@ -192,7 +192,7 @@ const PerfilUsuarioClient = () => {
                 <div className="p-6 text-center border-b border-gray-100">
                   <div className="relative mx-auto w-24 h-24 mb-4">
                     <Image
-                      src={userData?.foto_perfil || `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`}
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${userData?.foto_perfil || 'null'}`}
                       alt="Foto de perfil"
                       width={96}
                       height={96}

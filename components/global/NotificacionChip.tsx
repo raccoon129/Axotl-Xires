@@ -17,6 +17,7 @@ interface NotificacionChipProps {
   tipo: "excepcion" | "confirmacion" | "notificacion";
   titulo: string;
   contenido: string;
+  onClose?: () => void;
 }
 
 const assetUrl = process.env.NEXT_PUBLIC_ASSET_URL;
@@ -33,18 +34,21 @@ const colores = {
   notificacion: "bg-blue-600 text-white",
 };
 
-const NotificacionChip = ({ tipo, titulo, contenido }: NotificacionChipProps) => {
+const NotificacionChip = ({ tipo, titulo, contenido, onClose }: NotificacionChipProps) => {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    // Reproduce el sonido correspondiente al tipo de notificación
-    const audio = new Audio(sonidos[tipo]);
-    audio.play();
-
-    // Cierra el toast automáticamente después de 3 segundos
-    const timer = setTimeout(() => setVisible(false), 3000);
+    const timer = setTimeout(() => {
+      setVisible(false);
+      onClose?.();
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [tipo]);
+  }, [tipo, onClose]);
+
+  const handleClose = () => {
+    setVisible(false);
+    onClose?.();
+  };
 
   return (
     <AnimatePresence>
@@ -60,7 +64,7 @@ const NotificacionChip = ({ tipo, titulo, contenido }: NotificacionChipProps) =>
             <strong className="block text-lg font-bold">{titulo}</strong>
             <p>{contenido}</p>
           </div>
-          <button onClick={() => setVisible(false)} className="ml-auto">
+          <button onClick={handleClose} className="ml-auto">
             <X size={20} />
           </button>
         </motion.div>

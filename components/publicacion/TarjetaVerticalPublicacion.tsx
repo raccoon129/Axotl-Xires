@@ -167,6 +167,7 @@ export const TarjetaVerticalPublicacion = ({
             titulo: publicacion.titulo,
             resumen: publicacion.resumen,
             autor: publicacion.autor,
+            autor_foto: publicacion.autor_foto || null, // Aseguramos que se pase autor_foto
             fecha_publicacion: publicacion.fecha_publicacion || "Fecha no disponible",
             imagen_portada: publicacion.imagen_portada,
             categoria: publicacion.tipo_publicacion,
@@ -176,4 +177,4 @@ export const TarjetaVerticalPublicacion = ({
       )}
     </>
   );
-}; 
+};

@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
-import Tooltip from '@/components/global/Tooltip';
-import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 import NotificacionChip from '@/components/global/NotificacionChip';
+import { InformacionBasica } from '@/components/configuracion/InformacionBasica';
+import { FotoPerfil } from '@/components/configuracion/FotoPerfil';
+import { CambiarContrasena } from '@/components/configuracion/CambiarContrasena';
+import { Estadisticas } from '@/components/configuracion/Estadisticas';
 
 interface ProfileFormData {
   nombre: string;
@@ -19,16 +19,19 @@ interface ProfileFormData {
   confirmarContrasena: string;
 }
 
+interface Notificacion {
+  id: number;
+  mostrar: boolean;
+  tipo: "excepcion" | "confirmacion" | "notificacion";
+  titulo: string;
+  contenido: string;
+}
+
 const ConfiguracionContent = () => {
   const { userProfile, refreshProfile, idUsuario } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
-  const [notificacion, setNotificacion] = useState<{
-    mostrar: boolean;
-    tipo: "excepcion" | "confirmacion" | "notificacion";
-    titulo: string;
-    contenido: string;
-  } | null>(null);
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
 
   // Estados para el formulario
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -74,6 +77,7 @@ const ConfiguracionContent = () => {
     }
   }, [userProfile]);
 
+  // Manejadores de eventos
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -82,57 +86,38 @@ const ConfiguracionContent = () => {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('La imagen no debe superar los 5MB');
-        return;
-      }
-
-      if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
-        toast.error('Solo se permiten imágenes JPG y PNG');
-        return;
-      }
-
-      setFotoPerfil(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleFileChange = (file: File) => {
+    setFotoPerfil(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFotoPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const validateForm = () => {
-    if (!formData.nombre.trim()) {
-      toast.error('El nombre es requerido');
-      return false;
-    }
+  const mostrarNotificacion = (
+    tipo: "excepcion" | "confirmacion" | "notificacion",
+    titulo: string,
+    contenido: string
+  ) => {
+    const audio = new Audio(`${process.env.NEXT_PUBLIC_ASSET_URL}/sonidos/${tipo}.ogg`);
+    audio.play();
 
-    if (formData.nuevaContrasena || formData.contrasenaActual) {
-      if (!formData.contrasenaActual) {
-        toast.error('Debes ingresar tu contraseña actual');
-        return false;
-      }
-      if (!formData.nuevaContrasena) {
-        toast.error('Debes ingresar la nueva contraseña');
-        return false;
-      }
-      if (formData.nuevaContrasena !== formData.confirmarContrasena) {
-        toast.error('Las contraseñas no coinciden');
-        return false;
-      }
-      if (formData.nuevaContrasena.length < 6) {
-        toast.error('La contraseña debe tener al menos 6 caracteres');
-        return false;
-      }
-    }
+    const nuevaNotificacion: Notificacion = {
+      id: Date.now(),
+      mostrar: true,
+      tipo,
+      titulo,
+      contenido
+    };
+    setNotificaciones(prev => [...prev, nuevaNotificacion]);
 
-    return true;
+    setTimeout(() => {
+      setNotificaciones(prev => prev.filter(n => n.id !== nuevaNotificacion.id));
+    }, 3000);
   };
 
-  // Funciones específicas para cada sección
+  // Funciones de actualización
   const actualizarInformacionBasica = async () => {
     setIsLoading(true);
     try {
@@ -160,19 +145,17 @@ const ConfiguracionContent = () => {
       }
 
       await refreshProfile();
-      setNotificacion({
-        mostrar: true,
-        tipo: "confirmacion",
-        titulo: "Actualización exitosa",
-        contenido: data.mensaje || "La información básica se ha actualizado correctamente"
-      });
+      mostrarNotificacion(
+        "confirmacion",
+        "Actualización exitosa",
+        data.mensaje || "La información básica se ha actualizado correctamente"
+      );
     } catch (error) {
-      setNotificacion({
-        mostrar: true,
-        tipo: "excepcion",
-        titulo: "Error",
-        contenido: error instanceof Error ? error.message : "Error al actualizar información"
-      });
+      mostrarNotificacion(
+        "excepcion",
+        "Error",
+        error instanceof Error ? error.message : "Error al actualizar información"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -205,19 +188,17 @@ const ConfiguracionContent = () => {
       }
 
       await refreshProfile();
-      setNotificacion({
-        mostrar: true,
-        tipo: "confirmacion",
-        titulo: "Foto actualizada",
-        contenido: data.mensaje || "La foto de perfil se ha actualizado correctamente"
-      });
+      mostrarNotificacion(
+        "confirmacion",
+        "Foto actualizada",
+        data.mensaje || "La foto de perfil se ha actualizado correctamente"
+      );
     } catch (error) {
-      setNotificacion({
-        mostrar: true,
-        tipo: "excepcion",
-        titulo: "Error",
-        contenido: error instanceof Error ? error.message : "Error al actualizar foto"
-      });
+      mostrarNotificacion(
+        "excepcion",
+        "Error",
+        error instanceof Error ? error.message : "Error al actualizar foto"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -230,7 +211,7 @@ const ConfiguracionContent = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/usuarios/actualizacion/${idUsuario}/password`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/actualizacion/${idUsuario}/password`,
         {
           method: 'PUT',
           headers: {
@@ -258,19 +239,17 @@ const ConfiguracionContent = () => {
         confirmarContrasena: ''
       }));
 
-      setNotificacion({
-        mostrar: true,
-        tipo: "confirmacion",
-        titulo: "Contraseña actualizada",
-        contenido: data.mensaje || "La contraseña se ha actualizado correctamente"
-      });
+      mostrarNotificacion(
+        "confirmacion",
+        "Contraseña actualizada",
+        data.mensaje || "La contraseña se ha actualizado correctamente"
+      );
     } catch (error) {
-      setNotificacion({
-        mostrar: true,
-        tipo: "excepcion",
-        titulo: "Error",
-        contenido: error instanceof Error ? error.message : "Error al actualizar contraseña"
-      });
+      mostrarNotificacion(
+        "excepcion",
+        "Error",
+        error instanceof Error ? error.message : "Error al actualizar contraseña"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -286,7 +265,7 @@ const ConfiguracionContent = () => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      const yOffset = -100; // Ajuste para el header fijo
+      const yOffset = -100;
       const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({ top: y, behavior: 'smooth' });
     }
@@ -320,208 +299,53 @@ const ConfiguracionContent = () => {
 
           {/* Contenido principal */}
           <div className="flex-1 space-y-8">
-            {/* Información Básica */}
-            <section id="informacion-basica" className="bg-white p-6 rounded-lg shadow-lg">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-700">
-                  Información Básica
-                </h2>
-                <Button
-                  onClick={actualizarInformacionBasica}
-                  disabled={isLoading}
-                  className="bg-blue-600 text-white"
-                >
-                  {isLoading ? 'Guardando...' : 'Guardar cambios'}
-                </Button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre Completo
-                  </label>
-                  <Tooltip message="Ingresa tu nombre completo">
-                    <input
-                      type="text"
-                      name="nombre"
-                      value={formData.nombre}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      disabled={isLoading}
-                    />
-                  </Tooltip>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nombramiento
-                  </label>
-                  <Tooltip message="Ej: Profesor, Investigador, Estudiante">
-                    <input
-                      type="text"
-                      name="nombramiento"
-                      value={formData.nombramiento}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      disabled={isLoading}
-                    />
-                  </Tooltip>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Correo Electrónico
-                  </label>
-                  <input
-                    type="email"
-                    name="correo"
-                    value={formData.correo}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-            </section>
+            <InformacionBasica
+              formData={formData}
+              isLoading={isLoading}
+              onInputChange={handleInputChange}
+              onGuardar={actualizarInformacionBasica}
+            />
 
-            {/* Foto de Perfil */}
-            <section id="foto-perfil" className="bg-white p-6 rounded-lg shadow-lg">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-700">
-                  Foto de Perfil
-                </h2>
-                <Button
-                  onClick={actualizarFotoPerfil}
-                  disabled={isLoading || !fotoPerfil}
-                  className="bg-blue-600 text-white"
-                >
-                  {isLoading ? 'Guardando...' : 'Actualizar foto'}
-                </Button>
-              </div>
-              <div className="flex flex-col items-center space-y-4">
-                <div className="relative w-32 h-32">
-                  <Image
-                    src={fotoPreview}
-                    alt="Foto de perfil"
-                    fill
-                    className="rounded-full object-cover border-2 border-gray-200"
-                  />
-                </div>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="foto-perfil"
-                  disabled={isLoading}
-                />
-                <label
-                  htmlFor="foto-perfil"
-                  className="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                >
-                  Cambiar foto
-                </label>
-                <p className="text-sm text-gray-500">
-                  JPG o PNG. Máximo 5MB.
-                </p>
-              </div>
-            </section>
+            <FotoPerfil
+              fotoPreview={fotoPreview}
+              isLoading={isLoading}
+              onFileChange={handleFileChange}
+              onActualizar={actualizarFotoPerfil}
+              hayNuevaFoto={!!fotoPerfil}
+              idUsuario={idUsuario || null}
+              nombreFoto={userProfile?.foto_perfil || null}
+            />
 
-            {/* Seguridad */}
-            <section id="seguridad" className="bg-white p-6 rounded-lg shadow-lg">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-700">
-                  Cambiar Contraseña
-                </h2>
-                <Button
-                  onClick={actualizarContrasena}
-                  disabled={isLoading || !formData.contrasenaActual || !formData.nuevaContrasena || formData.nuevaContrasena !== formData.confirmarContrasena}
-                  className="bg-blue-600 text-white"
-                >
-                  {isLoading ? 'Guardando...' : 'Actualizar contraseña'}
-                </Button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contraseña Actual
-                  </label>
-                  <input
-                    type="password"
-                    name="contrasenaActual"
-                    value={formData.contrasenaActual}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    disabled={isLoading}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nueva Contraseña
-                  </label>
-                  <input
-                    type="password"
-                    name="nuevaContrasena"
-                    value={formData.nuevaContrasena}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    disabled={isLoading}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirmar Nueva Contraseña
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmarContrasena"
-                    value={formData.confirmarContrasena}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-            </section>
+            <CambiarContrasena
+              formData={formData}
+              isLoading={isLoading}
+              onInputChange={handleInputChange}
+              onActualizar={actualizarContrasena}
+            />
 
-            {/* Estadísticas */}
-            <section 
-              id="estadisticas" 
-              className="bg-white p-6 rounded-lg shadow-lg transition-all transform hover:shadow-xl"
-            >
-              <h2 className="text-2xl font-semibold text-gray-700 mb-6">
-                Estadísticas
-              </h2>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-blue-700 font-semibold">
-                    Publicaciones: {userProfile?.total_publicaciones || 0}
-                  </p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg">
-                  <p className="text-green-700 font-semibold">
-                    Miembro desde: {new Date(userProfile?.fecha_creacion).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg">
-                  <p className="text-purple-700 font-semibold">
-                    Último acceso: {userProfile?.ultimo_acceso 
-                      ? new Date(userProfile.ultimo_acceso).toLocaleDateString()
-                      : 'N/A'
-                    }
-                  </p>
-                </div>
-              </div>
-            </section>
+            <Estadisticas
+              totalPublicaciones={userProfile?.total_publicaciones || 0}
+              fechaCreacion={userProfile?.fecha_creacion || ''}
+              ultimoAcceso={userProfile?.ultimo_acceso}
+            />
           </div>
         </div>
       </div>
 
-      {/* Renderizar NotificacionChip cuando haya una notificación */}
-      {notificacion?.mostrar && (
+      {/* Renderizar todas las notificaciones activas */}
+      {notificaciones.map(notificacion => (
         <NotificacionChip
+          key={notificacion.id}
           tipo={notificacion.tipo}
           titulo={notificacion.titulo}
           contenido={notificacion.contenido}
+          onClose={() => {
+            setNotificaciones(prev => 
+              prev.filter(n => n.id !== notificacion.id)
+            );
+          }}
         />
-      )}
+      ))}
     </div>
   );
 };

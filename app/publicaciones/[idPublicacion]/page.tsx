@@ -467,7 +467,7 @@ export default function PublicacionPage() {
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar className="h-12 w-12">
                     <img 
-                      src={publicacion?.autor_foto || `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`}
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${publicacion?.autor_foto || 'null'}`}
                       alt={publicacion?.autor}
                     />
                   </Avatar>

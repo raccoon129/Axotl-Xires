@@ -9,7 +9,7 @@ export interface Publicacion {
   id_tipo: number;
   id_usuario: number;
   autor: string;
-  autor_foto: string | null;
+  autor_foto?: string | null;
   tipo_publicacion: string;
   total_favoritos: number;
   total_comentarios: number;

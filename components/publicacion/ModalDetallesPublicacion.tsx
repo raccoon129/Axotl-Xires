@@ -20,6 +20,7 @@ interface PropiedadesModal {
     titulo: string;
     resumen: string;
     autor: string;
+    autor_foto?: string | null;  // Añadimos esta propiedad
     fecha_publicacion: string;
     imagen_portada: string | null;
     categoria: string;
@@ -354,9 +355,12 @@ const ModalDetallesPublicacion = ({
                   </div>
 
                   {/* Información del autor */}
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                      <img src={`${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`} alt={publicacion.autor} />
+                  <div className="flex items-center gap-4 mb-4">
+                    <Avatar className="h-12 w-12">
+                      <img 
+                        src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${publicacion?.autor_foto || 'null'}`}
+                        alt={publicacion?.autor}
+                      />
                     </Avatar>
                     <div>
                       <p className="font-medium text-gray-900 text-sm sm:text-base">{publicacion.autor}</p>

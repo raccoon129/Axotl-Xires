@@ -134,8 +134,12 @@ const Navbar = () => {
                 className="flex items-center space-x-2 hover:bg-gray-100 rounded-full p-1 transition-colors duration-200 bg-white"
                 aria-label="Menú de usuario"
               >
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-gray-200">
-                  <User className="h-5 w-5 text-gray-600" />
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  <img 
+                    src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${userData?.foto_perfil || 'null'}`}
+                    alt="Foto de perfil"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </button>
               <AnimatePresence>

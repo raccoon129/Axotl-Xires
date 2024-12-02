@@ -27,6 +27,7 @@ export default function PaginaBusqueda() {
   const [resultados, setResultados] = useState<ResultadoBusqueda[]>([]);
   const [cargando, setCargando] = useState(true);
   const [terminosBuscados, setTerminosBuscados] = useState<string[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
   
   // Estados para el buscador cuando no hay query
   const [terminoBusqueda, setTerminoBusqueda] = useState('');
@@ -73,6 +74,10 @@ export default function PaginaBusqueda() {
     buscarPublicaciones();
   }, [query]);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const resaltarCoincidencias = (texto: string) => {
     if (!terminosBuscados.length) return texto;
     try {
@@ -103,6 +108,23 @@ export default function PaginaBusqueda() {
       </div>
     </div>
   );
+
+  // Si no está montado, mostrar un estado inicial consistente
+  if (!isMounted) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-3 mb-8">
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-5 w-48" />
+        </div>
+        <div className="space-y-6">
+          {[...Array(5)].map((_, i) => (
+            <SkeletonResultado key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // Si no hay query, mostrar el buscador principal
   if (!query) {
@@ -209,6 +231,13 @@ export default function PaginaBusqueda() {
     );
   }
 
+  // Modificar las animaciones para que solo se ejecuten después del montaje
+  const animationProps = isMounted ? {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+  } : {};
+
   // Renderizado normal cuando hay query
   return (
     <div className="container mx-auto px-4 py-8">
@@ -235,15 +264,11 @@ export default function PaginaBusqueda() {
               ))}
             </div>
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6"
-            >
+            <motion.div {...animationProps} className="space-y-6">
               {resultados.map((resultado) => (
                 <motion.div
                   key={resultado.id_publicacion}
+                  {...animationProps}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-4 bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"

@@ -20,6 +20,8 @@ const PerfilUsuarioClient = () => {
   const [isLoadingPublicaciones, setIsLoadingPublicaciones] = useState(true);
   const router = useRouter();
   const { idUsuario } = useParams();
+  const [fechaFormateada, setFechaFormateada] = useState<string>("");
+  const [ultimoAccesoFormateado, setUltimoAccesoFormateado] = useState<string>("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -96,6 +98,29 @@ const PerfilUsuarioClient = () => {
       document.title = "Perfil - Axotl Xires";
     }
   }, [userData?.nombre]);
+
+  // Mover la lógica de formateo a un efecto
+  useEffect(() => {
+    if (userData?.fecha_creacion) {
+      const fecha = formatearFecha(userData.fecha_creacion);
+      setFechaFormateada(fecha);
+    }
+
+    if (userData?.ultimo_acceso) {
+      const date = new Date(userData.ultimo_acceso);
+      const diferenciaDias = Math.floor(
+        (new Date().getTime() - date.getTime()) / (1000 * 3600 * 24)
+      );
+
+      let acceso = "";
+      if (diferenciaDias === 0) acceso = "Hoy";
+      else if (diferenciaDias === 1) acceso = "Ayer";
+      else if (diferenciaDias === 2) acceso = "Antes de ayer";
+      else acceso = formatearFecha(userData.ultimo_acceso);
+
+      setUltimoAccesoFormateado(acceso);
+    }
+  }, [userData?.fecha_creacion, userData?.ultimo_acceso]);
 
   const handleLeerPublicacion = (id: number) => {
     router.push(`/publicaciones/${id}`);
@@ -200,7 +225,7 @@ const PerfilUsuarioClient = () => {
                         Miembro desde
                       </span>
                       <p className="text-sm text-gray-900 font-medium">
-                        {userData?.fecha_creacion && formatearFecha(userData.fecha_creacion)}
+                        {fechaFormateada}
                       </p>
                     </div>
                     <div>
@@ -208,7 +233,7 @@ const PerfilUsuarioClient = () => {
                         Último acceso
                       </span>
                       <p className="text-sm text-gray-900 font-medium">
-                        {userData?.ultimo_acceso && formatearUltimoAcceso(userData.ultimo_acceso)}
+                        {ultimoAccesoFormateado}
                       </p>
                     </div>
                   </div>

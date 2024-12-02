@@ -1,51 +1,42 @@
+import { Metadata } from 'next';
 import { Publicacion } from '@/type/typePublicacion';
-import { TarjetaVerticalPublicacion } from '@/components/publicacion/TarjetaVerticalPublicacion';
-import { Banner } from '@/app/home/banner';
+import { Banner } from '@/components/home/banner';
+import { ContenidoHome } from '@/components/home/ContenidoHome';
+
+export const metadata: Metadata = {
+  title: 'Inicio - Axotl Xires',
+  description: 'Plataforma para la divulgación de artículos científicos y académicos',
+};
 
 // Función para obtener las publicaciones recientes
-async function fetchRecentPublications(): Promise<Publicacion[]> {
+async function obtenerPublicacionesRecientes(): Promise<Publicacion[]> {
   try {
-    const response = await fetch(
+    const respuesta = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/recientes`,
-      { next: { revalidate: 3600 } } // Revalidar cada hora
+      { next: { revalidate: 3600 } }
     );
     
-    if (!response.ok) {
+    if (!respuesta.ok) {
       throw new Error('Error al obtener publicaciones');
     }
     
-    return response.json();
+    const datos = await respuesta.json();
+    return datos.slice(0, 9); // Limitar a 9 publicaciones
   } catch (error) {
-    console.error('Error fetching publications:', error);
+    console.error('Error al cargar publicaciones:', error);
     return [];
   }
 }
 
-export default async function Home() {
-  const recentPublications = await fetchRecentPublications();
+export default async function PaginaInicio() {
+  const publicacionesRecientes = await obtenerPublicacionesRecientes();
 
   return (
     <div className="w-full mx-0 px-0">
       <Banner />
 
-      {/* Sección de publicaciones */}
-      <div className="container mx-auto px-10 py-8">
-        <h2 className="text-2xl font-semibold mb-6">Publicaciones Recientes</h2>
-        
-        {recentPublications.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No hay publicaciones disponibles en este momento.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentPublications.map((publicacion) => (
-              <TarjetaVerticalPublicacion
-                key={publicacion.id_publicacion}
-                publicacion={publicacion}
-              />
-            ))}
-          </div>
-        )}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <ContenidoHome publicacionesRecientes={publicacionesRecientes} />
       </div>
     </div>
   );

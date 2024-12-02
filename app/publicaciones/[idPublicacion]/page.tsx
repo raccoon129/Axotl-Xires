@@ -32,18 +32,16 @@ interface Publicacion {
 
 const EsqueletoLectura = () => (
   <div className="min-h-screen">
-    <div className="grid grid-cols-12 gap-6 max-w-screen-2xl mx-auto px-4 py-8">
-      {/* Skeleton columna izquierda */}
-      <div className="col-span-3">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 max-w-screen-2xl mx-auto px-4 py-4 lg:py-8">
+      {/* Skeleton columna izquierda - Solo visible en desktop */}
+      <div className="hidden lg:block lg:col-span-3">
         <div className="sticky top-24 space-y-6">
-          {/* Skeleton portada */}
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="aspect-[612/792]">
               <Skeleton className="w-full h-full" />
             </div>
           </div>
 
-          {/* Skeleton detalles autor */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center gap-4 mb-4">
               <Skeleton className="h-12 w-12 rounded-full" />
@@ -55,22 +53,42 @@ const EsqueletoLectura = () => (
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-5/6" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Skeleton columna central */}
-      <div className="col-span-7">
+      <div className="lg:col-span-7">
+        {/* Portada móvil */}
+        <div className="lg:hidden aspect-[16/9] relative overflow-hidden rounded-t-lg">
+          <Skeleton className="w-full h-full" />
+        </div>
+
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="p-8 border-b">
-            <Skeleton className="h-10 w-3/4 mb-6" />
-            <Skeleton className="h-6 w-full mb-2" />
-            <Skeleton className="h-6 w-5/6" />
+          {/* Info autor versión móvil */}
+          <div className="p-4 border-b lg:hidden">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
           </div>
-          <div className="p-8 space-y-4">
-            {[...Array(6)].map((_, i) => (
+
+          {/* Título y resumen */}
+          <div className="p-4 lg:p-8 border-b">
+            <Skeleton className="h-8 lg:h-10 w-3/4 mb-4" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+          </div>
+
+          {/* Contenido */}
+          <div className="p-4 lg:p-8 space-y-4">
+            {[...Array(4)].map((_, i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-11/12" />

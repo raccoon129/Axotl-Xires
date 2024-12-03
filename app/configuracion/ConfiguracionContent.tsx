@@ -9,6 +9,7 @@ import { InformacionBasica } from '@/components/configuracion/InformacionBasica'
 import { FotoPerfil } from '@/components/configuracion/FotoPerfil';
 import { CambiarContrasena } from '@/components/configuracion/CambiarContrasena';
 import { Estadisticas } from '@/components/configuracion/Estadisticas';
+import { motion } from 'framer-motion';
 
 interface ProfileFormData {
   nombre: string;
@@ -276,19 +277,24 @@ const ConfiguracionContent = () => {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex gap-8">
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
+          Configuración de la cuenta
+        </h1>
+
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Barra de navegación lateral */}
-          <div className="w-64 flex-shrink-0">
+          <div className="w-full lg:w-64 flex-shrink-0">
             <div className="sticky top-24 bg-white rounded-lg shadow-lg p-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Configuración</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Secciones</h2>
               <nav className="space-y-2">
                 {secciones.map(seccion => (
                   <button
                     key={seccion.id}
                     onClick={() => scrollToSection(seccion.id)}
-                    className="w-full text-left px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200"
+                    className="w-full text-left px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 
+                             hover:text-gray-900 transition-colors duration-200"
                   >
                     {seccion.titulo}
                   </button>
@@ -298,41 +304,65 @@ const ConfiguracionContent = () => {
           </div>
 
           {/* Contenido principal */}
-          <div className="flex-1 space-y-8">
-            <InformacionBasica
-              formData={formData}
-              isLoading={isLoading}
-              onInputChange={handleInputChange}
-              onGuardar={actualizarInformacionBasica}
-            />
+          <div className="flex-1 space-y-6">
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <InformacionBasica
+                formData={formData}
+                isLoading={isLoading}
+                onInputChange={handleInputChange}
+                onGuardar={actualizarInformacionBasica}
+              />
+            </motion.section>
 
-            <FotoPerfil
-              fotoPreview={fotoPreview}
-              isLoading={isLoading}
-              onFileChange={handleFileChange}
-              onActualizar={actualizarFotoPerfil}
-              hayNuevaFoto={!!fotoPerfil}
-              idUsuario={idUsuario || null}
-              nombreFoto={userProfile?.foto_perfil || null}
-            />
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <FotoPerfil
+                fotoPreview={fotoPreview}
+                isLoading={isLoading}
+                onFileChange={handleFileChange}
+                onActualizar={actualizarFotoPerfil}
+                hayNuevaFoto={!!fotoPerfil}
+                idUsuario={idUsuario || null}
+                nombreFoto={userProfile?.foto_perfil || null}
+              />
+            </motion.section>
 
-            <CambiarContrasena
-              formData={formData}
-              isLoading={isLoading}
-              onInputChange={handleInputChange}
-              onActualizar={actualizarContrasena}
-            />
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <CambiarContrasena
+                formData={formData}
+                isLoading={isLoading}
+                onInputChange={handleInputChange}
+                onActualizar={actualizarContrasena}
+              />
+            </motion.section>
 
-            <Estadisticas
-              totalPublicaciones={userProfile?.total_publicaciones || 0}
-              fechaCreacion={userProfile?.fecha_creacion || ''}
-              ultimoAcceso={userProfile?.ultimo_acceso}
-            />
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              <Estadisticas
+                totalPublicaciones={userProfile?.total_publicaciones || 0}
+                fechaCreacion={userProfile?.fecha_creacion || ''}
+                ultimoAcceso={userProfile?.ultimo_acceso}
+              />
+            </motion.section>
           </div>
         </div>
       </div>
 
-      {/* Renderizar todas las notificaciones activas */}
+      {/* Notificaciones */}
       {notificaciones.map(notificacion => (
         <NotificacionChip
           key={notificacion.id}
@@ -352,11 +382,13 @@ const ConfiguracionContent = () => {
 
 // Componente para el skeleton loader
 const LoadingSkeleton = () => (
-  <div className="min-h-screen py-8">
-    <div className="max-w-7xl mx-auto px-4">
-      <div className="flex gap-8">
+  <div className="min-h-screen bg-gray-100">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
+      <Skeleton className="h-8 w-64 mb-6" />
+      
+      <div className="flex flex-col lg:flex-row gap-6">
         {/* Barra lateral skeleton */}
-        <div className="w-64 flex-shrink-0">
+        <div className="w-full lg:w-64 flex-shrink-0">
           <div className="sticky top-24 bg-white rounded-lg shadow-lg p-4">
             <Skeleton className="h-8 w-36 mb-4" />
             <div className="space-y-2">
@@ -368,7 +400,7 @@ const LoadingSkeleton = () => (
         </div>
 
         {/* Contenido principal skeleton */}
-        <div className="flex-1 space-y-8">
+        <div className="flex-1 space-y-6">
           {/* Información Básica skeleton */}
           <section className="bg-white p-6 rounded-lg shadow-lg">
             <div className="flex justify-between items-center mb-6">

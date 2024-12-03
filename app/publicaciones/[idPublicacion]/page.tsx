@@ -5,30 +5,14 @@ import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar } from '@/components/ui/avatar';
-import { Calendar, MessageSquare, Star, BookOpen, X } from 'lucide-react';
+import { Calendar, MessageSquare, Star, BookOpen, X, Download } from 'lucide-react';
 import Link from 'next/link';
 import { SeccionComentarios } from '@/components/publicacion/SeccionComentarios';
 import { useAuth } from '@/hooks/useAuth';
 import SEOMetadata from '@/components/global/SEOMetadata';
-
-interface Publicacion {
-  id_publicacion: number;
-  titulo: string;
-  resumen: string;
-  contenido: string;
-  referencias: string;
-  fecha_publicacion: string;
-  imagen_portada: string | null;
-  id_tipo: number;
-  id_usuario: number;
-  autor: string;
-  autor_foto: string | null;
-  tipo_publicacion: string;
-  total_favoritos: number;
-  total_comentarios: number;
-  estado: string;
-  es_privada: number;
-}
+import { ContenidoPublicacion } from '@/components/publicacion/visualizacion/ContenidoPublicacion';
+import { Publicacion } from '@/type/typePublicacion';
+import { ModoLectura } from '@/components/publicacion/visualizacion/ModoLectura';
 
 const EsqueletoLectura = () => (
   <div className="min-h-screen">
@@ -118,10 +102,16 @@ const EsqueletoLectura = () => (
       <div className="lg:col-span-2">
         <div className="hidden lg:block sticky top-24">
           <div className="bg-white rounded-lg shadow-lg p-4">
-            <Skeleton className="h-6 w-24 mb-3" />
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-full rounded-lg" />
-              <Skeleton className="h-10 w-full rounded-lg" />
+            <div className="flex flex-row lg:flex-col gap-2">
+              {/* Skeleton para el botón de Modo Lectura */}
+              <div className="flex-1 lg:flex-none">
+                <Skeleton className="h-[38px] w-full rounded-lg bg-blue-100/50" />
+              </div>
+
+              {/* Skeleton para el botón de PDF */}
+              <div className="flex-1 lg:flex-none">
+                <Skeleton className="h-[38px] w-full rounded-lg" />
+              </div>
             </div>
           </div>
         </div>
@@ -142,48 +132,26 @@ const PanelComentarios = ({
   if (!mostrar) return null;
 
   return (
-    <div 
-      className="fixed inset-0 z-50"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClose();
-      }}
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.3 }}
+      className="bg-white rounded-lg shadow-lg overflow-hidden mb-6"
     >
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-        className="absolute top-[220px] left-0 right-0"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <motion.div
-          className="bg-white rounded-lg shadow-xl mx-auto"
-          style={{ 
-            maxHeight: '500px',
-            maxWidth: '100%',
-            width: '100%',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-          }}
+      <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+        <h3 className="text-lg font-semibold">Comentarios</h3>
+        <button 
+          onClick={onClose}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
         >
-          <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
-            <h3 className="text-lg font-semibold">Comentarios</h3>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="overflow-y-auto" style={{ maxHeight: 'calc(500px - 57px)' }}>
-            <SeccionComentarios idPublicacion={idPublicacion} />
-          </div>
-        </motion.div>
-      </motion.div>
-    </div>
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      <div className="max-h-[400px] overflow-y-auto">
+        <SeccionComentarios idPublicacion={idPublicacion} />
+      </div>
+    </motion.div>
   );
 };
 
@@ -200,6 +168,7 @@ export default function PublicacionPage() {
   const { idUsuario } = useAuth();
   const [accesoPermitido, setAccesoPermitido] = useState<boolean | null>(null);
   const [mensajeError, setMensajeError] = useState<string | null>(null);
+  const [modoLecturaActivo, setModoLecturaActivo] = useState(false);
 
   useEffect(() => {
     const cargarPublicacion = async () => {
@@ -215,6 +184,11 @@ export default function PublicacionPage() {
 
         const data = await respuesta.json();
         const publicacionData = data.datos;
+
+        // Verificar y asegurar que el estado sea uno de los valores permitidos
+        if (!['borrador', 'en_revision', 'publicado', 'rechazado'].includes(publicacionData.estado)) {
+          publicacionData.estado = 'publicado'; // Valor por defecto si no es válido
+        }
 
         // Verificar si la publicación es privada y el usuario tiene acceso
         if (publicacionData.es_privada === 1) {
@@ -232,7 +206,7 @@ export default function PublicacionPage() {
         }
 
         setAccesoPermitido(true);
-        setPublicacion(publicacionData);
+        setPublicacion(publicacionData as Publicacion);
       } catch (error) {
         setError('Error al cargar la publicación');
         console.error('Error:', error);
@@ -426,7 +400,6 @@ export default function PublicacionPage() {
       )}
       
       <div className="min-h-screen">
-        {/* Contenedor principal con grid responsivo */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
           {/* Columna izquierda - Portada y detalles */}
           <div className="lg:col-span-3 order-2 lg:order-1">
@@ -476,6 +449,17 @@ export default function PublicacionPage() {
                   />
                 </div>
               </div>
+
+              {/* Panel de comentarios */}
+              <AnimatePresence>
+                {mostrarComentarios && (
+                  <PanelComentarios
+                    mostrar={mostrarComentarios}
+                    onClose={() => setMostrarComentarios(false)}
+                    idPublicacion={Number(params.idPublicacion)}
+                  />
+                )}
+              </AnimatePresence>
 
               {/* Detalles del autor */}
               <div className="bg-white rounded-lg shadow-lg p-6 relative">
@@ -543,101 +527,8 @@ export default function PublicacionPage() {
             </motion.div>
           </div>
 
-          {/* Columna central - Contenido principal */}
-          <motion.article 
-            className="lg:col-span-7 bg-white shadow-lg rounded-lg overflow-hidden order-1 lg:order-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Portada móvil */}
-            <div className="lg:hidden aspect-[16/9] relative overflow-hidden">
-              <img
-                src={publicacion?.imagen_portada ? 
-                  `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
-                  `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
-                }
-                alt={publicacion?.titulo}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Título y resumen */}
-            <header className="p-4 lg:p-8 border-b">
-              <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 mb-4 lg:mb-6 font-crimson">
-                {publicacion?.titulo}
-              </h1>
-              <p className="text-lg lg:text-xl text-gray-600 font-crimson leading-relaxed">
-                {publicacion?.resumen}
-              </p>
-            </header>
-
-            {/* Contenido */}
-            <div className="p-4 lg:p-8">
-              <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
-                
-                .contenido-publicacion {
-                  font-family: 'Crimson Text', serif;
-                  font-size: 1.125rem;
-                  line-height: 1.8;
-                  color: #1a1a1a;
-                }
-
-                .contenido-publicacion h1,
-                .contenido-publicacion h2,
-                .contenido-publicacion h3 {
-                  font-weight: 700;
-                  color: #111827;
-                  margin: 1.5em 0 0.5em;
-                }
-
-                .contenido-publicacion h1 { font-size: 2em; }
-                .contenido-publicacion h2 { font-size: 1.75em; }
-                .contenido-publicacion h3 { font-size: 1.5em; }
-
-                .contenido-publicacion p { margin: 1em 0; }
-
-                .contenido-publicacion img {
-                  max-width: 100%;
-                  height: auto;
-                  margin: 2em auto;
-                  border-radius: 0.5rem;
-                }
-
-                .contenido-publicacion a {
-                  color: #2563eb;
-                  text-decoration: underline;
-                }
-
-                .contenido-publicacion blockquote {
-                  border-left: 4px solid #e5e7eb;
-                  padding-left: 1em;
-                  margin: 1.5em 0;
-                  font-style: italic;
-                  color: #4b5563;
-                }
-              `}</style>
-              <div 
-                className="contenido-publicacion"
-                dangerouslySetInnerHTML={{ __html: publicacion?.contenido || '' }}
-              />
-            </div>
-
-            {/* Referencias */}
-            {publicacion?.referencias && (
-              <footer className="p-4 lg:p-8 bg-gray-50 border-t">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-2 lg:mb-4 font-crimson">
-                  Fuentes de consulta
-                </h2>
-                <div className="prose max-w-none font-crimson">
-                  <pre className="whitespace-pre-wrap text-base lg:text-lg text-gray-600">
-                    {publicacion.referencias}
-                  </pre>
-                </div>
-              </footer>
-            )}
-          </motion.article>
+          {/* Columna central - Ahora usa el nuevo componente */}
+          {publicacion && <ContenidoPublicacion publicacion={publicacion} />}
 
           {/* Columna derecha - Navegación y acciones */}
           <div className="lg:col-span-2 order-3">
@@ -647,28 +538,51 @@ export default function PublicacionPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="flex justify-around lg:flex-col lg:space-y-4">
-                <button className="flex items-center gap-2 px-4 py-2 text-sm bg-white hover:bg-gray-50 rounded-lg transition-colors shadow-sm">
-                  <BookOpen className="h-5 w-5" />
-                  <span className="hidden lg:inline">Modo lectura</span>
-                </button>
-                {/* Otros botones de acción */}
+              <div className="bg-white rounded-lg shadow-lg p-4">
+                <div className="flex flex-row lg:flex-col gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setModoLecturaActivo(true)}
+                    className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2.5
+                              bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200
+                              text-blue-600 border border-blue-200"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span className="text-sm font-medium">Modo Lectura</span>
+                  </motion.button>
+
+                  <Link 
+                    href={`/publicaciones/${params.idPublicacion}/descargar`}
+                    className="flex-1 lg:flex-none"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5
+                                bg-white hover:bg-gray-50 rounded-lg transition-all duration-200
+                                border border-gray-200 text-gray-700"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span className="text-sm font-medium">PDF</span>
+                    </motion.button>
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </div>
         </div>
-
-        {/* Panel de comentarios responsivo */}
-        <AnimatePresence>
-          {mostrarComentarios && (
-            <PanelComentarios
-              mostrar={mostrarComentarios}
-              onClose={() => setMostrarComentarios(false)}
-              idPublicacion={Number(params.idPublicacion)}
-            />
-          )}
-        </AnimatePresence>
       </div>
+
+      {/* Modo Lectura */}
+      {publicacion && (
+        <ModoLectura
+          isOpen={modoLecturaActivo}
+          onClose={() => setModoLecturaActivo(false)}
+          titulo={publicacion.titulo}
+          contenido={publicacion.contenido}
+        />
+      )}
     </>
   );
 }

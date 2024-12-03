@@ -184,7 +184,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                         />
                     </div>
 
-                    <div className="flex flex-col flex-grow justify-between space-y-4 md:space-y-0">
+                    <div className="flex flex-col flex-grow justify-between">
                         <div className="space-y-3">
                             <h2 className="text-xl font-bold text-gray-900 line-clamp-2">
                                 {publicacion?.titulo}
@@ -192,63 +192,79 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                             <p className="text-gray-600 line-clamp-3 text-sm">
                                 {publicacion?.resumen}
                             </p>
-                            {publicacion?.estado && (
-                                <span className={`inline-block px-3 py-1 rounded-full text-sm ${obtenerColorEstado(publicacion.estado)}`}>
-                                    {formatearEstado(publicacion.estado)}
-                                </span>
-                            )}
+                            
+                            <div className="flex flex-wrap items-center gap-2">
+                                {publicacion?.estado && (
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm ${obtenerColorEstado(publicacion.estado)}`}>
+                                        {formatearEstado(publicacion.estado)}
+                                    </span>
+                                )}
+                                
+                                {publicacion?.estado === 'publicado' && (
+                                    <div className="flex items-center gap-2">
+                                        <div className={`h-1.5 w-1.5 rounded-full ${publicacion.es_privada === 1 ? 'bg-gray-400' : 'bg-green-400'}`} />
+                                        <span className="text-sm text-gray-600">
+                                            {publicacion.es_privada === 1 ? 'Privada' : 'Pública'}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         
-                        <div className="flex flex-wrap gap-2">
-                            <Button 
-                                variant="outline" 
-                                onClick={irALectura}
-                                className="flex items-center gap-2 bg-white hover:bg-gray-50 w-full sm:w-auto"
-                            >
-                                <BookOpen className="w-4 h-4" />
-                                Leer
-                            </Button>
-                            
-                            {publicacion?.estado && puedeEditar(publicacion.estado) && (
+                        <div className="mt-4 space-y-3">
+                            <div className="flex flex-wrap gap-2">
                                 <Button 
-                                    variant="outline"
-                                    onClick={() => alEditar(publicacion!.id_publicacion)}
-                                    className="flex items-center gap-2 bg-white hover:bg-gray-50 w-full sm:w-auto"
+                                    variant="outline" 
+                                    onClick={irALectura}
+                                    className="flex items-center gap-2 bg-white hover:bg-gray-50"
                                 >
-                                    <Edit className="w-4 h-4" />
-                                    Editar
+                                    <BookOpen className="w-4 h-4" />
+                                    Leer
                                 </Button>
-                            )}
-                            
-                            <Button 
-                                variant="destructive"
-                                onClick={() => alSolicitarBaja(publicacion!.id_publicacion)}
-                                className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200 w-full sm:w-auto"
-                            >
-                                <AlertCircle className="w-4 h-4" />
-                                Solicitar Baja
-                            </Button>
-                            
-                            {publicacion?.estado === 'publicado' && (
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setMostrarDialogo(true)}
-                                    disabled={actualizandoPrivacidad}
-                                    className="flex items-center gap-2 bg-white hover:bg-gray-50 w-full sm:w-auto"
+                                
+                                {publicacion?.estado && puedeEditar(publicacion.estado) && (
+                                    <Button 
+                                        variant="outline"
+                                        onClick={() => alEditar(publicacion!.id_publicacion)}
+                                        className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                        Editar
+                                    </Button>
+                                )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                                {publicacion?.estado === 'publicado' && (
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => setMostrarDialogo(true)}
+                                        disabled={actualizandoPrivacidad}
+                                        className="flex items-center gap-2 text-gray-700"
+                                    >
+                                        {publicacion.es_privada === 1 ? (
+                                            <>
+                                                <Lock className="w-4 h-4" />
+                                                <span className="text-sm">Cambiar a pública</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Unlock className="w-4 h-4" />
+                                                <span className="text-sm">Cambiar a privada</span>
+                                            </>
+                                        )}
+                                    </Button>
+                                )}
+                                
+                                <Button 
+                                    variant="destructive"
+                                    onClick={() => alSolicitarBaja(publicacion!.id_publicacion)}
+                                    className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
                                 >
-                                    {publicacion.es_privada === 1 ? (
-                                        <>
-                                            <Lock className="w-4 h-4" />
-                                            Privada
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Unlock className="w-4 h-4" />
-                                            Pública
-                                        </>
-                                    )}
+                                    <AlertCircle className="w-4 h-4" />
+                                    Solicitar Baja
                                 </Button>
-                            )}
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -284,23 +284,23 @@ const RedactarContenido = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 flex justify-center">
-      <div className="w-full max-w-5xl">
-        <h1 className="text-3xl font-semibold text-gray-700 mb-6">
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
           Redactar una nueva publicación
         </h1>
 
         {/* Sección de detalles de la publicación */}
         <motion.section
-          className="p-6 mb-8 bg-white shadow-lg rounded-lg"
+          className="p-4 md:p-6 mb-6 md:mb-8 bg-white shadow-lg rounded-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-xl font-semibold text-gray-700 mb-6">
+          <h2 className="text-lg md:text-xl font-semibold text-gray-700 mb-4 md:mb-6">
             Detalles de la publicación
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
             <DetallesPublicacion
               nombrePublicacion={nombrePublicacion}
               setNombrePublicacion={setNombrePublicacion}
@@ -322,7 +322,7 @@ const RedactarContenido = () => {
 
         {/* Editor de texto */}
         <motion.section
-          className="p-6 mb-8 bg-white shadow-lg rounded-lg"
+          className="p-4 md:p-6 mb-6 md:mb-8 bg-white shadow-lg rounded-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -341,7 +341,7 @@ const RedactarContenido = () => {
 
         {/* Referencias */}
         <motion.section
-          className="p-6 mb-8 bg-white shadow-lg rounded-lg"
+          className="p-4 md:p-6 mb-6 md:mb-8 bg-white shadow-lg rounded-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
@@ -365,15 +365,14 @@ const RedactarContenido = () => {
             tituloPublicacion={nombrePublicacion}
             nombreAutor={userProfile?.userName || ""}
             alGuardar={manejarGuardadoPortada}
-            //dimensiones={dimensionesPortada}
           />
         </ModalPortada>
 
-        <div className="flex justify-end gap-4 mt-6">
+        <div className="flex justify-end gap-4 mt-6 px-4 md:px-0">
           <BotonEnviarParaRevision
             idBorradorActual={idBorradorActual}
             onEnviar={enviarParaRevision}
-            className="shadow-md"
+            className="shadow-md w-full md:w-auto"
             habilitado={borradorGuardado}
             camposCompletos={camposCompletos()}
           />

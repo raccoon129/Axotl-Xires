@@ -129,7 +129,7 @@ export default function PaginaBusqueda() {
   // Si no hay query, mostrar el buscador principal
   if (!query) {
     return (
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-[#612c7d] to-[#9f5afd] 
@@ -157,11 +157,7 @@ export default function PaginaBusqueda() {
                     setMostrarResultados(e.target.value.length > 0);
                   }}
                   onKeyDown={handleKeyDown}
-                  onFocus={() => {
-                    if (terminoBusqueda.length > 0) {
-                      setMostrarResultados(true);
-                    }
-                  }}
+                  onFocus={() => terminoBusqueda.length > 0 && setMostrarResultados(true)}
                   className="w-full pl-16 pr-6 py-5 bg-transparent text-xl placeholder:text-gray-400 
                            text-gray-900 focus:outline-none border-none"
                 />
@@ -240,7 +236,7 @@ export default function PaginaBusqueda() {
 
   // Renderizado normal cuando hay query
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
       <h1 className="text-2xl font-bold mb-2">
         Resultados de búsqueda para "{query}"
       </h1>
@@ -253,7 +249,7 @@ export default function PaginaBusqueda() {
           {cargando ? (
             <div className="space-y-6">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex gap-4 bg-white p-4 rounded-lg shadow">
+                <div key={i} className="flex gap-4 bg-white p-6 rounded-lg shadow">
                   <Skeleton className="h-32 w-24 rounded" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-6 w-3/4" />
@@ -264,14 +260,18 @@ export default function PaginaBusqueda() {
               ))}
             </div>
           ) : (
-            <motion.div {...animationProps} className="space-y-6">
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
               {resultados.map((resultado) => (
                 <motion.div
                   key={resultado.id_publicacion}
-                  {...animationProps}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-4 bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+                  className="flex gap-4 bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
                 >
                   <Link 
                     href={`/publicaciones/${resultado.id_publicacion}`}
@@ -295,7 +295,7 @@ export default function PaginaBusqueda() {
                         }}
                       />
                       <p 
-                        className="text-gray-600 mb-2"
+                        className="text-gray-600 mb-2 line-clamp-2"
                         dangerouslySetInnerHTML={{ 
                           __html: resaltarCoincidencias(resultado.resumen)
                         }}

@@ -32,16 +32,18 @@ interface Publicacion {
 
 const EsqueletoLectura = () => (
   <div className="min-h-screen">
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 max-w-screen-2xl mx-auto px-4 py-4 lg:py-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-4 lg:py-6">
       {/* Skeleton columna izquierda - Solo visible en desktop */}
       <div className="hidden lg:block lg:col-span-3">
-        <div className="sticky top-24 space-y-6">
+        <div className="sticky top-24 space-y-4">
+          {/* Portada skeleton - Movido arriba */}
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="aspect-[612/792]">
               <Skeleton className="w-full h-full" />
             </div>
           </div>
 
+          {/* Info autor skeleton */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex items-center gap-4 mb-4">
               <Skeleton className="h-12 w-12 rounded-full" />
@@ -53,6 +55,18 @@ const EsqueletoLectura = () => (
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </div>
+
+          {/* Mensaje privado skeleton - Movido al final */}
+          <div className="bg-purple-50/30 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-9 w-9 rounded-full" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-48" />
+              </div>
             </div>
           </div>
         </div>
@@ -80,15 +94,16 @@ const EsqueletoLectura = () => (
           {/* Título y resumen */}
           <div className="p-4 lg:p-8 border-b">
             <Skeleton className="h-8 lg:h-10 w-3/4 mb-4" />
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-4/5" />
             </div>
           </div>
 
           {/* Contenido */}
-          <div className="p-4 lg:p-8 space-y-4">
-            {[...Array(4)].map((_, i) => (
+          <div className="p-4 lg:p-8 space-y-6">
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="space-y-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-11/12" />
@@ -100,8 +115,8 @@ const EsqueletoLectura = () => (
       </div>
 
       {/* Skeleton columna derecha */}
-      <div className="col-span-2">
-        <div className="sticky top-24">
+      <div className="lg:col-span-2">
+        <div className="hidden lg:block sticky top-24">
           <div className="bg-white rounded-lg shadow-lg p-4">
             <Skeleton className="h-6 w-24 mb-3" />
             <div className="space-y-2">
@@ -412,7 +427,7 @@ export default function PublicacionPage() {
       
       <div className="min-h-screen">
         {/* Contenedor principal con grid responsivo */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-screen-2xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
           {/* Columna izquierda - Portada y detalles */}
           <div className="lg:col-span-3 order-2 lg:order-1">
             <motion.div 

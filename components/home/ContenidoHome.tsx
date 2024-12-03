@@ -89,7 +89,7 @@ export function ContenidoHome({ publicacionesRecientes }: PropiedadesContenidoHo
   };
 
   return (
-    <div className="space-y-16">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl space-y-16">
       {/* Sección de publicaciones recientes con carrusel */}
       <section>
         <div className="flex justify-between items-center mb-6">

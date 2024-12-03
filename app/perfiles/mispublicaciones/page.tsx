@@ -125,7 +125,7 @@ export default function PaginaPublicaciones() {
 
     return (
         <AuthGuard>
-            <div className="container mx-auto px-8 md:px-16 lg:px-24 py-8">
+            <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
                 <h1 className="text-3xl font-bold mb-6">Administrar mis publicaciones</h1>
                 
                 <div className="mb-6 flex flex-wrap gap-2">

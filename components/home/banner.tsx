@@ -18,7 +18,7 @@ export const Banner = () => {
         }}
       />
 
-      <div className="container mx-auto px-4 py-12 relative z-10">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-12 relative z-10">
         <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
           {/* Columna izquierda: Logo */}
           <div className="lg:w-1/2 space-y-6">

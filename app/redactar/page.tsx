@@ -16,6 +16,7 @@ import { ContenidoPublicacion } from "@/components/redactar/ContenidoPublicacion
 import { Referencias } from "@/components/redactar/Referencias";
 import { TipoPublicacion, BorradorResponse } from "@/type/tipoPublicacion";
 import BotonEnviarParaRevision from '@/components/redactar/BotonEnviarParaRevision';
+import { ModalGeneradorPortada } from '@/components/editor/portada/ModalGeneradorPortada';
 
 const RedactarContenido = () => {
   
@@ -50,6 +51,7 @@ const RedactarContenido = () => {
     "confirmacion" | "excepcion" | "notificacion" | null
   >(null);
   const [borradorGuardado, setBorradorGuardado] = useState(false);
+  const [mostrarModalPortada, setMostrarModalPortada] = useState(false);
 
   // Efecto inicial
   useEffect(() => {
@@ -116,31 +118,32 @@ const RedactarContenido = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No hay token de autenticación");
 
-      if (!idBorradorActual) {
-        const idResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/proximoid`
-        );
-        const idData = await idResponse.json();
-        const proximoId = idData.id[0]?.proximo_id;
-        if (!proximoId) throw new Error("No se pudo obtener un ID para el borrador");
-        setIdBorradorActual(proximoId);
-      }
-
       const formData = new FormData();
       formData.append("titulo", nombrePublicacion);
       formData.append("resumen", resumenPublicacion);
       formData.append("contenido", editorContent);
-      formData.append("id_tipo", tipoSeleccionado.toString());
       formData.append("referencias", referencias);
+      formData.append("id_tipo", tipoSeleccionado.toString());
 
       // Manejar la imagen de portada
       if (vistaPrevia) {
-        if (vistaPrevia.startsWith('data:')) {
+        // Si es una nueva imagen en base64 del generador de portadas
+        if (vistaPrevia.startsWith('data:image/png;base64,')) {
           const response = await fetch(vistaPrevia);
           const blob = await response.blob();
-          formData.append("imagen_portada", blob, "portada.png");
-        } else if (portada instanceof File) {
+          const imageFile = new File([blob], 'portada.png', { type: 'image/png' });
+          formData.append("imagen_portada", imageFile);
+        }
+        // Si es un archivo subido directamente
+        else if (portada instanceof File) {
           formData.append("imagen_portada", portada);
+        }
+        // Si es una URL del servidor, no enviamos la imagen pues no ha cambiado
+        else if (!vistaPrevia.startsWith(process.env.NEXT_PUBLIC_PORTADAS_URL!)) {
+          const response = await fetch(vistaPrevia);
+          const blob = await response.blob();
+          const imageFile = new File([blob], 'portada.png', { type: 'image/png' });
+          formData.append("imagen_portada", imageFile);
         }
       }
 
@@ -193,16 +196,30 @@ const RedactarContenido = () => {
 
   // Función para manejar la portada generada
   const manejarGuardadoPortada = (imagenPortada: string) => {
-    setVistaPrevia(imagenPortada);
-    setMostrarModal(false);
+    const archivo = dataURLtoFile(imagenPortada, 'portada.png');
+    manejarCambioPortada(archivo);
+    setMostrarModalPortada(false);
+  };
+
+  const dataURLtoFile = (dataurl: string, filename: string): File => {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   };
 
   // Función para manejar la portada subida
   const manejarCambioPortada = (archivo: File) => {
-    setPortada(archivo);
-    const lector = new FileReader();
-    lector.onloadend = () => setVistaPrevia(lector.result as string);
-    lector.readAsDataURL(archivo);
+    if (archivo) {
+      const url = URL.createObjectURL(archivo);
+      setVistaPrevia(url);
+      setPortada(archivo);
+    }
   };
 
   // Nueva función para verificar si todos los campos están completos
@@ -315,7 +332,8 @@ const RedactarContenido = () => {
               dimensionesPortada={dimensionesPortada}
               nombrePublicacion={nombrePublicacion}
               onPortadaChange={manejarCambioPortada}
-              onModalOpen={() => setMostrarModal(true)}
+              onCrearPortadaClick={() => setMostrarModalPortada(true)}
+              userProfile={userProfile}
             />
           </div>
         </motion.section>
@@ -352,22 +370,6 @@ const RedactarContenido = () => {
           />
         </motion.section>
 
-        {/* Modal de generación de portada */}
-        <ModalPortada
-          estaAbierto={mostrarModal}
-          alCerrar={() => setMostrarModal(false)}
-          titulo="Crear una portada para la publicación"
-          autor={userProfile?.userName || ""}
-          onGuardar={manejarGuardadoPortada}
-          dimensiones={dimensionesPortada}
-        >
-          <GeneradorPortada
-            tituloPublicacion={nombrePublicacion}
-            nombreAutor={userProfile?.userName || ""}
-            alGuardar={manejarGuardadoPortada}
-          />
-        </ModalPortada>
-
         <div className="flex justify-end gap-4 mt-6 px-4 md:px-0">
           <BotonEnviarParaRevision
             idBorradorActual={idBorradorActual}
@@ -377,6 +379,16 @@ const RedactarContenido = () => {
             camposCompletos={camposCompletos()}
           />
         </div>
+
+        {/* Modal de generación de portada */}
+        <ModalGeneradorPortada
+          estaAbierto={mostrarModalPortada}
+          alCerrar={() => setMostrarModalPortada(false)}
+          titulo={nombrePublicacion}
+          autor={userProfile?.userName || ""}
+          onGuardar={manejarGuardadoPortada}
+          dimensiones={dimensionesPortada}
+        />
       </div>
     </div>
   );

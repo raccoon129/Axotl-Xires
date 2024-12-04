@@ -5,18 +5,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ModalProps {
   estaAbierto: boolean;
   alCerrar: () => void;
-  titulo: string;
-  autor: string;
-  onGuardar: (imagenPortada: string) => void;
-  dimensiones: { ancho: number; alto: number };
-  children?: ReactNode; // Asegúrate de que `children` esté aquí
+  titulo?: string;
+  autor?: string;
+  onGuardar?: (imagenPortada: string) => void;
+  dimensiones?: { ancho: number; alto: number };
+  children?: ReactNode;
 }
 
 const Modal: React.FC<ModalProps> = ({
   estaAbierto,
   alCerrar,
-  children,
-  titulo
+  titulo,
+  children
 }) => {
   return (
     <AnimatePresence>
@@ -47,7 +47,6 @@ const Modal: React.FC<ModalProps> = ({
                 </button>
               </div>
             </div>
-            {/* Renderizar los children aquí */}
             <div className="p-6">{children}</div>
           </motion.div>
         </motion.div>

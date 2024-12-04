@@ -7,7 +7,8 @@ interface SeccionPortadaProps {
   dimensionesPortada: { ancho: number; alto: number };
   nombrePublicacion: string;
   onPortadaChange: (file: File) => void;
-  onModalOpen: () => void;
+  onCrearPortadaClick: () => void;
+  userProfile?: any;
 }
 
 export const SeccionPortada: React.FC<SeccionPortadaProps> = ({
@@ -15,8 +16,11 @@ export const SeccionPortada: React.FC<SeccionPortadaProps> = ({
   dimensionesPortada,
   nombrePublicacion,
   onPortadaChange,
-  onModalOpen
+  onCrearPortadaClick,
+  userProfile
 }) => {
+  const [mostrarModal, setMostrarModal] = useState(false);
+
   const validarDimensionesImagen = async (archivo: File): Promise<boolean> => {
     return new Promise((resolve) => {
       const imagen = new window.Image();
@@ -55,6 +59,23 @@ export const SeccionPortada: React.FC<SeccionPortadaProps> = ({
         alert("Solo se permiten archivos PNG o JPG");
       }
     }
+  };
+
+  const manejarGuardadoPortada = (imagenPortada: string) => {
+    onPortadaChange(dataURLtoFile(imagenPortada, 'portada.png'));
+    setMostrarModal(false);
+  };
+
+  const dataURLtoFile = (dataurl: string, filename: string): File => {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)?.[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   };
 
   return (
@@ -115,7 +136,7 @@ export const SeccionPortada: React.FC<SeccionPortadaProps> = ({
         Si no cuentas con una portada, crea una a continuación:
       </label>
       <button
-        onClick={onModalOpen}
+        onClick={onCrearPortadaClick}
         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={!nombrePublicacion}
       >

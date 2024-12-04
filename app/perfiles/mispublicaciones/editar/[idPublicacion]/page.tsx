@@ -8,8 +8,7 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import ModalPortada from "@/components/editor/Modal";
-import GeneradorPortada from "@/components/editor/GeneradorPortada";
+import { ModalGeneradorPortada } from '@/components/editor/portada/ModalGeneradorPortada';
 import { DetallesPublicacion } from "@/components/redactar/DetallesPublicacion";
 import { SeccionPortada } from "@/components/redactar/SeleccionPortada";
 import { ContenidoPublicacion } from "@/components/redactar/ContenidoPublicacion";
@@ -56,6 +55,7 @@ const EditarPublicacionContenido = () => {
   useEffect(() => {
     const verificarAcceso = async () => {
       try {
+        
         const token = localStorage.getItem("token");
         const respuesta = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/${idPublicacion}`,
@@ -125,6 +125,13 @@ const EditarPublicacionContenido = () => {
     }
   }, [accesoPermitido]);
 
+  // Añadir efecto para el título dinámico
+  useEffect(() => {
+    document.title = nombrePublicacion 
+      ? `Editando: ${nombrePublicacion} - Axotl Xires`
+      : 'Editando publicación - Axotl Xires';
+  }, [nombrePublicacion]);
+
   // Funciones auxiliares
   const obtenerTiposPublicacion = async () => {
     try {
@@ -185,21 +192,24 @@ const EditarPublicacionContenido = () => {
 
       // Manejar la imagen de portada
       if (vistaPrevia) {
-        if (vistaPrevia.startsWith('data:')) {
-          // Si es una nueva imagen en base64
+        // Si es una nueva imagen en base64 del generador de portadas
+        if (vistaPrevia.startsWith('data:image/png;base64,')) {
           const response = await fetch(vistaPrevia);
           const blob = await response.blob();
-          formData.append("imagen_portada", blob, "portada.png");
-        } else if (portada instanceof File) {
-          // Si es un archivo subido
-          formData.append("imagen_portada", portada);
-        } else if (!vistaPrevia.startsWith(process.env.NEXT_PUBLIC_PORTADAS_URL!)) {
-          // Si la URL no es del servidor, es una nueva imagen
-          const response = await fetch(vistaPrevia);
-          const blob = await response.blob();
-          formData.append("imagen_portada", blob, "portada.png");
+          const imageFile = new File([blob], 'portada.png', { type: 'image/png' });
+          formData.append("imagen_portada", imageFile);
         }
-        // Si la URL es del servidor, no enviamos la imagen pues no ha cambiado
+        // Si es un archivo subido directamente
+        else if (portada instanceof File) {
+          formData.append("imagen_portada", portada);
+        }
+        // Si es una URL del servidor, no enviamos la imagen pues no ha cambiado
+        else if (!vistaPrevia.startsWith(process.env.NEXT_PUBLIC_PORTADAS_URL!)) {
+          const response = await fetch(vistaPrevia);
+          const blob = await response.blob();
+          const imageFile = new File([blob], 'portada.png', { type: 'image/png' });
+          formData.append("imagen_portada", imageFile);
+        }
       }
 
       const respuesta = await fetch(
@@ -358,9 +368,9 @@ const EditarPublicacionContenido = () => {
 
   // Renderizado normal del editor si el acceso está permitido
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-semibold text-gray-700 mb-6">
+    <div className="min-h-screen bg-gray-100">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
           Editar publicación
         </h1>
 
@@ -395,7 +405,8 @@ const EditarPublicacionContenido = () => {
                 dimensionesPortada={dimensionesPortada}
                 nombrePublicacion={nombrePublicacion}
                 onPortadaChange={manejarCambioPortada}
-                onModalOpen={() => setMostrarModal(true)}
+                onCrearPortadaClick={() => setMostrarModal(true)}
+                userProfile={userProfile}
               />
             </motion.section>
           </div>
@@ -434,28 +445,21 @@ const EditarPublicacionContenido = () => {
           </div>
         </div>
 
-        <ModalPortada
+        <ModalGeneradorPortada
           estaAbierto={mostrarModal}
           alCerrar={() => setMostrarModal(false)}
-          titulo="Actualizar portada de la publicación"
+          titulo={nombrePublicacion}
           autor={userProfile?.userName || ""}
           onGuardar={manejarGuardadoPortada}
           dimensiones={dimensionesPortada}
-        >
-          <GeneradorPortada
-            tituloPublicacion={nombrePublicacion}
-            nombreAutor={userProfile?.userName || ""}
-            alGuardar={manejarGuardadoPortada}
-            //dimensiones={dimensionesPortada}
-          />
-        </ModalPortada>
+        />
 
         {/* Botón Enviar para revisión */}
-        <div className="flex justify-end gap-4 mt-6">
+        <div className="flex justify-end gap-4 mt-6 px-4 md:px-0">
           <BotonEnviarParaRevision
             idBorradorActual={parseInt(idPublicacion as string)}
             onEnviar={enviarParaRevision}
-            className="shadow-md"
+            className="shadow-md w-full md:w-auto"
             habilitado={borradorGuardado}
             camposCompletos={camposCompletos()}
           />

@@ -5,36 +5,55 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from 'next/navigation';
-import { toast } from "@/hooks/use-toast";
+import NotificacionChip from '../global/NotificacionChip';
+import { createPortal } from 'react-dom';
+import BotonMorado from '../global/genericos/BotonMorado';
 
 const FormularioRegistro = () => {
   const [formData, setFormData] = useState({
-    nombre: '',
     correo: '',
     contrasena: ''
   });
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [errores, setErrores] = useState<Record<string, string>>({});
+  const [botonDeshabilitado, setBotonDeshabilitado] = useState(false);
+  const [registroExitoso, setRegistroExitoso] = useState(false);
   const router = useRouter();
+
+  const mostrarNotificacion = (tipo: "excepcion" | "confirmacion" | "notificacion", titulo: string, contenido: string, callback?: () => void) => {
+    const notificacion = document.createElement('div');
+    document.body.appendChild(notificacion);
+
+    const handleClose = () => {
+      document.body.removeChild(notificacion);
+      if (callback) callback();
+    };
+
+    const elemento = createPortal(
+      <NotificacionChip
+        tipo={tipo}
+        titulo={titulo}
+        contenido={contenido}
+        onClose={handleClose}
+      />,
+      notificacion
+    );
+
+    return elemento;
+  };
 
   const validarFormulario = () => {
     const nuevosErrores: Record<string, string> = {};
     
-    // Validar correo
     const regexCorreo = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!regexCorreo.test(formData.correo)) {
       nuevosErrores.correo = 'El formato del correo electrónico no es válido';
     }
 
-    // Validar contraseña
     const regexContrasena = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
     if (!regexContrasena.test(formData.contrasena)) {
       nuevosErrores.contrasena = 'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número';
-    }
-
-    // Validar nombre
-    if (formData.nombre.trim().length < 2) {
-      nuevosErrores.nombre = 'El nombre debe tener al menos 2 caracteres';
     }
 
     setErrores(nuevosErrores);
@@ -47,7 +66,6 @@ const FormularioRegistro = () => {
       ...prev,
       [name]: value
     }));
-    // Limpiar error del campo cuando el usuario empieza a escribir
     if (errores[name]) {
       setErrores(prev => ({
         ...prev,
@@ -59,28 +77,44 @@ const FormularioRegistro = () => {
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validarFormulario()) {
-      toast({
-        title: "Error de validación",
-        description: "Por favor, corrige los errores en el formulario",
-        variant: "destructive",
-      });
+    if (!aceptaTerminos) {
+      mostrarNotificacion(
+        "excepcion",
+        "Error",
+        "Debes aceptar los términos y condiciones"
+      );
       return;
     }
 
+    if (!validarFormulario()) {
+      mostrarNotificacion(
+        "excepcion",
+        "Error de validación",
+        "Por favor, corrige los errores en el formulario"
+      );
+      return;
+    }
+
+    setBotonDeshabilitado(true);
     setCargando(true);
-    //const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     try {
-      const respuesta = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/registro`, {
+      const respuesta = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/registro/paso1`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'Accept': 'application/json'
         },
-        credentials: 'include',
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          correo: formData.correo,
+          contrasena: formData.contrasena
+        }),
       });
+
+      const contentType = respuesta.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("La respuesta del servidor no es válida");
+      }
 
       const datos = await respuesta.json();
 
@@ -88,57 +122,57 @@ const FormularioRegistro = () => {
         throw new Error(datos.mensaje || 'Error en el registro');
       }
 
-      // Guardar el token
-      if (datos.token) {
-        localStorage.setItem('token', datos.token);
-        // Opcional: También podrías guardarlo en una cookie segura
-        document.cookie = `auth_token=${datos.token}; path=/; secure; samesite=strict`;
+      if (!datos.token || !datos.usuario?.id) {
+        throw new Error('Respuesta del servidor incompleta');
       }
 
-      toast({
-        title: "Registro exitoso",
-        description: datos.mensaje || "Tu cuenta ha sido creada correctamente.",
-      });
+      localStorage.setItem('token', datos.token);
+      localStorage.setItem('userId', datos.usuario.id);
+      
+      const tokenBienvenida = btoa(Date.now().toString());
+      sessionStorage.setItem('welcome_token', tokenBienvenida);
 
-      // Forzar actualización de la página
-      window.location.href = `/perfiles/${datos.usuario.id}`;
+      setRegistroExitoso(true);
+
+      mostrarNotificacion(
+        "confirmacion",
+        "¡Bienvenido!",
+        "Tu cuenta ha sido creada. Completemos tu perfil..."
+      );
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      window.location.href = `/registro/bienvenida?token=${tokenBienvenida}`;
       
     } catch (error) {
       console.error('Error durante el registro:', error);
-      toast({
-        title: "Error en el registro",
-        description: error instanceof Error ? error.message : 'Error inesperado durante el registro',
-        variant: "destructive",
-      });
+      
+      let mensajeError = 'Error inesperado durante el registro';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('already exists')) {
+          mensajeError = 'Este correo electrónico ya está registrado';
+        } else if (error.message.includes('network')) {
+          mensajeError = 'Error de conexión. Por favor, verifica tu internet';
+        } else {
+          mensajeError = error.message;
+        }
+      }
+      
+      mostrarNotificacion(
+        "excepcion",
+        "Error en el registro",
+        mensajeError
+      );
+      
+      setBotonDeshabilitado(false);
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <form onSubmit={manejarEnvio} className="space-y-6">
-      <div className="space-y-2">
-        <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
-          Nombre
-        </label>
-        <Input
-          id="nombre"
-          type="text"
-          name="nombre"
-          placeholder="Tu nombre completo"
-          value={formData.nombre}
-          onChange={handleChange}
-          required
-          disabled={cargando}
-          className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-[#612c7d] focus:border-transparent ${
-            errores.nombre ? 'border-red-500' : 'border-gray-300'
-          }`}
-        />
-        {errores.nombre && (
-          <p className="text-red-500 text-xs italic mt-1">{errores.nombre}</p>
-        )}
-      </div>
-
+    <form onSubmit={manejarEnvio} className="space-y-8">
       <div className="space-y-2">
         <label htmlFor="correo" className="block text-sm font-medium text-gray-700">
           Correo Electrónico
@@ -183,25 +217,40 @@ const FormularioRegistro = () => {
         )}
       </div>
 
-      <div className="space-y-2">
-        <Button 
-          type="submit" 
-          disabled={cargando}
-          className="w-full bg-[#612c7d] hover:bg-[#4a2161] text-white py-2 px-4 rounded-lg transition-colors duration-300"
-        >
-          {cargando ? (
-            <div className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Registrando...
-            </div>
-          ) : (
-            'Crear Cuenta'
-          )}
-        </Button>
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="terminos"
+          checked={aceptaTerminos}
+          onChange={(e) => setAceptaTerminos(e.target.checked)}
+          className="h-4 w-4 text-[#612c7d] focus:ring-[#612c7d] border-gray-300 rounded"
+        />
+        <label htmlFor="terminos" className="text-sm text-gray-600">
+          Acepto los{' '}
+          <a href="/terminos" className="text-[#612c7d] hover:underline" target="_blank">
+            términos y condiciones
+          </a>
+        </label>
       </div>
+
+      <BotonMorado 
+        type="submit" 
+        disabled={cargando || !aceptaTerminos || botonDeshabilitado}
+        anchoCompleto
+        cargando={cargando}
+        className={registroExitoso ? 'bg-green-600 hover:bg-green-700' : ''}
+      >
+        {registroExitoso ? (
+          <div className="flex items-center justify-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            ¡Hecho!
+          </div>
+        ) : (
+          'Crear Cuenta'
+        )}
+      </BotonMorado>
 
       <p className="mt-8 text-center text-sm text-gray-600">
         ¿Ya tienes una cuenta?{' '}

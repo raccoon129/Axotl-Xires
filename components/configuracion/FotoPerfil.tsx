@@ -14,6 +14,7 @@ interface PropiedadesFotoPerfil {
   hayNuevaFoto: boolean;
   idUsuario: string | null;
   nombreFoto: string | null;
+  onImagenParaRecortar: (imagenSrc: string) => void;
 }
 
 export function FotoPerfil({
@@ -23,7 +24,8 @@ export function FotoPerfil({
   onActualizar,
   hayNuevaFoto,
   idUsuario,
-  nombreFoto
+  nombreFoto,
+  onImagenParaRecortar
 }: PropiedadesFotoPerfil) {
   const [imagenParaRecortar, setImagenParaRecortar] = useState<string | null>(null);
   const inputFileRef = useRef<HTMLInputElement>(null);
@@ -51,7 +53,7 @@ export function FotoPerfil({
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagenParaRecortar(reader.result as string);
+        onImagenParaRecortar(reader.result as string);
       };
       reader.readAsDataURL(file);
     }

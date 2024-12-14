@@ -10,6 +10,7 @@ import { FotoPerfil } from '@/components/configuracion/FotoPerfil';
 import { CambiarContrasena } from '@/components/configuracion/CambiarContrasena';
 import { Estadisticas } from '@/components/configuracion/Estadisticas';
 import { motion } from 'framer-motion';
+import { RecortadorImagen } from '@/components/configuracion/RecortadorImagen';
 
 interface ProfileFormData {
   nombre: string;
@@ -33,6 +34,7 @@ const ConfiguracionContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [imagenParaRecortar, setImagenParaRecortar] = useState<string | null>(null);
 
   // Estados para el formulario
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -94,6 +96,15 @@ const ConfiguracionContent = () => {
       setFotoPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleImagenParaRecortar = (imagenSrc: string) => {
+    setImagenParaRecortar(imagenSrc);
+  };
+
+  const handleImagenRecortada = (file: File) => {
+    handleFileChange(file);
+    setImagenParaRecortar(null);
   };
 
   const mostrarNotificacion = (
@@ -331,6 +342,7 @@ const ConfiguracionContent = () => {
                 hayNuevaFoto={!!fotoPerfil}
                 idUsuario={idUsuario || null}
                 nombreFoto={userProfile?.foto_perfil || null}
+                onImagenParaRecortar={handleImagenParaRecortar}
               />
             </motion.section>
 
@@ -376,6 +388,14 @@ const ConfiguracionContent = () => {
           }}
         />
       ))}
+
+      {imagenParaRecortar && (
+        <RecortadorImagen
+          imagenSrc={imagenParaRecortar}
+          onImagenRecortada={handleImagenRecortada}
+          onCancelar={() => setImagenParaRecortar(null)}
+        />
+      )}
     </div>
   );
 };

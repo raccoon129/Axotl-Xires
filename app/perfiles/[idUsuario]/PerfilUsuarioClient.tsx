@@ -271,7 +271,7 @@ const PerfilUsuarioClient = () => {
             ) : (
               <div className="text-center py-8 bg-white rounded-lg shadow-md">
                 <p className="text-gray-500">
-                  Este usuario no tiene contenidos publicados.
+                  Este usuario no tiene contenido publicado.
                 </p>
               </div>
             )}

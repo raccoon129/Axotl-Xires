@@ -18,6 +18,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import NotificacionChip from '@/components/global/NotificacionChip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertTriangle } from 'lucide-react';
 
 interface PropsTarjetaPublicacion {
     publicacion?: Publicacion;
@@ -46,6 +57,10 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
         titulo: string;
         contenido: string;
     }>>([]);
+    const [mostrarDialogoBaja, setMostrarDialogoBaja] = useState(false);
+    const [confirmacionTexto, setConfirmacionTexto] = useState('');
+    const [procesandoBaja, setProcesandoBaja] = useState(false);
+    const [pasoConfirmacion, setPasoConfirmacion] = useState(1);
 
     const obtenerColorEstado = (estado: Publicacion['estado']) => {
         const colores = {
@@ -144,6 +159,56 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
             setActualizandoPrivacidad(false);
             setMostrarDialogo(false);
         }
+    };
+
+    const solicitarBaja = async () => {
+        if (confirmacionTexto.toLowerCase() !== 'solicitar') return;
+        
+        try {
+            setProcesandoBaja(true);
+            const token = localStorage.getItem('token');
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion?.id_publicacion}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+                agregarNotificacion({
+                    tipo: "confirmacion",
+                    titulo: "Éxito",
+                    contenido: data.mensaje
+                });
+                setMostrarDialogoBaja(false);
+                if (publicacion) {
+                    alSolicitarBaja(publicacion.id_publicacion);
+                }
+            } else {
+                throw new Error(data.mensaje || 'Error al procesar la solicitud');
+            }
+        } catch (error) {
+            agregarNotificacion({
+                tipo: "excepcion",
+                titulo: "Error",
+                contenido: error instanceof Error ? error.message : 'Error al procesar la solicitud'
+            });
+        } finally {
+            setProcesandoBaja(false);
+            setPasoConfirmacion(1);
+            setConfirmacionTexto('');
+        }
+    };
+
+    const cerrarDialogo = () => {
+        setMostrarDialogoBaja(false);
+        setPasoConfirmacion(1);
+        setConfirmacionTexto('');
     };
 
     if (isLoading) {
@@ -275,7 +340,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                 
                                 <Button 
                                     variant="destructive"
-                                    onClick={() => alSolicitarBaja(publicacion!.id_publicacion)}
+                                    onClick={() => setMostrarDialogoBaja(true)}
                                     className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
                                 >
                                     <AlertCircle className="w-4 h-4" />
@@ -310,6 +375,63 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                <Dialog open={mostrarDialogoBaja} onOpenChange={cerrarDialogo}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-red-600">
+                                <AlertTriangle className="h-5 w-5" />
+                                Solicitar baja de publicación
+                            </DialogTitle>
+                            <DialogDescription>
+                                {pasoConfirmacion === 1 ? (
+                                    "Esta acción no se puede deshacer. ¿Estás seguro que deseas dar de baja esta publicación?"
+                                ) : (
+                                    "Para confirmar, escribe 'Solicitar' en el campo de texto"
+                                )}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        {pasoConfirmacion === 2 && (
+                            <div className="my-4">
+                                <Label htmlFor="confirmacion">Texto de confirmación:</Label>
+                                <Input
+                                    id="confirmacion"
+                                    value={confirmacionTexto}
+                                    onChange={(e) => setConfirmacionTexto(e.target.value)}
+                                    placeholder="Escribe 'Solicitar'"
+                                    className="mt-2"
+                                />
+                            </div>
+                        )}
+
+                        <DialogFooter className="gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={cerrarDialogo}
+                                disabled={procesandoBaja}
+                            >
+                                Cancelar
+                            </Button>
+                            {pasoConfirmacion === 1 ? (
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => setPasoConfirmacion(2)}
+                                >
+                                    Continuar
+                                </Button>
+                            ) : (
+                                <Button
+                                    variant="destructive"
+                                    onClick={solicitarBaja}
+                                    disabled={confirmacionTexto.toLowerCase() !== 'solicitar' || procesandoBaja}
+                                >
+                                    {procesandoBaja ? "Procesando..." : "Confirmar baja"}
+                                </Button>
+                            )}
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
 
                 {notificaciones.map((notificacion) => (
                     <NotificacionChip

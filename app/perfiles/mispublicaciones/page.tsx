@@ -9,6 +9,7 @@ import TarjetaPublicacion from '@/components/publicacion/TarjetaPublicacionAdmin
 import { Publicacion } from '@/type/typePublicacion';
 import { AuthGuard } from '@/components/autenticacion/AuthGuard';
 import { motion, AnimatePresence } from 'framer-motion';
+import NotificacionChip from '@/components/global/NotificacionChip';
 
 export default function PaginaPublicaciones() {
     const enrutador = useRouter();
@@ -17,6 +18,12 @@ export default function PaginaPublicaciones() {
     const [error, setError] = useState<string | null>(null);
     const [sinPublicaciones, setSinPublicaciones] = useState<boolean>(false);
     const [filtroActual, setFiltroActual] = useState<string>('todos');
+    const [notificaciones, setNotificaciones] = useState<Array<{
+        id: number;
+        tipo: "excepcion" | "confirmacion" | "notificacion";
+        titulo: string;
+        contenido: string;
+    }>>([]);
 
     // Obtener estados únicos de las publicaciones
     const estadosDisponibles = useMemo(() => {
@@ -80,31 +87,31 @@ export default function PaginaPublicaciones() {
         enrutador.push(`/perfiles/mispublicaciones/editar/${id}`);
     };
 
+    const agregarNotificacion = (notificacion: {
+        tipo: "excepcion" | "confirmacion" | "notificacion";
+        titulo: string;
+        contenido: string;
+    }) => {
+        const nuevaNotificacion = {
+            id: Date.now(),
+            ...notificacion
+        };
+        setNotificaciones(prev => [...prev, nuevaNotificacion]);
+
+        setTimeout(() => {
+            setNotificaciones(prev => prev.filter(n => n.id !== nuevaNotificacion.id));
+        }, 5000);
+    };
+
     const manejarSolicitudBaja = async (id: number) => {
-        if (!confirm('¿Está seguro que desea solicitar la baja de esta publicación?')) {
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            const respuesta = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${id}/baja`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (!respuesta.ok) {
-                throw new Error('Error al solicitar la baja');
-            }
-
-            setPublicaciones(publicaciones.filter(pub => pub.id_publicacion !== id));
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error al procesar la solicitud');
-        }
+        const publicacionEliminada = publicaciones.find(pub => pub.id_publicacion === id);
+        setPublicaciones(publicaciones.filter(pub => pub.id_publicacion !== id));
+        
+        agregarNotificacion({
+            tipo: "confirmacion",
+            titulo: "Publicación dada de baja",
+            contenido: `La publicación "${publicacionEliminada?.titulo}" ha sido dada de baja exitosamente`
+        });
     };
 
     const obtenerColorBotonFiltro = (estado: string) => {
@@ -224,6 +231,15 @@ export default function PaginaPublicaciones() {
                         </motion.div>
                     </AnimatePresence>
                 )}
+
+                {notificaciones.map((notificacion) => (
+                    <NotificacionChip
+                        key={notificacion.id}
+                        tipo={notificacion.tipo}
+                        titulo={notificacion.titulo}
+                        contenido={notificacion.contenido}
+                    />
+                ))}
             </div>
         </AuthGuard>
     );

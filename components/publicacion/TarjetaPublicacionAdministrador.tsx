@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Publicacion } from '@/type/typePublicacion';
-import { BookOpen, Edit, AlertCircle, Lock, Unlock } from 'lucide-react';
+import { Eye, Edit, AlertCircle, Lock, Unlock, BookOpen } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import {
@@ -77,7 +77,13 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     };
 
     const irALectura = () => {
-        router.push(`/publicaciones/${publicacion?.id_publicacion}`);
+        if (publicacion?.estado === 'en_revision' || 
+            publicacion?.estado === 'borrador' || 
+            publicacion?.estado === 'rechazado') {
+            router.push(`/perfiles/mispublicaciones/previsualizar/${publicacion.id_publicacion}`);
+        } else {
+            router.push(`/publicaciones/${publicacion?.id_publicacion}`);
+        }
     };
 
     const agregarNotificacion = (notificacion: {
@@ -218,8 +224,19 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                     onClick={irALectura}
                                     className="flex items-center gap-2 bg-white hover:bg-gray-50"
                                 >
-                                    <BookOpen className="w-4 h-4" />
-                                    Leer
+                                    {publicacion?.estado === 'en_revision' || 
+                                     publicacion?.estado === 'borrador' || 
+                                     publicacion?.estado === 'rechazado' ? (
+                                        <>
+                                            <Eye className="w-4 h-4" />
+                                            Ver vista previa
+                                        </>
+                                    ) : (
+                                        <>
+                                            <BookOpen className="w-4 h-4" />
+                                            Leer
+                                        </>
+                                    )}
                                 </Button>
                                 
                                 {publicacion?.estado && puedeEditar(publicacion.estado) && (

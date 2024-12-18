@@ -385,7 +385,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                             </DialogTitle>
                             <DialogDescription>
                                 {pasoConfirmacion === 1 ? (
-                                    "Esta acción no se puede deshacer. ¿Estás seguro que deseas dar de baja esta publicación?"
+                                    "Tu publicación dejará de estar visible y no podrás visualizarla o editarla. Esta acción no se puede deshacer. ¿Estás seguro que deseas dar de baja esta publicación?"
                                 ) : (
                                     "Para confirmar, escribe 'Solicitar' en el campo de texto"
                                 )}

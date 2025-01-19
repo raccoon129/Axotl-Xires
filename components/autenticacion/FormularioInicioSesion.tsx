@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from '@/hooks/useAuth';
+import BotonMorado from "@/components/global/genericos/BotonMorado";
 
 const FormularioInicioSesion = () => {
   const [correo, setCorreo] = useState('');
@@ -78,13 +79,13 @@ const FormularioInicioSesion = () => {
         disabled={cargando}
         className="w-full bg-white/50 backdrop-blur-sm"
       />
-      <Button 
+      <BotonMorado 
         type="submit" 
-        disabled={cargando}
-        className="w-full bg-[#612c7d] hover:bg-[#7d3ba3] transition-colors"
+        cargando={cargando}
+        className="w-full"
       >
         {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
-      </Button>
+      </BotonMorado>
       <div className="text-center mt-4">
         <p className="text-sm text-gray-600">
           ¿No tienes una cuenta?{' '}

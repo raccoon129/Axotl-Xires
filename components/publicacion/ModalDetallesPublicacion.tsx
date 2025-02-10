@@ -234,6 +234,11 @@ const ModalDetallesPublicacion = ({
     return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
   };
 
+  const irALectorInmersivo = () => {
+    router.push(`/publicaciones/${publicacion.id_publicacion}/lector`);
+    alCerrar(); // Cerramos el modal después de la redirección
+  };
+
   const irALecturaSimplificada = () => {
     router.push(`/publicaciones/${publicacion.id_publicacion}`);
     alCerrar(); // Cerramos el modal después de la redirección
@@ -298,22 +303,15 @@ const ModalDetallesPublicacion = ({
           >
             {/* Header */}
             <div className="sticky top-0 bg-white z-10 px-4 sm:px-6 py-3 sm:py-4 border-b flex justify-between items-center">
-              <motion.h2 
-                className="text-lg sm:text-xl font-semibold text-gray-800 truncate"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 truncate">
                 Detalles de la publicación
-              </motion.h2>
-              <motion.button
+              </h2>
+              <button
                 onClick={alCerrar}
                 className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
               >
                 <X className="h-5 w-5 text-gray-500" />
-              </motion.button>
+              </button>
             </div>
 
             {/* Contenido */}
@@ -374,6 +372,7 @@ const ModalDetallesPublicacion = ({
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                     <Button 
                       variant="outline"
+                      onClick={irALectorInmersivo}
                       className="flex flex-row sm:flex-col items-center justify-center gap-2 py-2 sm:py-4 bg-white hover:bg-blue-50 text-blue-600 h-auto"
                     >
                       <Book className="h-4 w-4 sm:h-5 sm:w-5" />

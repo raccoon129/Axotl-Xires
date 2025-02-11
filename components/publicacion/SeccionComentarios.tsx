@@ -24,10 +24,19 @@ interface Comentario {
   contenido: string;
   fecha_creacion: string;
   autor: string;
+  foto_perfil?: string | null;  // Cambiamos autor_foto por foto_perfil
 }
 
 interface PropiedadesSeccionComentarios {
   idPublicacion: number;
+}
+
+interface PerfilUsuario {
+  id_usuario: number;
+  nombre: string;
+  nombramiento?: string;
+  foto_perfil: string;
+  total_publicaciones: number;
 }
 
 const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) => {
@@ -35,8 +44,9 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
   const [nuevoComentario, setNuevoComentario] = useState('');
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
-  const { idUsuario } = useAuth();
+  const { idUsuario, isLoggedIn } = useAuth(); // Añadir esta línea para obtener el estado de autenticación
   const [comentarioAEliminar, setComentarioAEliminar] = useState<number | null>(null);
+  const [perfilesUsuarios, setPerfilesUsuarios] = useState<Record<number, string>>({});
 
   const idUsuarioNumero = idUsuario ? parseInt(idUsuario) : null;
 
@@ -71,9 +81,38 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
     }
   };
 
+  const obtenerPerfilUsuario = async (idUsuario: number) => {
+    try {
+      if (perfilesUsuarios[idUsuario]) return;
+
+      const respuesta = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${idUsuario}`
+      );
+      if (respuesta.ok) {
+        const { datos } = await respuesta.json();
+        setPerfilesUsuarios(prev => ({
+          ...prev,
+          [idUsuario]: datos.foto_perfil
+        }));
+      }
+    } catch (error) {
+      console.error('Error al obtener perfil:', error);
+    }
+  };
+
   useEffect(() => {
     cargarComentarios();
   }, [idPublicacion]);
+
+  useEffect(() => {
+    if (comentarios.length > 0) {
+      comentarios.forEach(comentario => {
+        if (!perfilesUsuarios[comentario.id_usuario]) {
+          obtenerPerfilUsuario(comentario.id_usuario);
+        }
+      });
+    }
+  }, [comentarios]);
 
   const enviarComentario = async () => {
     if (!nuevoComentario.trim()) return;
@@ -197,8 +236,13 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
                 <div className="flex items-start gap-3">
                   <Avatar className="h-8 w-8 flex-shrink-0">
                     <img 
-                      src={`${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`}
+                      src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${comentario.id_usuario}/foto`}
                       alt={comentario.autor}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`;
+                      }}
                     />
                   </Avatar>
                   <div className="flex-grow min-w-0">
@@ -238,21 +282,27 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
 
         <div className="relative">
           <Textarea
-            placeholder="Escribe un comentario..."
+            placeholder={isLoggedIn ? 
+              "Escribe un comentario..." : 
+              "Inicia sesión para escribir un comentario"
+            }
             value={nuevoComentario}
             onChange={(e) => setNuevoComentario(e.target.value)}
-            className="resize-none bg-white pr-12"
+            className={`resize-none bg-white pr-12 ${!isLoggedIn && 'cursor-not-allowed opacity-50'}`}
             rows={3}
+            disabled={!isLoggedIn}
           />
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={enviarComentario}
-            disabled={enviando || !nuevoComentario.trim()}
-            className="absolute bottom-2 right-2 p-2 hover:bg-gray-100"
-          >
-            <Send className={`h-4 w-4 ${enviando ? 'text-gray-400' : 'text-blue-600'}`} />
-          </Button>
+          {isLoggedIn && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={enviarComentario}
+              disabled={enviando || !nuevoComentario.trim()}
+              className="absolute bottom-2 right-2 p-2 hover:bg-gray-100"
+            >
+              <Send className={`h-4 w-4 ${enviando ? 'text-gray-400' : 'text-blue-600'}`} />
+            </Button>
+          )}
         </div>
       </Card>
 

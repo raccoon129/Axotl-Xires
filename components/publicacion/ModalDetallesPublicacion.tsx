@@ -25,6 +25,7 @@ interface PropiedadesModal {
     imagen_portada: string | null;
     categoria: string;
     favoritos: number;
+    id_usuario: number;  // Añadir esta propiedad
   };
 }
 
@@ -86,6 +87,17 @@ export const CategoriaPublicacion = ({ idPublicacion }: CategoriaProps) => {
   );
 };
 
+// Actualizamos la interfaz para tener toda la información del perfil
+interface PerfilAutor {
+  id_usuario: number;
+  nombre: string;
+  nombramiento: string;
+  fecha_creacion: string;
+  ultimo_acceso: string;
+  foto_perfil: string;
+  total_publicaciones: number;
+}
+
 const ModalDetallesPublicacion = ({
   estaAbierto,
   alCerrar,
@@ -100,6 +112,9 @@ const ModalDetallesPublicacion = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
   const [isClosing, setIsClosing] = useState(false);
+  // Estado para almacenar toda la información del perfil del autor
+  const [perfilAutor, setPerfilAutor] = useState<PerfilAutor | null>(null);
+  const [autorId, setAutorId] = useState<number | null>(null);
 
   const formatearFecha = (fecha: string) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
@@ -184,6 +199,61 @@ const ModalDetallesPublicacion = ({
       document.body.style.paddingRight = '0';
     };
   }, [estaAbierto]);
+
+  /**
+   * Efecto para obtener y gestionar la foto de perfil del autor
+   * Proceso:
+   * 1. Cuando se abre el modal y tenemos un id_usuario válido
+   * 2. Hacemos una petición a /api/usuarios/{id_usuario}
+   * 3. De la respuesta extraemos el nombre del archivo de la foto (foto_perfil)
+   * 4. Este nombre de archivo se usará para construir la URL completa de la imagen
+   */
+  useEffect(() => {
+    const obtenerPerfilAutor = async () => {
+      try {
+        // 1. Llamada a la API para obtener los datos del perfil
+        const respuesta = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${publicacion.id_usuario}`
+        );
+        
+        if (respuesta.ok) {
+          // 2. Extraemos los datos de la respuesta
+          const { datos } = await respuesta.json();
+          // 3. Actualizamos el estado con todos los datos del perfil
+          setPerfilAutor(datos);
+          console.log("Datos del perfil del autor:", datos); // Para depuración
+        }
+      } catch (error) {
+        console.error('Error al obtener perfil del autor:', error);
+      }
+    };
+
+    if (publicacion.id_usuario) {
+      obtenerPerfilAutor();
+    }
+  }, [publicacion.id_usuario]);
+
+  useEffect(() => {
+    const obtenerAutorPublicacion = async () => {
+      try {
+        const respuesta = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion.id_publicacion}/usuarioPertenece`
+        );
+        
+        if (respuesta.ok) {
+          const { datos } = await respuesta.json();
+          setAutorId(datos.id_usuario);
+          setPerfilAutor(datos);
+        }
+      } catch (error) {
+        console.error('Error al obtener autor:', error);
+      }
+    };
+
+    if (publicacion.id_publicacion) {
+      obtenerAutorPublicacion();
+    }
+  }, [publicacion.id_publicacion]);
 
   // Manejar clic en favorito
   const toggleFavorito = async () => {
@@ -355,13 +425,33 @@ const ModalDetallesPublicacion = ({
                   {/* Información del autor */}
                   <div className="flex items-center gap-4 mb-4">
                     <Avatar className="h-12 w-12">
+                      {/* 
+                        Construcción de la URL de la imagen:
+                        1. Verificamos si tenemos perfilAutor y si tiene foto_perfil
+                        2. Si existe, usamos ese nombre de archivo en la URL
+                        3. Si no existe, usamos 'null' para obtener la imagen por defecto
+                        4. En caso de error al cargar la imagen, mostramos la imagen por defecto
+                      */}
                       <img 
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${publicacion?.autor_foto || 'null'}`}
-                        alt={publicacion?.autor}
+                        src={autorId ? 
+                          `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${autorId}/foto` :
+                          `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`
+                        }
+                        alt={publicacion.autor}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = `${process.env.NEXT_PUBLIC_ASSET_URL}/thumb_who.jpg`;
+                        }}
                       />
                     </Avatar>
                     <div>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base">{publicacion.autor}</p>
+                      <p className="font-medium text-gray-900 text-sm sm:text-base">
+                        {perfilAutor?.nombre || publicacion.autor}
+                      </p>
+                      {perfilAutor?.nombramiento && (
+                        <p className="text-xs text-gray-500">{perfilAutor.nombramiento}</p>
+                      )}
                       <p className="text-xs sm:text-sm text-gray-500">
                         Publicado el {formatearFecha(publicacion.fecha_publicacion)}
                       </p>

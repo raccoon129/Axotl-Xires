@@ -157,7 +157,8 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                         fecha_publicacion: publicacion.fecha_publicacion || "No se ha publicado",
                         imagen_portada: publicacion.imagen_portada,
                         categoria: 'Artículo científico',
-                        favoritos: 0
+                        favoritos: 0,
+                        id_usuario: publicacion.id_usuario // Añadir esta línea
                     }}
                 />
             )}

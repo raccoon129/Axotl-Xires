@@ -11,6 +11,7 @@ import { CambiarContrasena } from '@/components/configuracion/CambiarContrasena'
 import { Estadisticas } from '@/components/configuracion/Estadisticas';
 import { motion } from 'framer-motion';
 import { RecortadorImagen } from '@/components/configuracion/RecortadorImagen';
+import { userService } from '@/services/userService';
 
 interface ProfileFormData {
   nombre: string;
@@ -133,28 +134,11 @@ const ConfiguracionContent = () => {
   const actualizarInformacionBasica = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/actualizacion/${idUsuario}/info-basica`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            nombre: formData.nombre,
-            nombramiento: formData.nombramiento,
-            correo: formData.correo
-          })
-        }
-      );
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.mensaje || 'Error al actualizar información básica');
-      }
+      const data = await userService.updateBasicInfo(idUsuario!, {
+        nombre: formData.nombre,
+        nombramiento: formData.nombramiento,
+        correo: formData.correo
+      });
 
       await refreshProfile();
       mostrarNotificacion(
@@ -178,27 +162,7 @@ const ConfiguracionContent = () => {
 
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append('foto_perfil', fotoPerfil);
-
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/actualizacion/${idUsuario}/foto`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.mensaje || 'Error al actualizar foto de perfil');
-      }
-
+      const data = await userService.updateProfilePhoto(idUsuario!, fotoPerfil);
       await refreshProfile();
       mostrarNotificacion(
         "confirmacion",
@@ -221,28 +185,11 @@ const ConfiguracionContent = () => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/actualizacion/${idUsuario}/password`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            contrasenaActual: formData.contrasenaActual,
-            nuevaContrasena: formData.nuevaContrasena,
-            confirmarContrasena: formData.confirmarContrasena
-          })
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.mensaje || 'Error al actualizar contraseña');
-      }
+      const data = await userService.updatePassword(idUsuario!, {
+        contrasenaActual: formData.contrasenaActual,
+        nuevaContrasena: formData.nuevaContrasena,
+        confirmarContrasena: formData.confirmarContrasena
+      });
 
       setFormData(prev => ({
         ...prev,

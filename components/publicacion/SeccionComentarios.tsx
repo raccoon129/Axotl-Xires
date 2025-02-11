@@ -17,6 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import NotificacionChip from '@/components/global/NotificacionChip';
 
 interface Comentario {
   id_comentario: number;
@@ -47,6 +48,17 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
   const { idUsuario, isLoggedIn } = useAuth(); // Añadir esta línea para obtener el estado de autenticación
   const [comentarioAEliminar, setComentarioAEliminar] = useState<number | null>(null);
   const [perfilesUsuarios, setPerfilesUsuarios] = useState<Record<number, string>>({});
+  const [notificacion, setNotificacion] = useState<{
+    mostrar: boolean;
+    tipo: "excepcion" | "confirmacion" | "notificacion";
+    titulo: string;
+    contenido: string;
+  }>({
+    mostrar: false,
+    tipo: "confirmacion",
+    titulo: "",
+    contenido: ""
+  });
 
   const idUsuarioNumero = idUsuario ? parseInt(idUsuario) : null;
 
@@ -139,8 +151,20 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
       
       await cargarComentarios();
       setNuevoComentario('');
+      setNotificacion({
+        mostrar: true,
+        tipo: "confirmacion",
+        titulo: "Comentario enviado",
+        contenido: "Tu comentario se ha publicado correctamente"
+      });
     } catch (error) {
       console.error('Error:', error);
+      setNotificacion({
+        mostrar: true,
+        tipo: "excepcion",
+        titulo: "Error",
+        contenido: "No se pudo enviar el comentario. Inténtalo de nuevo."
+      });
     } finally {
       setEnviando(false);
     }
@@ -172,8 +196,20 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
       setComentarios(prevComentarios => 
         prevComentarios.filter(comentario => comentario.id_comentario !== comentarioAEliminar)
       );
+      setNotificacion({
+        mostrar: true,
+        tipo: "confirmacion",
+        titulo: "Comentario eliminado",
+        contenido: "El comentario se ha eliminado correctamente"
+      });
     } catch (error) {
       console.error('Error:', error);
+      setNotificacion({
+        mostrar: true,
+        tipo: "excepcion",
+        titulo: "Error",
+        contenido: "No se pudo eliminar el comentario. Inténtalo de nuevo."
+      });
       await cargarComentarios();
     } finally {
       setComentarioAEliminar(null);
@@ -331,6 +367,15 @@ const SeccionComentarios = ({ idPublicacion }: PropiedadesSeccionComentarios) =>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {notificacion.mostrar && (
+        <NotificacionChip
+          tipo={notificacion.tipo}
+          titulo={notificacion.titulo}
+          contenido={notificacion.contenido}
+          onClose={() => setNotificacion(prev => ({ ...prev, mostrar: false }))}
+        />
+      )}
     </>
   );
 };

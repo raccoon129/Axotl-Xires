@@ -9,17 +9,21 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import BotonMorado from "@/components/global/genericos/BotonMorado";
+import NotificacionChip from '@/components/global/NotificacionChip';
 
 const FormularioInicioSesion = () => {
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [mostrarError, setMostrarError] = useState(false);
+  const [mensajeError, setMensajeError] = useState('');
   const router = useRouter();
   const { updateAuthAfterLogin } = useAuth();
 
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
     setCargando(true);
+    setMostrarError(false);
 
     try {
       const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`;
@@ -41,60 +45,64 @@ const FormularioInicioSesion = () => {
 
         window.location.href = `/perfiles/${datos.usuario.id}`;
       } else {
-        toast({
-          title: "Error de inicio de sesión",
-          description: datos.mensaje || 'Credenciales incorrectas, por favor inténtalo de nuevo.',
-          variant: "destructive",
-        });
+        setMensajeError(datos.mensaje || 'Credenciales incorrectas, por favor inténtalo de nuevo.');
+        setMostrarError(true);
       }
     } catch (error) {
       console.error('Error durante el inicio de sesión:', error);
-      toast({
-        title: "Error de inicio de sesión",
-        description: 'Ocurrió un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.',
-        variant: "destructive",
-      });
+      setMensajeError('Ocurrió un error durante el inicio de sesión. Por favor, inténtalo de nuevo más tarde.');
+      setMostrarError(true);
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <form onSubmit={manejarEnvio} className="space-y-4 w-full max-w-sm">
-      <Input
-        type="email"
-        placeholder="Correo electrónico"
-        value={correo}
-        onChange={(e) => setCorreo(e.target.value)}
-        required
-        disabled={cargando}
-        className="w-full bg-white/50 backdrop-blur-sm"
-      />
-      <Input
-        type="password"
-        placeholder="Contraseña"
-        value={contrasena}
-        onChange={(e) => setContrasena(e.target.value)}
-        required
-        disabled={cargando}
-        className="w-full bg-white/50 backdrop-blur-sm"
-      />
-      <BotonMorado 
-        type="submit" 
-        cargando={cargando}
-        className="w-full"
-      >
-        {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
-      </BotonMorado>
-      <div className="text-center mt-4">
-        <p className="text-sm text-gray-600">
-          ¿No tienes una cuenta?{' '}
-          <Link href="/registro" className="text-[#612c7d] hover:text-[#7d3ba3] font-semibold">
-            Regístrate
-          </Link>
-        </p>
-      </div>
-    </form>
+    <>
+      <form onSubmit={manejarEnvio} className="space-y-4 w-full max-w-sm">
+        <Input
+          type="email"
+          placeholder="Correo electrónico"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+          required
+          disabled={cargando}
+          className="w-full bg-white/50 backdrop-blur-sm"
+        />
+        <Input
+          type="password"
+          placeholder="Contraseña"
+          value={contrasena}
+          onChange={(e) => setContrasena(e.target.value)}
+          required
+          disabled={cargando}
+          className="w-full bg-white/50 backdrop-blur-sm"
+        />
+        <BotonMorado 
+          type="submit" 
+          cargando={cargando}
+          className="w-full"
+        >
+          {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
+        </BotonMorado>
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            ¿No tienes una cuenta?{' '}
+            <Link href="/registro" className="text-[#612c7d] hover:text-[#7d3ba3] font-semibold">
+              Regístrate
+            </Link>
+          </p>
+        </div>
+      </form>
+      {mostrarError && (
+        <NotificacionChip
+          tipo="excepcion"
+          titulo="Error de inicio de sesión"
+          contenido={mensajeError}
+          onClose={() => setMostrarError(false)}
+        />
+      )}
+    </>
   );
 };
 

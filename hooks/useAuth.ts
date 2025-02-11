@@ -17,6 +17,14 @@ interface DecodedToken {
   exp: number;
 }
 
+// Hook personalizado para manejar la autenticación
+
+// El hook proporciona:
+// - Estado de autenticación (isLoggedIn)
+// - Información del usuario (userName, idUsuario, userProfile)
+// - Estado de carga (isLoading)
+// - Métodos para gestionar la autenticación (logout, refreshProfile, updateAuthAfterLogin)
+
 export const useAuth = () => {
   const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>({
@@ -35,9 +43,12 @@ export const useAuth = () => {
   };
 
   // Función para obtener el perfil del usuario
+  // Esta función se llama automáticamente después del login
+  // y cuando se necesita refrescar la información del perfil
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
       const token = localStorage.getItem('token');
+      // Realiza la petición al endpoint de perfil con el token
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -46,6 +57,7 @@ export const useAuth = () => {
       
       if (response.ok) {
         const data = await response.json();
+        // Actualiza el estado con la información del perfil
         setAuthState(prev => ({
           ...prev,
           userProfile: data.datos

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Info } from "lucide-react";
@@ -25,6 +25,7 @@ export const TarjetaPublicacionMiniCategorias = ({
   onVerDetalles 
 }: PropsTarjetaMini) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [autorId, setAutorId] = useState<number | null>(null);
   const router = useRouter();
 
   const obtenerUrlPortada = (nombreImagen: string | null) => {
@@ -35,6 +36,28 @@ export const TarjetaPublicacionMiniCategorias = ({
   const irALectura = () => {
     router.push(`/publicaciones/${publicacion.id_publicacion}`);
   };
+
+  // Añadir efecto para obtener el ID del autor
+  useEffect(() => {
+    const obtenerAutorPublicacion = async () => {
+      try {
+        const respuesta = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion.id_publicacion}/usuarioPertenece`
+        );
+        
+        if (respuesta.ok) {
+          const { datos } = await respuesta.json();
+          setAutorId(datos.id_usuario);
+        }
+      } catch (error) {
+        console.error('Error al obtener autor:', error);
+      }
+    };
+
+    if (publicacion.id_publicacion) {
+      obtenerAutorPublicacion();
+    }
+  }, [publicacion.id_publicacion]);
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg bg-white">
@@ -74,8 +97,11 @@ export const TarjetaPublicacionMiniCategorias = ({
           </h3>
           
           <Link 
-            href={`/perfiles/${publicacion.id_usuario}`}
+            href={`/perfiles/${autorId || '#'}`}
             className="text-xs text-gray-500 hover:text-purple-600 mb-2"
+            onClick={(e) => {
+              if (!autorId) e.preventDefault();
+            }}
           >
             {publicacion.autor}
           </Link>
@@ -103,4 +129,4 @@ export const TarjetaPublicacionMiniCategorias = ({
       </div>
     </Card>
   );
-}; 
+};

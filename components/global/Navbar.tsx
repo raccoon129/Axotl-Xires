@@ -37,7 +37,7 @@ const Navbar = () => {
         try {
           const token = localStorage.getItem('token');
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/${idUsuario}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${idUsuario}`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -108,7 +108,7 @@ const Navbar = () => {
           <Skeleton className="w-full h-full" />
         )}
         <img 
-          src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${userData?.foto_perfil || 'null'}`}
+          src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${userData?.id_usuario}/foto`}
           alt=""
           className={`w-full h-full object-cover ${!imagenCargada ? 'hidden' : ''}`}
           onLoad={() => setImagenCargada(true)}

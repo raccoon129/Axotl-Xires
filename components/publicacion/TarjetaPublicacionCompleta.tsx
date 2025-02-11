@@ -70,7 +70,7 @@ export const TarjetaPublicacionCompleta = ({
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6 border border-white/50">
                 <img 
-                  src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${publicacion.autor_foto || 'null'}`}
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${publicacion.id_usuario}/foto`}
                   alt={publicacion.autor}
                 />
               </Avatar>

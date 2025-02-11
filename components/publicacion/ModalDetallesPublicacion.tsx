@@ -236,6 +236,7 @@ const ModalDetallesPublicacion = ({
   useEffect(() => {
     const obtenerAutorPublicacion = async () => {
       try {
+        // Primero obtenemos el ID del autor
         const respuesta = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion.id_publicacion}/usuarioPertenece`
         );
@@ -243,7 +244,16 @@ const ModalDetallesPublicacion = ({
         if (respuesta.ok) {
           const { datos } = await respuesta.json();
           setAutorId(datos.id_usuario);
-          setPerfilAutor(datos);
+
+          // Luego obtenemos los detalles del autor
+          const respuestaDetalles = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${datos.id_usuario}`
+          );
+
+          if (respuestaDetalles.ok) {
+            const { datos: datosAutor } = await respuestaDetalles.json();
+            setPerfilAutor(datosAutor);
+          }
         }
       } catch (error) {
         console.error('Error al obtener autor:', error);

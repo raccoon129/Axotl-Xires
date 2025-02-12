@@ -88,7 +88,7 @@ const FormularioRegistro = () => {
 
     if (!validarFormulario()) {
       mostrarNotificacion(
-        "excepcion",
+        "excepcion", 
         "Error de validación",
         "Por favor, corrige los errores en el formulario"
       );
@@ -111,12 +111,26 @@ const FormularioRegistro = () => {
         }),
       });
 
-      const contentType = respuesta.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("La respuesta del servidor no es válida");
-      }
-
       const datos = await respuesta.json();
+
+      if (respuesta.status === 409) {
+        setFormData(prev => ({
+          ...prev,
+          correo: ''
+        }));
+        setErrores(prev => ({
+          ...prev,
+          correo: 'Este correo ya está registrado'
+        }));
+        mostrarNotificacion(
+          "excepcion",
+          "Error en el registro",
+          "Este correo electrónico ya está registrado. Por favor, utiliza otro correo o inicia sesión."
+        );
+        setBotonDeshabilitado(false);
+        setCargando(false);
+        return;
+      }
 
       if (!respuesta.ok) {
         throw new Error(datos.mensaje || 'Error en el registro');
@@ -150,9 +164,7 @@ const FormularioRegistro = () => {
       let mensajeError = 'Error inesperado durante el registro';
       
       if (error instanceof Error) {
-        if (error.message.includes('already exists')) {
-          mensajeError = 'Este correo electrónico ya está registrado';
-        } else if (error.message.includes('network')) {
+        if (error.message.includes('network')) {
           mensajeError = 'Error de conexión. Por favor, verifica tu internet';
         } else {
           mensajeError = error.message;
@@ -165,8 +177,8 @@ const FormularioRegistro = () => {
         mensajeError
       );
       
-      setBotonDeshabilitado(false);
     } finally {
+      setBotonDeshabilitado(false);
       setCargando(false);
     }
   };

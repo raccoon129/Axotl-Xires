@@ -1,15 +1,16 @@
 // components/MenuEditor.tsx
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Editor } from '@tiptap/react';
 import { Level } from '@tiptap/extension-heading';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   Code, ImagePlus, AlignLeft, AlignCenter, AlignRight,
   AlignJustify, List, ListOrdered, Link as LinkIcon, Type,
-  Table
+  Table as TableIcon, Plus, Trash, ChevronDown
 } from 'lucide-react';
+import Tooltip from '@/components/global/Tooltip';
 
 interface MenuEditorProps {
   editor: Editor | null;
@@ -43,6 +44,23 @@ const MenuBoton: React.FC<MenuBotonProps> = ({
 );
 
 const MenuEditor: React.FC<MenuEditorProps> = ({ editor }) => {
+  const [mostrarMenuTabla, setMostrarMenuTabla] = useState(false);
+  const [filasInput, setFilasInput] = useState('3');
+  const [columnasInput, setColumnasInput] = useState('3');
+  const menuTablaRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar el menú cuando se hace clic fuera
+  useEffect(() => {
+    const handleClickFuera = (event: MouseEvent) => {
+      if (menuTablaRef.current && !menuTablaRef.current.contains(event.target as Node)) {
+        setMostrarMenuTabla(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickFuera);
+    return () => document.removeEventListener('mousedown', handleClickFuera);
+  }, []);
+
   if (!editor) return null;
 
   const manejarSubidaImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,11 +83,32 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor }) => {
   };
 
   const insertarTabla = () => {
-    editor
-      .chain()
-      .focus()
-      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-      .run();
+    const filas = parseInt(filasInput);
+    const columnas = parseInt(columnasInput);
+    if (editor && filas > 0 && columnas > 0) {
+      editor.chain().focus().insertTable({ rows: filas, cols: columnas }).run();
+      setMostrarMenuTabla(false);
+    }
+  };
+
+  const agregarFila = () => {
+    editor?.chain().focus().addRowAfter().run();
+  };
+
+  const eliminarFila = () => {
+    editor?.chain().focus().deleteRow().run();
+  };
+
+  const agregarColumna = () => {
+    editor?.chain().focus().addColumnAfter().run();
+  };
+
+  const eliminarColumna = () => {
+    editor?.chain().focus().deleteColumn().run();
+  };
+
+  const eliminarTabla = () => {
+    editor?.chain().focus().deleteTable().run();
   };
 
   // Función para manejar el cambio de encabezado
@@ -219,12 +258,111 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor }) => {
       <div className="h-6 w-px bg-gray-300 mx-1" />
 
       {/* Tabla */}
-      <MenuBoton
-        onClick={insertarTabla}
-        title="Insertar tabla"
-      >
-        <Table size={16} />
-      </MenuBoton>
+      <div className="relative" ref={menuTablaRef}>
+        <Tooltip message="Insertar o editar tabla">
+          <button
+            onClick={() => setMostrarMenuTabla(!mostrarMenuTabla)}
+            className={`p-2 rounded hover:bg-gray-100 transition-colors flex items-center gap-1 ${
+              editor?.isActive('table') ? 'bg-blue-100 text-blue-600' : ''
+            }`}
+          >
+            <TableIcon size={16} />
+            <ChevronDown size={14} className="mt-0.5" />
+          </button>
+        </Tooltip>
+
+        {mostrarMenuTabla && (
+          <div className="absolute z-50 mt-1 w-56 bg-white rounded-lg shadow-lg border border-gray-200 right-0">
+            {!editor?.isActive('table') ? (
+              <div className="p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Insertar tabla</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Filas:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={filasInput}
+                      onChange={(e) => setFilasInput(e.target.value)}
+                      className="w-full p-1.5 border rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Columnas:</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={columnasInput}
+                      onChange={(e) => setColumnasInput(e.target.value)}
+                      className="w-full p-1.5 border rounded text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <button
+                    onClick={insertarTabla}
+                    className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 px-3 rounded text-sm font-medium transition-colors"
+                  >
+                    Insertar tabla
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="py-1">
+                <div className="px-3 py-2 text-sm font-medium text-gray-700 border-b">
+                  Editar tabla
+                </div>
+                <div className="divide-y">
+                  <div className="py-1">
+                    <Tooltip message="Agregar una nueva fila después de la selección">
+                      <button
+                        onClick={agregarFila}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 w-full text-sm"
+                      >
+                        <Plus size={16} className="mr-2" /> Agregar fila
+                      </button>
+                    </Tooltip>
+                    <Tooltip message="Eliminar la fila seleccionada">
+                      <button
+                        onClick={eliminarFila}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 w-full text-sm"
+                      >
+                        <Trash size={16} className="mr-2" /> Eliminar fila
+                      </button>
+                    </Tooltip>
+                  </div>
+                  <div className="py-1">
+                    <Tooltip message="Agregar una nueva columna después de la selección">
+                      <button
+                        onClick={agregarColumna}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 w-full text-sm"
+                      >
+                        <Plus size={16} className="mr-2" /> Agregar columna
+                      </button>
+                    </Tooltip>
+                    <Tooltip message="Eliminar la columna seleccionada">
+                      <button
+                        onClick={eliminarColumna}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 w-full text-sm"
+                      >
+                        <Trash size={16} className="mr-2" /> Eliminar columna
+                      </button>
+                    </Tooltip>
+                  </div>
+                  <div className="py-1">
+                    <Tooltip message="Eliminar la tabla completa">
+                      <button
+                        onClick={eliminarTabla}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 w-full text-sm text-red-600 hover:text-red-700"
+                      >
+                        <Trash size={16} className="mr-2" /> Eliminar tabla
+                      </button>
+                    </Tooltip>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="h-6 w-px bg-gray-300 mx-1" />
 

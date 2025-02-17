@@ -107,17 +107,39 @@ const estilosEditor = `
     border-collapse: collapse;
     margin: 1em 0;
     width: 100%;
+    table-layout: fixed;
   }
 
   .ProseMirror td,
   .ProseMirror th {
-    border: 1px solid #ccc;
-    padding: 0.5em;
+    border: 2px solid #dee2e6;
+    padding: 0.75em;
+    position: relative;
+    vertical-align: top;
   }
 
   .ProseMirror th {
-    background-color: #f5f5f5;
+    background-color: #f8f9fa;
     font-weight: bold;
+  }
+
+  .ProseMirror .selectedCell {
+    background-color: #e9ecef;
+  }
+
+  /* Estilos para el redimensionamiento de columnas */
+  .ProseMirror .column-resize-handle {
+    background-color: #4299e1;
+    bottom: 0;
+    position: absolute;
+    right: -2px;
+    pointer-events: none;
+    top: 0;
+    width: 4px;
+  }
+
+  .ProseMirror table p {
+    margin: 0;
   }
 
   /* Estilos para listas anidadas */

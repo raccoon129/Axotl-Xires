@@ -14,6 +14,7 @@ import Tooltip from '@/components/global/Tooltip';
 
 interface MenuEditorProps {
   editor: Editor | null;
+  onImageUpload: (file: File) => Promise<string>;
 }
 
 interface MenuBotonProps {
@@ -43,7 +44,7 @@ const MenuBoton: React.FC<MenuBotonProps> = ({
   </button>
 );
 
-const MenuEditor: React.FC<MenuEditorProps> = ({ editor }) => {
+const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload }) => {
   const [mostrarMenuTabla, setMostrarMenuTabla] = useState(false);
   const [filasInput, setFilasInput] = useState('3');
   const [columnasInput, setColumnasInput] = useState('3');
@@ -63,15 +64,16 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor }) => {
 
   if (!editor) return null;
 
-  const manejarSubidaImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const manejarSubidaImagen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = e.target.files?.[0];
     if (archivo) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        editor.chain().focus().setImage({ src: base64 }).run();
-      };
-      reader.readAsDataURL(archivo);
+      try {
+        const urlImagen = await onImageUpload(archivo);
+        editor?.chain().focus().setImage({ src: urlImagen }).run();
+      } catch (error) {
+        // El manejo de errores ya está implementado en EditorTexto
+        console.error('Error al subir imagen:', error);
+      }
     }
   };
 
@@ -298,7 +300,7 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor }) => {
                     />
                   </div>
                   <button
-                    onClick={insertarTabla}
+        onClick={insertarTabla}
                     className="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 px-3 rounded text-sm font-medium transition-colors"
                   >
                     Insertar tabla

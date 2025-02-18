@@ -50,12 +50,12 @@ const EditarPublicacionContenido = () => {
   const [accesoPermitido, setAccesoPermitido] = useState<boolean | null>(null);
   const [mensajeError, setMensajeError] = useState<string | null>(null);
 
+  // Como estamos en la página de edición, el borrador ya existe
   const [borradorGuardado, setBorradorGuardado] = useState(true); // Inicializado en true porque ya existe el borrador
 
   useEffect(() => {
     const verificarAcceso = async () => {
       try {
-        
         const token = localStorage.getItem("token");
         const respuesta = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/${idPublicacion}`,
@@ -96,6 +96,7 @@ const EditarPublicacionContenido = () => {
         setEditorContent(publicacion.contenido);
         setReferencias(publicacion.referencias);
         setTipoSeleccionado(publicacion.id_tipo);
+        setBorradorGuardado(true); // Aseguramos que se establece como true
 
         // Manejar la imagen de portada
         if (publicacion.imagen_portada) {
@@ -428,6 +429,8 @@ const EditarPublicacionContenido = () => {
                 errorGuardado={errorGuardado}
                 mensajeGuardado={mensajeGuardado}
                 tipoNotificacion={tipoNotificacion}
+                idPublicacion={parseInt(idPublicacion as string)} // Convertimos el ID a número
+                borradorGuardado={borradorGuardado} // Pasamos el estado
               />
             </motion.section>
 

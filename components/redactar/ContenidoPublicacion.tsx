@@ -17,6 +17,8 @@ interface ContenidoPublicacionProps {
   errorGuardado: string | null;
   mensajeGuardado: string | null;
   tipoNotificacion: "confirmacion" | "excepcion" | "notificacion" | null;
+  idPublicacion: number | null;
+  borradorGuardado: boolean;
 }
 
 export const ContenidoPublicacion: React.FC<ContenidoPublicacionProps> = ({
@@ -28,6 +30,8 @@ export const ContenidoPublicacion: React.FC<ContenidoPublicacionProps> = ({
   errorGuardado,
   mensajeGuardado,
   tipoNotificacion,
+  idPublicacion,
+  borradorGuardado,
 }) => {
   return (
     <div>
@@ -78,6 +82,8 @@ export const ContenidoPublicacion: React.FC<ContenidoPublicacionProps> = ({
         <EditorTexto
           onChange={setEditorContent}
           initialContent={editorContent}
+          idPublicacion={idPublicacion}
+          borradorGuardado={borradorGuardado}
         />
       </div>
     </div>

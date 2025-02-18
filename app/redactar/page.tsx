@@ -354,6 +354,8 @@ const RedactarContenido = () => {
             errorGuardado={errorGuardado}
             mensajeGuardado={mensajeGuardado}
             tipoNotificacion={tipoNotificacion}
+            idPublicacion={idBorradorActual}
+            borradorGuardado={borradorGuardado}
           />
         </motion.section>
 

@@ -17,17 +17,39 @@ import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
 import MenuEditor from './MenuEditor';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import NotificacionChip from '@/components/global/NotificacionChip';
 
 interface EditorTextoProps {
   onChange?: (content: string) => void;
   initialContent?: string;
   onGuardadoExitoso?: () => void;
+  idPublicacion?: number | null;
+  borradorGuardado: boolean;
+  onGuardar?: () => void;
 }
 
 interface ContadorPalabrasProps {
   palabrasActuales: number;
   maxPalabras: number;
+}
+
+interface ImagenResponse {
+  status: string;
+  mensaje: string;
+  datos: {
+    id_imagen: number;
+    url: string;
+    descripcion?: string;
+    orden?: number;
+  };
+}
+
+interface ImagenPublicacion {
+  id_imagen: number;
+  url: string;
+  descripcion: string;
+  orden: number;
 }
 
 const ContadorPalabras: React.FC<ContadorPalabrasProps> = ({ palabrasActuales, maxPalabras }) => {
@@ -151,13 +173,27 @@ const estilosEditor = `
   }
 `;
 
+// Extendemos la interfaz ImageOptions para incluir uploadImage
+declare module '@tiptap/extension-image' {
+  interface ImageOptions {
+    uploadImage?: (file: File) => Promise<string>;
+  }
+}
+
 const EditorTexto: React.FC<EditorTextoProps> = ({ 
   onChange, 
   initialContent = '', 
-  onGuardadoExitoso 
+  onGuardadoExitoso,
+  idPublicacion,
+  borradorGuardado,
+  onGuardar
 }) => {
   const [contadorPalabras, setContadorPalabras] = useState(0);
   const MAX_PALABRAS = 5000;
+  const [mensajeNotificacion, setMensajeNotificacion] = useState<string | null>(null);
+  const [tipoNotificacion, setTipoNotificacion] = useState<"excepcion" | "confirmacion" | "notificacion" | null>(null);
+  const [imagenesActivas, setImagenesActivas] = useState<ImagenPublicacion[]>([]);
+  const [editorInstance, setEditorInstance] = useState<ReturnType<typeof useEditor> | null>(null);
 
   // Función para contar palabras
   const contarPalabras = (texto: string) => {
@@ -175,6 +211,134 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
     }
   }, [initialContent]);
 
+  // Función para obtener las imágenes de la publicación
+  const obtenerImagenesPublicacion = useCallback(async () => {
+    if (!idPublicacion) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const respuesta = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/publicacion/${idPublicacion}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (respuesta.ok) {
+        const datos = await respuesta.json();
+        setImagenesActivas(datos.datos);
+      }
+    } catch (error) {
+      console.error('Error al obtener imágenes:', error);
+    }
+  }, [idPublicacion]);
+
+  // Cargar imágenes iniciales
+  useEffect(() => {
+    if (borradorGuardado && idPublicacion) {
+      obtenerImagenesPublicacion();
+    }
+  }, [borradorGuardado, idPublicacion, obtenerImagenesPublicacion]);
+
+  // Manejador de carga de imágenes mejorado
+  const manejarCargaImagen = useCallback(async (file: File): Promise<string> => {
+    // Verificar si la publicación ya está guardada como borrador
+    if (!borradorGuardado || !idPublicacion) {
+      setTipoNotificacion("excepcion");
+      setMensajeNotificacion("Debes guardar la publicación como borrador antes de añadir imágenes");
+      throw new Error("Publicación no guardada");
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('imagen', file);
+      // Añadir descripción opcional
+      formData.append('descripcion', 'Imagen insertada en el editor');
+
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("No hay token de autenticación");
+
+      const respuesta = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/upload/${idPublicacion}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        }
+      );
+
+      if (!respuesta.ok) {
+        throw new Error("Error al cargar la imagen");
+      }
+
+      const datos: ImagenResponse = await respuesta.json();
+      
+      // Construir la URL correcta usando el nombre del archivo devuelto
+      const urlImagen = `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${datos.datos.url}`;
+      
+      setTipoNotificacion("confirmacion");
+      setMensajeNotificacion("Imagen cargada exitosamente");
+      
+      await obtenerImagenesPublicacion(); // Actualizar lista de imágenes
+      
+      return urlImagen;
+    } catch (error) {
+      console.error('Error al cargar imagen:', error);
+      setTipoNotificacion("excepcion");
+      setMensajeNotificacion("Error al cargar la imagen. Intenta de nuevo.");
+      throw error;
+    }
+  }, [idPublicacion, borradorGuardado, obtenerImagenesPublicacion]);
+
+  // Función para verificar qué imágenes han sido eliminadas
+  const verificarImagenesEliminadas = useCallback(async () => {
+    if (!editorInstance || !idPublicacion) return;
+
+    const contenidoActual = editorInstance.getHTML();
+    const imagenesEnContenido = new Set<string>();
+
+    // Extraer URLs de imágenes del contenido actual
+    const regex = /src="([^"]+)"/g;
+    let match;
+    while ((match = regex.exec(contenidoActual)) !== null) {
+      imagenesEnContenido.add(match[1]);
+    }
+
+    // Identificar imágenes que ya no están en el contenido
+    const imagenesParaEliminar = imagenesActivas.filter(img => {
+      const urlCompleta = `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${img.url}`;
+      return !imagenesEnContenido.has(urlCompleta);
+    });
+
+    // Eliminar imágenes que ya no están en uso
+    for (const imagen of imagenesParaEliminar) {
+      try {
+        const token = localStorage.getItem('token');
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${idPublicacion}/${imagen.id_imagen}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Error al eliminar imagen:', error);
+      }
+    }
+
+    // Actualizar lista de imágenes activas
+    if (imagenesParaEliminar.length > 0) {
+      await obtenerImagenesPublicacion();
+    }
+  }, [editorInstance, idPublicacion, imagenesActivas, obtenerImagenesPublicacion]);
+
+  // Configuración del editor
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -203,7 +367,11 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       }),
       Image.configure({
         inline: true,
-        allowBase64: true
+        allowBase64: true,
+        uploadImage: manejarCargaImagen,
+        HTMLAttributes: {
+          class: 'rounded-lg max-w-full h-auto',
+        }
       }),
       Underline,
       TextStyle,
@@ -228,6 +396,57 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
     editorProps: {
       attributes: {
         class: 'prose max-w-none focus:outline-none min-h-[200px] px-4 py-2'
+      },
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer?.files?.length) {
+          const file = event.dataTransfer.files[0];
+          const isImage = file.type.startsWith('image/');
+          
+          if (isImage) {
+            event.preventDefault();
+            
+            manejarCargaImagen(file)
+              .then(url => {
+                const { tr } = view.state;
+                const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
+                if (pos && editor) {
+                  const imageNode = editor.schema.nodes.image.create({ 
+                    src: url,
+                    alt: 'Imagen insertada'
+                  });
+                  view.dispatch(tr.insert(pos, imageNode));
+                }
+              })
+              .catch(error => {
+                console.error('Error al cargar imagen por arrastre:', error);
+              });
+              
+            return true;
+          }
+        }
+        return false;
+      },
+      handlePaste: (view, event) => {
+        const items = Array.from(event.clipboardData?.items || []);
+        const imageItem = items.find(item => item.type.startsWith('image/'));
+        
+        if (imageItem) {
+          event.preventDefault();
+          const file = imageItem.getAsFile();
+          if (file && editor) {
+            manejarCargaImagen(file)
+              .then(url => {
+                const { tr } = view.state;
+                const imageNode = editor.schema.nodes.image.create({ src: url });
+                view.dispatch(tr.replaceSelectionWith(imageNode));
+              })
+              .catch(error => {
+                console.error('Error al pegar imagen:', error);
+              });
+            return true;
+          }
+        }
+        return false;
       }
     },
     onUpdate: ({ editor }) => {
@@ -235,18 +454,39 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       const numeroPalabras = contarPalabras(contenido);
       setContadorPalabras(numeroPalabras);
       onChange?.(contenido);
+
+      // Verificar imágenes eliminadas cuando se actualiza el contenido
+      if (borradorGuardado) {
+        verificarImagenesEliminadas();
+      }
     }
   });
+
+  // Efecto para actualizar la referencia del editor
+  useEffect(() => {
+    setEditorInstance(editor);
+  }, [editor]);
 
   return (
     <div className="editor-contenedor border rounded-lg shadow-sm bg-white">
       <style>{estilosEditor}</style>
-      <MenuEditor editor={editor} />
+      <MenuEditor editor={editor} onImageUpload={manejarCargaImagen} />
       <EditorContent editor={editor} />
       <ContadorPalabras 
         palabrasActuales={contadorPalabras}
         maxPalabras={MAX_PALABRAS}
       />
+      {mensajeNotificacion && tipoNotificacion && (
+        <NotificacionChip
+          tipo={tipoNotificacion}
+          titulo={tipoNotificacion === "confirmacion" ? "Éxito" : "Error"}
+          contenido={mensajeNotificacion}
+          onClose={() => {
+            setMensajeNotificacion(null);
+            setTipoNotificacion(null);
+          }}
+        />
+      )}
     </div>
   );
 };

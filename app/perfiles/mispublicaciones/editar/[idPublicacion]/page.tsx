@@ -1,4 +1,6 @@
 //app/perfiles/mispublicaciones/editar/[idPublicacion]/page.tsx
+// Página para editar publicaciones existentes
+// Importante: Aquí siempre tenemos un idPublicacion válido y borradorGuardado = true
 
 "use client";
 
@@ -18,6 +20,7 @@ import LoaderAxotl from "@/components/global/LoaderAxotl";
 import BotonEnviarParaRevision from '@/components/redactar/BotonEnviarParaRevision';
 
 const EditarPublicacionContenido = () => {
+  // Inicializamos borradorGuardado como true porque ya existe la publicación
   const params = useParams();
   const idPublicacion = params.idPublicacion as string;
   const { isLoggedIn, userProfile, idUsuario } = useAuth();
@@ -54,6 +57,18 @@ const EditarPublicacionContenido = () => {
   const [borradorGuardado, setBorradorGuardado] = useState(true); // Inicializado en true porque ya existe el borrador
 
   useEffect(() => {
+          // 1. Verifica que la publicación existe
+      // 2. Verifica que el usuario tiene permiso para editarla
+      // 3. Carga los datos de la publicación
+      // Ejemplo de respuesta:
+      // {
+      //   "datos": {
+      //     "titulo": "Mi publicación",
+      //     "contenido": "<p>Texto con <img src='...'></p>",
+      //     "id_usuario": "123",
+      //     "estado": "borrador"
+      //   }
+      // }
     const verificarAcceso = async () => {
       try {
         const token = localStorage.getItem("token");

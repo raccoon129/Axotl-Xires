@@ -7,6 +7,8 @@ import Tooltip from "@/components/global/Tooltip";
 const EditorTexto = dynamic(() => import("@/components/editor/EditorTexto"), {
   ssr: false,
 });
+// Este componente envuelve el editor y maneja la lógica de guardado
+// Ahora incluye soporte para gestión de imágenes
 
 interface ContenidoPublicacionProps {
   editorContent: string;
@@ -17,10 +19,17 @@ interface ContenidoPublicacionProps {
   errorGuardado: string | null;
   mensajeGuardado: string | null;
   tipoNotificacion: "confirmacion" | "excepcion" | "notificacion" | null;
-  idPublicacion: number | null;
-  borradorGuardado: boolean;
+  idPublicacion: number | null;  // ID de la publicación (null si es nueva)
+  borradorGuardado: boolean;  // Indica si ya existe en la base de datos
 }
 
+// Ejemplo de uso:
+// <ContenidoPublicacion
+//   idPublicacion={66}              // ID real de la publicación
+//   borradorGuardado={true}         // Ya existe en la base de datos
+//   editorContent="<p>Contenido</p>"
+//   // ... otras props
+// />
 export const ContenidoPublicacion: React.FC<ContenidoPublicacionProps> = ({
   editorContent,
   setEditorContent,

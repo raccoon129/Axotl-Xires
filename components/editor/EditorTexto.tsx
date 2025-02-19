@@ -19,7 +19,12 @@ import ListItem from '@tiptap/extension-list-item';
 import MenuEditor from './MenuEditor';
 import { useState, useEffect, useCallback } from 'react';
 import NotificacionChip from '@/components/global/NotificacionChip';
-
+import { motion } from "framer-motion";
+// Este componente maneja el editor de texto enriquecido con soporte para imágenes
+// Incluye funcionalidades para:
+// 1. Cargar imágenes (drag & drop, pegado, botón)
+// 2. Eliminar imágenes automáticamente cuando se quitan del contenido
+// 3. Mantener sincronizadas las imágenes entre el editor y el servidor
 interface EditorTextoProps {
   onChange?: (content: string) => void;
   initialContent?: string;
@@ -46,12 +51,22 @@ interface ImagenResponse {
 }
 
 interface ImagenPublicacion {
-  id_imagen: number;
-  url: string;
-  descripcion: string;
-  orden: number;
+  id_imagen: number;      // ID único de la imagen en la base de datos
+  url: string;           // Nombre del archivo en el servidor (ej: "publicacion-abc123.jpg")
+  descripcion: string;   // Descripción opcional de la imagen
+  orden: number;         // Orden de aparición en la publicación
 }
-
+// Ejemplo de respuesta del servidor al subir una imagen:
+// {
+//   "status": "success",
+//   "mensaje": "Imagen subida exitosamente",
+//   "datos": {
+//     "id_imagen": 123,
+//     "url": "publicacion-abc123.jpg",
+//     "descripcion": "Imagen insertada en el editor",
+//     "orden": 1
+//   }
+// }
 const ContadorPalabras: React.FC<ContadorPalabrasProps> = ({ palabrasActuales, maxPalabras }) => {
   const porcentaje = (palabrasActuales / maxPalabras) * 100;
   
@@ -192,8 +207,9 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
   const MAX_PALABRAS = 5000;
   const [mensajeNotificacion, setMensajeNotificacion] = useState<string | null>(null);
   const [tipoNotificacion, setTipoNotificacion] = useState<"excepcion" | "confirmacion" | "notificacion" | null>(null);
-  const [imagenesActivas, setImagenesActivas] = useState<ImagenPublicacion[]>([]);
+  const [imagenesActivas, setImagenesActivas] = useState<ImagenPublicacion[]>([]); // Estado para mantener la lista de imágenes activas en la publicación
   const [editorInstance, setEditorInstance] = useState<ReturnType<typeof useEditor> | null>(null);
+  const [cargandoImagen, setCargandoImagen] = useState(false);
 
   // Función para contar palabras
   const contarPalabras = (texto: string) => {
@@ -212,9 +228,18 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
   }, [initialContent]);
 
   // Función para obtener las imágenes de la publicación
+   // Obtiene todas las imágenes asociadas a la publicación
   const obtenerImagenesPublicacion = useCallback(async () => {
     if (!idPublicacion) return;
-
+    // Ejemplo de respuesta:
+    // {
+    //   "status": "success",
+    //   "mensaje": "Imágenes recuperadas exitosamente",
+    //   "datos": [
+    //     { id_imagen: 1, url: "imagen1.jpg", ... },
+    //     { id_imagen: 2, url: "imagen2.jpg", ... }
+    //   ]
+    // }
     try {
       const token = localStorage.getItem('token');
       const respuesta = await fetch(
@@ -242,9 +267,33 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
     }
   }, [borradorGuardado, idPublicacion, obtenerImagenesPublicacion]);
 
-  // Manejador de carga de imágenes mejorado
+  // Componente de barra de progreso
+  const BarraCarga = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center"
+    >
+      <div className="bg-white p-6 rounded-lg shadow-xl w-80">
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-medium text-gray-900">Cargando imagen</h3>
+          <p className="text-sm text-gray-500">Por favor, espere...</p>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <motion.div
+            className="bg-blue-600 h-2.5 rounded-full"
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 1, repeat: Infinity }}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // Modificar el manejador de carga de imágenes
   const manejarCargaImagen = useCallback(async (file: File): Promise<string> => {
-    // Verificar si la publicación ya está guardada como borrador
     if (!borradorGuardado || !idPublicacion) {
       setTipoNotificacion("excepcion");
       setMensajeNotificacion("Debes guardar la publicación como borrador antes de añadir imágenes");
@@ -252,9 +301,13 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
     }
 
     try {
+      setCargandoImagen(true); // Iniciar carga
+      if (editorInstance) {
+        editorInstance.setEditable(false); // Deshabilitar editor durante la carga
+      }
+
       const formData = new FormData();
       formData.append('imagen', file);
-      // Añadir descripción opcional
       formData.append('descripcion', 'Imagen insertada en el editor');
 
       const token = localStorage.getItem('token');
@@ -276,26 +329,33 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       }
 
       const datos: ImagenResponse = await respuesta.json();
-      
-      // Construir la URL correcta usando el nombre del archivo devuelto
       const urlImagen = `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${datos.datos.url}`;
+      
+      await obtenerImagenesPublicacion(); // Actualizar lista de imágenes
       
       setTipoNotificacion("confirmacion");
       setMensajeNotificacion("Imagen cargada exitosamente");
       
-      await obtenerImagenesPublicacion(); // Actualizar lista de imágenes
-      
       return urlImagen;
     } catch (error) {
-      console.error('Error al cargar imagen:', error);
       setTipoNotificacion("excepcion");
       setMensajeNotificacion("Error al cargar la imagen. Intenta de nuevo.");
       throw error;
+    } finally {
+      setCargandoImagen(false); // Finalizar carga
+      if (editorInstance) {
+        editorInstance.setEditable(true); // Rehabilitar editor
+      }
     }
-  }, [idPublicacion, borradorGuardado, obtenerImagenesPublicacion]);
+  }, [idPublicacion, borradorGuardado, obtenerImagenesPublicacion, editorInstance]);
 
   // Función para verificar qué imágenes han sido eliminadas
   const verificarImagenesEliminadas = useCallback(async () => {
+        // 1. Obtiene el HTML actual del editor
+    // 2. Extrae todas las URLs de imágenes presentes
+    // 3. Compara con la lista de imágenes activas
+    // 4. Elimina las imágenes que ya no se usan
+    // 5. Actualiza la lista de imágenes activas
     if (!editorInstance || !idPublicacion) return;
 
     const contenidoActual = editorInstance.getHTML();
@@ -409,8 +469,8 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
               .then(url => {
                 const { tr } = view.state;
                 const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
-                if (pos && editor) {
-                  const imageNode = editor.schema.nodes.image.create({ 
+                if (pos && editorInstance) {
+                  const imageNode = editorInstance.schema.nodes.image.create({ 
                     src: url,
                     alt: 'Imagen insertada'
                   });
@@ -418,7 +478,7 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
                 }
               })
               .catch(error => {
-                console.error('Error al cargar imagen por arrastre:', error);
+                //console.error('Error al cargar imagen por arrastre:', error);
               });
               
             return true;
@@ -433,15 +493,15 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
         if (imageItem) {
           event.preventDefault();
           const file = imageItem.getAsFile();
-          if (file && editor) {
+          if (file && editorInstance) {
             manejarCargaImagen(file)
               .then(url => {
                 const { tr } = view.state;
-                const imageNode = editor.schema.nodes.image.create({ src: url });
+                const imageNode = editorInstance.schema.nodes.image.create({ src: url });
                 view.dispatch(tr.replaceSelectionWith(imageNode));
               })
               .catch(error => {
-                console.error('Error al pegar imagen:', error);
+                //console.error('Error al pegar imagen:', error);
               });
             return true;
           }
@@ -468,14 +528,22 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
   }, [editor]);
 
   return (
-    <div className="editor-contenedor border rounded-lg shadow-sm bg-white">
+    <div className="editor-contenedor border rounded-lg shadow-sm bg-white relative">
       <style>{estilosEditor}</style>
-      <MenuEditor editor={editor} onImageUpload={manejarCargaImagen} />
-      <EditorContent editor={editor} />
+      <MenuEditor 
+        editor={editor} 
+        onImageUpload={manejarCargaImagen}
+        disabled={cargandoImagen} // Deshabilitar menú durante la carga
+      />
+      <EditorContent 
+        editor={editor} 
+        className={cargandoImagen ? 'pointer-events-none opacity-50' : ''} 
+      />
       <ContadorPalabras 
         palabrasActuales={contadorPalabras}
         maxPalabras={MAX_PALABRAS}
       />
+      {cargandoImagen && <BarraCarga />}
       {mensajeNotificacion && tipoNotificacion && (
         <NotificacionChip
           tipo={tipoNotificacion}

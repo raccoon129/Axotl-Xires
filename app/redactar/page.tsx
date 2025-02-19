@@ -1,6 +1,7 @@
 // app/redactar/page.tsx
-//RFuncionalidad parcial. Revisar el manejo de imagenes (portada) y el envio de publicaciones finales
-//Pendiente añadir previsualizacion del trabajo en progreso
+// Página para crear nuevas publicaciones
+// Importante: Aquí obtenemos un próximo_id que se convierte en idPublicacion
+// después del primer guardado
 
 "use client";
 import { AuthGuard } from "@/components/autenticacion/AuthGuard";
@@ -19,7 +20,7 @@ import BotonEnviarParaRevision from '@/components/redactar/BotonEnviarParaRevisi
 import { ModalGeneradorPortada } from '@/components/editor/portada/ModalGeneradorPortada';
 
 const RedactarContenido = () => {
-  
+  // El ID se obtiene al iniciar y se confirma al guardar
   const { isLoggedIn, userProfile } = useAuth();
   const router = useRouter();
 
@@ -60,6 +61,8 @@ const RedactarContenido = () => {
     // return;
     //}
     obtenerProximoId();
+        // Ejemplo de respuesta:
+    // { "id": [{ "proximo_id": 67 }] }
     obtenerTiposPublicacion();
   }, [isLoggedIn]);
 
@@ -103,8 +106,11 @@ const RedactarContenido = () => {
         editorContent.trim()
     );
   };
-
+ // Al guardar por primera vez, el próximo_id se convierte en id_publicacion real
   const guardarBorrador = async () => {
+        // 1. Envía los datos con el próximo_id
+    // 2. Al recibir respuesta exitosa, establece borradorGuardado = true
+    // 3. Ahora se pueden gestionar imágenes
     if (!puedeGuardarBorrador()) {
       setErrorGuardado("Por favor completa todos los campos requeridos");
       return;

@@ -15,6 +15,7 @@ import Tooltip from '@/components/global/Tooltip';
 interface MenuEditorProps {
   editor: Editor | null;
   onImageUpload: (file: File) => Promise<string>;
+  disabled?: boolean;
 }
 
 interface MenuBotonProps {
@@ -44,7 +45,7 @@ const MenuBoton: React.FC<MenuBotonProps> = ({
   </button>
 );
 
-const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload }) => {
+const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload, disabled = false }) => {
   const [mostrarMenuTabla, setMostrarMenuTabla] = useState(false);
   const [filasInput, setFilasInput] = useState('3');
   const [columnasInput, setColumnasInput] = useState('3');
@@ -72,7 +73,7 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload }) => {
         editor?.chain().focus().setImage({ src: urlImagen }).run();
       } catch (error) {
         // El manejo de errores ya está implementado en EditorTexto
-        console.error('Error al subir imagen:', error);
+        //console.error('Error al subir imagen:', error);
       }
     }
   };
@@ -126,7 +127,7 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload }) => {
   };
 
   return (
-    <div className="barra-herramientas border-b p-2 flex flex-wrap gap-1 sticky top-0 bg-white z-10">
+    <div className={`flex flex-wrap gap-1 p-2 border-b ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
       {/* Encabezados y párrafo */}
       <div className="flex gap-1 mr-2">
         <select
@@ -382,6 +383,8 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload }) => {
           className="hidden"
           accept="image/*"
           onChange={manejarSubidaImagen}
+          id="imagen-input"
+          disabled={disabled}
         />
         <div className="p-2 rounded hover:bg-gray-100">
           <ImagePlus size={16} />

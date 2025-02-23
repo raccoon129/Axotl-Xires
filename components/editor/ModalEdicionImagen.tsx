@@ -68,28 +68,36 @@ export const ModalEdicionImagen: React.FC<ModalEdicionImagenProps> = ({
     
     if (!ctx) throw new Error('No se pudo obtener el contexto del canvas');
 
-    // Aplicar recorte
     const scaleX = imagen.naturalWidth / imagen.width;
     const scaleY = imagen.naturalHeight / imagen.height;
     
-    const pixelCrop = {
-      x: crop.x * scaleX,
-      y: crop.y * scaleY,
-      width: crop.width * scaleX,
-      height: crop.height * scaleY
-    };
+    // Si el usuario no modificó el recorte, usar toda la imagen
+    const fullCrop = (crop.x === 0 && crop.y === 0 && crop.width === 100 && crop.height === 100);
+    const pixelCrop = fullCrop
+      ? {
+          x: 0,
+          y: 0,
+          width: imagen.naturalWidth,
+          height: imagen.naturalHeight
+        }
+      : {
+          x: crop.x * scaleX,
+          y: crop.y * scaleY,
+          width: crop.width * scaleX,
+          height: crop.height * scaleY
+        };
 
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
 
     // Aplicar rotación si es necesario
     if (rotacion !== 0) {
-      ctx.translate(canvas.width/2, canvas.height/2);
+      ctx.translate(canvas.width / 2, canvas.height / 2);
       ctx.rotate((rotacion * Math.PI) / 180);
-      ctx.translate(-canvas.width/2, -canvas.height/2);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
     }
 
-    // Dibujar imagen recortada
+    // Dibujar imagen (ya sea recortada o completa)
     ctx.filter = `brightness(${brillo}%) contrast(${contraste}%)`;
     ctx.drawImage(
       imagen,
@@ -107,12 +115,10 @@ export const ModalEdicionImagen: React.FC<ModalEdicionImagenProps> = ({
     if (esGrises) {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
-      
       for (let i = 0; i < data.length; i += 4) {
         const gris = (data[i] + data[i + 1] + data[i + 2]) / 3;
         data[i] = data[i + 1] = data[i + 2] = gris;
       }
-      
       ctx.putImageData(imageData, 0, 0);
     }
 
@@ -317,4 +323,4 @@ export const ModalEdicionImagen: React.FC<ModalEdicionImagenProps> = ({
       )}
     </AnimatePresence>
   );
-}; 
+};

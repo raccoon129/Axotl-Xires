@@ -37,20 +37,23 @@ const MenuButton: React.FC<MenuButtonProps> = ({
 
 interface BarraHerramientasProps {
   editor: Editor | null;
+  onImageUpload?: (file: File) => Promise<string>; // Añade esta prop
 }
 
-const BarraHerramientas: React.FC<BarraHerramientasProps> = ({ editor }) => {
+const BarraHerramientas: React.FC<BarraHerramientasProps> = ({ editor, onImageUpload }) => {
   if (!editor) return null;
 
-  const manejarSubidaImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const manejarSubidaImagen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = e.target.files?.[0];
-    if (archivo) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        editor.chain().focus().setImage({ src: base64 }).run();
-      };
-      reader.readAsDataURL(archivo);
+    if (archivo && onImageUpload) {
+      try {
+        // Usar la función onImageUpload proporcionada
+        await onImageUpload(archivo);
+        // Limpiar el input para permitir cargar la misma imagen
+        e.target.value = '';
+      } catch (error) {
+        console.error('Error al cargar la imagen:', error);
+      }
     }
   };
 

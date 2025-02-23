@@ -69,11 +69,10 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload, disabled
     const archivo = e.target.files?.[0];
     if (archivo) {
       try {
-        const urlImagen = await onImageUpload(archivo);
-        editor?.chain().focus().setImage({ src: urlImagen }).run();
+        await onImageUpload(archivo);
+        e.target.value = '';
       } catch (error) {
-        // El manejo de errores ya está implementado en EditorTexto
-        //console.error('Error al subir imagen:', error);
+        console.error('Error al procesar la imagen:', error);
       }
     }
   };

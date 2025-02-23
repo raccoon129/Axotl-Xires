@@ -205,10 +205,12 @@ const estilosEditor = `
 
   .ProseMirror figure.image-figure figcaption {
     margin-top: 0.5em;
-    color: #666;
+    color: grey;
     font-size: 0.9em;
     font-style: italic;
     text-align: center;
+    user-select: none;
+    pointer-events: none;
   }
 `;
 
@@ -317,8 +319,9 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
     </motion.div>
   );
 
-  // Modificar el manejador de carga de imágenes
-  const manejarCargaImagen = useCallback(async (file: File): Promise<string> => {
+  // Manejador principal de carga de imágenes
+  // Coordina todo el proceso de carga, edición e inserción de imágenes
+  const manejarCargaImagen = useCallback(async (archivo: File): Promise<string> => {
     if (!borradorGuardado || !idPublicacion) {
       setTipoNotificacion("excepcion");
       setMensajeNotificacion("Debes guardar la publicación como borrador antes de añadir imágenes");
@@ -327,13 +330,15 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
 
     return new Promise((resolve, reject) => {
       if (onIniciarEdicionImagen) {
-        onIniciarEdicionImagen(file, async (imagenEditada, descripcion) => {
+        // Iniciamos el proceso de edición de la imagen
+        onIniciarEdicionImagen(archivo, async (imagenEditada, descripcion) => {
           try {
             setCargandoImagen(true);
             if (editorInstance) {
               editorInstance.setEditable(false);
             }
             
+            // Preparamos los datos para enviar al servidor
             const formData = new FormData();
             formData.append('imagen', imagenEditada);
             formData.append('descripcion', descripcion);
@@ -341,6 +346,7 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
             const token = localStorage.getItem('token');
             if (!token) throw new Error("No hay token de autenticación");
             
+            // Subimos la imagen al servidor
             const respuesta = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/upload/${idPublicacion}`,
               {
@@ -359,14 +365,16 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
             const datos: ImagenResponse = await respuesta.json();
             const urlImagen = `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${datos.datos.url}`;
             
-            // Insertar imagen con figura y descripción
+            // Insertamos la imagen con su figura y descripción
+            const descripcionAjustada = descripcion.trim();
             if (editorInstance) {
               const figureHtml = `
-                <figure class="image-figure">
-                  <img src="${urlImagen}" alt="${descripcion}">
-                  <figcaption>${descripcion}</figcaption>
+                <figure class="image-figure" contenteditable="false">
+                  <img src="${urlImagen}" alt="${descripcionAjustada}">
+                  <figcaption>${descripcionAjustada}</figcaption>
                 </figure>
               `;
+              // Insertamos el contenido HTML en la posición actual del cursor
               editorInstance.commands.insertContent(figureHtml);
             }
             
@@ -496,36 +504,30 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       attributes: {
         class: 'prose max-w-none focus:outline-none min-h-[200px] px-4 py-2'
       },
+      // Manejador para arrastrar y soltar imágenes
       handleDrop: (view, event, slice, moved) => {
         if (!moved && event.dataTransfer?.files?.length) {
-          const file = event.dataTransfer.files[0];
-          const isImage = file.type.startsWith('image/');
+          const archivo = event.dataTransfer.files[0];
+          const esImagen = archivo.type.startsWith('image/');
           
-          if (isImage) {
+          if (esImagen) {
             event.preventDefault();
-            // Llamamos a manejarCargaImagen pero no insertamos el nodo manualmente
-            manejarCargaImagen(file)
-              .catch(error => {
-                // Manejo de error si es necesario
-              });
+            manejarCargaImagen(archivo).catch(console.error);
             return true;
           }
         }
         return false;
       },
+      // Manejador para pegar imágenes desde el portapapeles
       handlePaste: (view, event) => {
-        const items = Array.from(event.clipboardData?.items || []);
-        const imageItem = items.find(item => item.type.startsWith('image/'));
+        const elementos = Array.from(event.clipboardData?.items || []);
+        const elementoImagen = elementos.find(item => item.type.startsWith('image/'));
         
-        if (imageItem) {
+        if (elementoImagen) {
           event.preventDefault();
-          const file = imageItem.getAsFile();
-          if (file) {
-            // Llamamos a manejarCargaImagen pero no insertamos el nodo manualmente
-            manejarCargaImagen(file)
-              .catch(error => {
-                // Manejo de error si es necesario
-              });
+          const archivo = elementoImagen.getAsFile();
+          if (archivo) {
+            manejarCargaImagen(archivo).catch(console.error);
             return true;
           }
         }
@@ -553,6 +555,7 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
   return (
     <div className="editor-contenedor border rounded-lg shadow-sm bg-white relative">
       <style>{estilosEditor}</style>
+      
       <MenuEditor 
         editor={editor} 
         onImageUpload={manejarCargaImagen}

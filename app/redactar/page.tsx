@@ -18,6 +18,7 @@ import { Referencias } from "@/components/redactar/Referencias";
 import { TipoPublicacion, BorradorResponse } from "@/type/tipoPublicacion";
 import BotonEnviarParaRevision from '@/components/redactar/BotonEnviarParaRevision';
 import { ModalGeneradorPortada } from '@/components/editor/portada/ModalGeneradorPortada';
+import { ModalEdicionImagen } from '@/components/editor/ModalEdicionImagen';
 
 const RedactarContenido = () => {
   // El ID se obtiene al iniciar y se confirma al guardar
@@ -54,6 +55,14 @@ const RedactarContenido = () => {
   const [borradorGuardado, setBorradorGuardado] = useState(false);
   const [mostrarModalPortada, setMostrarModalPortada] = useState(false);
 
+  // Estado para controlar si hay cambios sin guardar
+  const [cambiosSinGuardar, setCambiosSinGuardar] = useState(false);
+
+  // Estados para el modal de edición de imagen
+  const [imagenParaEditar, setImagenParaEditar] = useState<File | null>(null);
+  const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
+  const [editorCallback, setEditorCallback] = useState<((imagenEditada: File, descripcion: string) => void) | null>(null);
+
   // Efecto inicial
   useEffect(() => {
     //  if (!isLoggedIn) {
@@ -69,6 +78,20 @@ const RedactarContenido = () => {
   useEffect(() => {
     document.title = "Redactar Nueva Publicación - Axotl Xires";
   }, []); // Array vacío para que solo se ejecute al montar el componente
+
+  // Efecto para manejar beforeunload
+  useEffect(() => {
+    const advertirAntesDeSalir = (e: BeforeUnloadEvent) => {
+      if (cambiosSinGuardar) {
+        e.preventDefault();
+        e.returnValue = ''; // Mensaje estándar del navegador
+        return ''; // Para navegadores antiguos
+      }
+    };
+
+    window.addEventListener('beforeunload', advertirAntesDeSalir);
+    return () => window.removeEventListener('beforeunload', advertirAntesDeSalir);
+  }, [cambiosSinGuardar]);
 
   // Funciones auxiliares
   const obtenerTiposPublicacion = async () => {
@@ -189,6 +212,9 @@ const RedactarContenido = () => {
       }
 
       setTimeout(() => setMensajeGuardado(null), 6000);
+
+      // Si el guardado fue exitoso
+      setCambiosSinGuardar(false);
     } catch (error) {
       console.error("Error al guardar el borrador:", error);
       setTipoNotificacion("excepcion");
@@ -306,6 +332,37 @@ const RedactarContenido = () => {
     }
   };
 
+  // Modificar el handler del editor para actualizar el estado y marcar cambios
+  const handleEditorChange = (content: string) => {
+    setEditorContent(content);
+    setCambiosSinGuardar(true);
+  };
+
+  // Manejador para cuando se inicia la edición de una imagen
+  const handleIniciarEdicionImagen = (
+    imagen: File, 
+    callback: (imagenEditada: File, descripcion: string) => void
+  ) => {
+    setImagenParaEditar(imagen);
+    setEditorCallback(() => callback);
+    setModalEdicionAbierto(true);
+  };
+
+  // Manejador para cuando se completa la edición
+  const handleImagenEditada = (imagenEditada: File, descripcion: string) => {
+    setModalEdicionAbierto(false);
+    editorCallback?.(imagenEditada, descripcion);
+    setImagenParaEditar(null);
+    setEditorCallback(null);
+  };
+
+  // Manejador para cancelar la edición
+  const handleCancelarEdicion = () => {
+    setModalEdicionAbierto(false);
+    setImagenParaEditar(null);
+    setEditorCallback(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
@@ -353,7 +410,7 @@ const RedactarContenido = () => {
         >
           <ContenidoPublicacion
             editorContent={editorContent}
-            setEditorContent={setEditorContent}
+            setEditorContent={handleEditorChange}
             onGuardar={guardarBorrador}
             puedeGuardar={puedeGuardarBorrador()}
             guardando={guardando}
@@ -362,6 +419,7 @@ const RedactarContenido = () => {
             tipoNotificacion={tipoNotificacion}
             idPublicacion={idBorradorActual}
             borradorGuardado={borradorGuardado}
+            onIniciarEdicionImagen={handleIniciarEdicionImagen}
           />
         </motion.section>
 
@@ -397,6 +455,16 @@ const RedactarContenido = () => {
           onGuardar={manejarGuardadoPortada}
           dimensiones={dimensionesPortada}
         />
+
+        {/* Modal de edición de imagen */}
+        {imagenParaEditar && (
+          <ModalEdicionImagen
+            imagenOriginal={imagenParaEditar}
+            onGuardar={handleImagenEditada}
+            onCancelar={handleCancelarEdicion}
+            estaAbierto={modalEdicionAbierto}
+          />
+        )}
       </div>
     </div>
   );

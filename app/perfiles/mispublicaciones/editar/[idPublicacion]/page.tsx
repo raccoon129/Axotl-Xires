@@ -18,6 +18,7 @@ import { Referencias } from "@/components/redactar/Referencias";
 import { TipoPublicacion, BorradorResponse } from "@/type/tipoPublicacion";
 import LoaderAxotl from "@/components/global/LoaderAxotl";
 import BotonEnviarParaRevision from '@/components/redactar/BotonEnviarParaRevision';
+import { ModalEdicionImagen } from '@/components/editor/ModalEdicionImagen';
 
 const EditarPublicacionContenido = () => {
   // Inicializamos borradorGuardado como true porque ya existe la publicación
@@ -55,6 +56,28 @@ const EditarPublicacionContenido = () => {
 
   // Como estamos en la página de edición, el borrador ya existe
   const [borradorGuardado, setBorradorGuardado] = useState(true); // Inicializado en true porque ya existe el borrador
+
+  // Estado para controlar si hay cambios sin guardar
+  const [cambiosSinGuardar, setCambiosSinGuardar] = useState(false);
+
+  // Estados para el modal de edición de imagen
+  const [imagenParaEditar, setImagenParaEditar] = useState<File | null>(null);
+  const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
+  const [editorCallback, setEditorCallback] = useState<((imagenEditada: File, descripcion: string) => void) | null>(null);
+
+  // Efecto para manejar beforeunload
+  useEffect(() => {
+    const advertirAntesDeSalir = (e: BeforeUnloadEvent) => {
+      if (cambiosSinGuardar) {
+        e.preventDefault();
+        e.returnValue = ''; // Mensaje estándar del navegador
+        return ''; // Para navegadores antiguos
+      }
+    };
+
+    window.addEventListener('beforeunload', advertirAntesDeSalir);
+    return () => window.removeEventListener('beforeunload', advertirAntesDeSalir);
+  }, [cambiosSinGuardar]);
 
   useEffect(() => {
           // 1. Verifica que la publicación existe
@@ -184,6 +207,26 @@ const EditarPublicacionContenido = () => {
     lector.readAsDataURL(archivo);
   };
 
+  const handleEditorChange = (content: string) => {
+    setEditorContent(content);
+    setCambiosSinGuardar(true);
+  };
+
+  const handleNombreChange = (nombre: string) => {
+    setNombrePublicacion(nombre);
+    setCambiosSinGuardar(true);
+  };
+
+  const handleResumenChange = (resumen: string) => {
+    setResumenPublicacion(resumen);
+    setCambiosSinGuardar(true);
+  };
+
+  const handleReferenciasChange = (refs: string) => {
+    setReferencias(refs);
+    setCambiosSinGuardar(true);
+  };
+
   const guardarBorrador = async () => {
     if (!puedeGuardarBorrador()) {
       setErrorGuardado("Por favor completa todos los campos requeridos");
@@ -256,6 +299,9 @@ const EditarPublicacionContenido = () => {
       setMensajeGuardado("Borrador actualizado exitosamente");
 
       setTimeout(() => setMensajeGuardado(null), 6000);
+
+      // Si el guardado fue exitoso
+      setCambiosSinGuardar(false);
     } catch (error) {
       console.error("Error al actualizar el borrador:", error);
       setTipoNotificacion("excepcion");
@@ -339,6 +385,31 @@ const EditarPublicacionContenido = () => {
     }
   };
 
+  // Manejador para cuando se inicia la edición de una imagen
+  const handleIniciarEdicionImagen = (
+    imagen: File, 
+    callback: (imagenEditada: File, descripcion: string) => void
+  ) => {
+    setImagenParaEditar(imagen);
+    setEditorCallback(() => callback);
+    setModalEdicionAbierto(true);
+  };
+
+  // Manejador para cuando se completa la edición
+  const handleImagenEditada = (imagenEditada: File, descripcion: string) => {
+    setModalEdicionAbierto(false);
+    editorCallback?.(imagenEditada, descripcion);
+    setImagenParaEditar(null);
+    setEditorCallback(null);
+  };
+
+  // Manejador para cancelar la edición
+  const handleCancelarEdicion = () => {
+    setModalEdicionAbierto(false);
+    setImagenParaEditar(null);
+    setEditorCallback(null);
+  };
+
   // Renderizado condicional basado en el estado de acceso
   if (accesoPermitido === null) {
     return <LoaderAxotl />;
@@ -401,9 +472,9 @@ const EditarPublicacionContenido = () => {
             >
               <DetallesPublicacion
                 nombrePublicacion={nombrePublicacion}
-                setNombrePublicacion={setNombrePublicacion}
+                setNombrePublicacion={handleNombreChange}
                 resumenPublicacion={resumenPublicacion}
-                setResumenPublicacion={setResumenPublicacion}
+                setResumenPublicacion={handleResumenChange}
                 tipoSeleccionado={tipoSeleccionado}
                 setTipoSeleccionado={setTipoSeleccionado}
                 tiposPublicacion={tiposPublicacion}
@@ -437,15 +508,16 @@ const EditarPublicacionContenido = () => {
             >
               <ContenidoPublicacion
                 editorContent={editorContent}
-                setEditorContent={setEditorContent}
+                setEditorContent={handleEditorChange}
                 onGuardar={guardarBorrador}
                 puedeGuardar={puedeGuardarBorrador()}
                 guardando={guardando}
                 errorGuardado={errorGuardado}
                 mensajeGuardado={mensajeGuardado}
                 tipoNotificacion={tipoNotificacion}
-                idPublicacion={parseInt(idPublicacion as string)} // Convertimos el ID a número
-                borradorGuardado={borradorGuardado} // Pasamos el estado
+                idPublicacion={parseInt(idPublicacion as string)}
+                borradorGuardado={borradorGuardado}
+                onIniciarEdicionImagen={handleIniciarEdicionImagen}
               />
             </motion.section>
 
@@ -457,7 +529,7 @@ const EditarPublicacionContenido = () => {
             >
               <Referencias
                 referencias={referencias}
-                setReferencias={setReferencias}
+                setReferencias={handleReferenciasChange}
               />
             </motion.section>
           </div>
@@ -482,6 +554,16 @@ const EditarPublicacionContenido = () => {
             camposCompletos={camposCompletos()}
           />
         </div>
+
+        {/* Modal de edición de imagen */}
+        {imagenParaEditar && (
+          <ModalEdicionImagen
+            imagenOriginal={imagenParaEditar}
+            onGuardar={handleImagenEditada}
+            onCancelar={handleCancelarEdicion}
+            estaAbierto={modalEdicionAbierto}
+          />
+        )}
       </div>
     </div>
   );

@@ -27,14 +27,9 @@ const PerfilUsuarioClient = () => {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem("token");
+        // Usamos la ruta pública que no requiere autenticación
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/${idUsuario}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${idUsuario}`
         );
         if (response.ok) {
           const data = await response.json();
@@ -56,17 +51,11 @@ const PerfilUsuarioClient = () => {
     const cargarPublicaciones = async () => {
       try {
         setIsLoadingPublicaciones(true);
-        const token = localStorage.getItem("token");
+        // Usamos la ruta pública que no requiere autenticación
         const respuesta = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/usuario/${idUsuario}/publicadas`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/usuario/${idUsuario}/publicadas`
         );
 
-        // Modificamos esta parte para manejar mejor la respuesta
         const datos = await respuesta.json();
         
         if (!respuesta.ok) {
@@ -191,6 +180,7 @@ const PerfilUsuarioClient = () => {
                 {/* Sección de perfil */}
                 <div className="p-6 text-center border-b border-gray-100">
                   <div className="relative mx-auto w-24 h-24 mb-4">
+                    {/* Nota: La ruta /api/usuarios/detalles/... no requiere token de autenticación */}
                     <Image
                       src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${userData?.id_usuario}/foto`}
                       alt="Foto de perfil"

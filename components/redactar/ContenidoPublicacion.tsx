@@ -21,6 +21,11 @@ interface ContenidoPublicacionProps {
   tipoNotificacion: "confirmacion" | "excepcion" | "notificacion" | null;
   idPublicacion: number | null;  // ID de la publicación (null si es nueva)
   borradorGuardado: boolean;  // Indica si ya existe en la base de datos
+  onIniciarEdicionImagen?: (
+    imagen: File,
+    callback: (imagenEditada: File, descripcion: string) => void
+  ) => void;
+  onContentChange?: (content: string) => void;
 }
 
 // Ejemplo de uso:
@@ -41,7 +46,14 @@ export const ContenidoPublicacion: React.FC<ContenidoPublicacionProps> = ({
   tipoNotificacion,
   idPublicacion,
   borradorGuardado,
+  onIniciarEdicionImagen,
+  onContentChange,
 }) => {
+  const handleEditorChange = (content: string) => {
+    setEditorContent(content);
+    onContentChange?.(content);
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
@@ -89,10 +101,11 @@ export const ContenidoPublicacion: React.FC<ContenidoPublicacionProps> = ({
 
       <div className="border border-gray-200 rounded-lg">
         <EditorTexto
-          onChange={setEditorContent}
+          onChange={handleEditorChange}
           initialContent={editorContent}
           idPublicacion={idPublicacion}
           borradorGuardado={borradorGuardado}
+          onIniciarEdicionImagen={onIniciarEdicionImagen}
         />
       </div>
     </div>

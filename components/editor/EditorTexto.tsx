@@ -20,6 +20,7 @@ import MenuEditor from './MenuEditor';
 import { useState, useEffect, useCallback } from 'react';
 import NotificacionChip from '@/components/global/NotificacionChip';
 import { motion } from "framer-motion";
+import { ModalEdicionImagen } from './ModalEdicionImagen';
 // Este componente maneja el editor de texto enriquecido con soporte para imágenes
 // Incluye funcionalidades para:
 // 1. Cargar imágenes (drag & drop, pegado, botón)
@@ -32,6 +33,10 @@ interface EditorTextoProps {
   idPublicacion?: number | null;
   borradorGuardado: boolean;
   onGuardar?: () => void;
+  onIniciarEdicionImagen?: (
+    imagen: File, 
+    callback: (imagenEditada: File, descripcion: string) => void
+  ) => void;
 }
 
 interface ContadorPalabrasProps {
@@ -186,6 +191,25 @@ const estilosEditor = `
   .ProseMirror ol ul {
     margin: 0.2em 0 0.2em 1.5em;
   }
+
+  .ProseMirror figure.image-figure {
+    margin: 2em 0;
+    text-align: center;
+  }
+
+  .ProseMirror figure.image-figure img {
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+  }
+
+  .ProseMirror figure.image-figure figcaption {
+    margin-top: 0.5em;
+    color: #666;
+    font-size: 0.9em;
+    font-style: italic;
+    text-align: center;
+  }
 `;
 
 // Extendemos la interfaz ImageOptions para incluir uploadImage
@@ -201,7 +225,8 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
   onGuardadoExitoso,
   idPublicacion,
   borradorGuardado,
-  onGuardar
+  onGuardar,
+  onIniciarEdicionImagen
 }) => {
   const [contadorPalabras, setContadorPalabras] = useState(0);
   const MAX_PALABRAS = 5000;
@@ -300,54 +325,68 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       throw new Error("Publicación no guardada");
     }
 
-    try {
-      setCargandoImagen(true); // Iniciar carga
-      if (editorInstance) {
-        editorInstance.setEditable(false); // Deshabilitar editor durante la carga
+    return new Promise((resolve, reject) => {
+      if (onIniciarEdicionImagen) {
+        onIniciarEdicionImagen(file, async (imagenEditada, descripcion) => {
+          try {
+            setCargandoImagen(true);
+            if (editorInstance) {
+              editorInstance.setEditable(false);
+            }
+            
+            const formData = new FormData();
+            formData.append('imagen', imagenEditada);
+            formData.append('descripcion', descripcion);
+            
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error("No hay token de autenticación");
+            
+            const respuesta = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/upload/${idPublicacion}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                },
+                body: formData
+              }
+            );
+            
+            if (!respuesta.ok) {
+              throw new Error("Error al cargar la imagen");
+            }
+            
+            const datos: ImagenResponse = await respuesta.json();
+            const urlImagen = `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${datos.datos.url}`;
+            
+            // Insertar imagen con figura y descripción
+            if (editorInstance) {
+              const figureHtml = `
+                <figure class="image-figure">
+                  <img src="${urlImagen}" alt="${descripcion}">
+                  <figcaption>${descripcion}</figcaption>
+                </figure>
+              `;
+              editorInstance.commands.insertContent(figureHtml);
+            }
+            
+            await obtenerImagenesPublicacion();
+            setTipoNotificacion("confirmacion");
+            setMensajeNotificacion("Imagen cargada exitosamente");
+            
+            resolve(urlImagen);
+          } catch (error) {
+            reject(error);
+          } finally {
+            setCargandoImagen(false);
+            if (editorInstance) {
+              editorInstance.setEditable(true);
+            }
+          }
+        });
       }
-
-      const formData = new FormData();
-      formData.append('imagen', file);
-      formData.append('descripcion', 'Imagen insertada en el editor');
-
-      const token = localStorage.getItem('token');
-      if (!token) throw new Error("No hay token de autenticación");
-
-      const respuesta = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/upload/${idPublicacion}`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
-        }
-      );
-
-      if (!respuesta.ok) {
-        throw new Error("Error al cargar la imagen");
-      }
-
-      const datos: ImagenResponse = await respuesta.json();
-      const urlImagen = `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${datos.datos.url}`;
-      
-      await obtenerImagenesPublicacion(); // Actualizar lista de imágenes
-      
-      setTipoNotificacion("confirmacion");
-      setMensajeNotificacion("Imagen cargada exitosamente");
-      
-      return urlImagen;
-    } catch (error) {
-      setTipoNotificacion("excepcion");
-      setMensajeNotificacion("Error al cargar la imagen. Intenta de nuevo.");
-      throw error;
-    } finally {
-      setCargandoImagen(false); // Finalizar carga
-      if (editorInstance) {
-        editorInstance.setEditable(true); // Rehabilitar editor
-      }
-    }
-  }, [idPublicacion, borradorGuardado, obtenerImagenesPublicacion, editorInstance]);
+    });
+  }, [idPublicacion, borradorGuardado, obtenerImagenesPublicacion, editorInstance, onIniciarEdicionImagen]);
 
   // Función para verificar qué imágenes han sido eliminadas
   const verificarImagenesEliminadas = useCallback(async () => {
@@ -464,23 +503,11 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
           
           if (isImage) {
             event.preventDefault();
-            
+            // Llamamos a manejarCargaImagen pero no insertamos el nodo manualmente
             manejarCargaImagen(file)
-              .then(url => {
-                const { tr } = view.state;
-                const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })?.pos;
-                if (pos && editorInstance) {
-                  const imageNode = editorInstance.schema.nodes.image.create({ 
-                    src: url,
-                    alt: 'Imagen insertada'
-                  });
-                  view.dispatch(tr.insert(pos, imageNode));
-                }
-              })
               .catch(error => {
-                //console.error('Error al cargar imagen por arrastre:', error);
+                // Manejo de error si es necesario
               });
-              
             return true;
           }
         }
@@ -493,15 +520,11 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
         if (imageItem) {
           event.preventDefault();
           const file = imageItem.getAsFile();
-          if (file && editorInstance) {
+          if (file) {
+            // Llamamos a manejarCargaImagen pero no insertamos el nodo manualmente
             manejarCargaImagen(file)
-              .then(url => {
-                const { tr } = view.state;
-                const imageNode = editorInstance.schema.nodes.image.create({ src: url });
-                view.dispatch(tr.replaceSelectionWith(imageNode));
-              })
               .catch(error => {
-                //console.error('Error al pegar imagen:', error);
+                // Manejo de error si es necesario
               });
             return true;
           }
@@ -560,3 +583,10 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
 };
 
 export default EditorTexto;
+
+// Añadir la declaración del tipo global para la función de resolución
+declare global {
+  interface Window {
+    resolveImageUpload?: (imagenEditada: File, descripcion: string) => void;
+  }
+}

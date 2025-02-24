@@ -237,6 +237,7 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
   const [imagenesActivas, setImagenesActivas] = useState<ImagenPublicacion[]>([]); // Estado para mantener la lista de imágenes activas en la publicación
   const [editorInstance, setEditorInstance] = useState<ReturnType<typeof useEditor> | null>(null);
   const [cargandoImagen, setCargandoImagen] = useState(false);
+  const [cambiosEnImagenes, setCambiosEnImagenes] = useState(false);
 
   // Función para contar palabras
   const contarPalabras = (texto: string) => {
@@ -382,6 +383,9 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
             setTipoNotificacion("confirmacion");
             setMensajeNotificacion("Imagen cargada exitosamente");
             
+            // Marcar que hubo cambios en las imágenes
+            setCambiosEnImagenes(true);
+            
             resolve(urlImagen);
           } catch (error) {
             reject(error);
@@ -421,29 +425,39 @@ const EditorTexto: React.FC<EditorTextoProps> = ({
       return !imagenesEnContenido.has(urlCompleta);
     });
 
-    // Eliminar imágenes que ya no están en uso
-    for (const imagen of imagenesParaEliminar) {
-      try {
-        const token = localStorage.getItem('token');
-        await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${idPublicacion}/${imagen.id_imagen}`,
-          {
-            method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-      } catch (error) {
-        console.error('Error al eliminar imagen:', error);
-      }
-    }
-
-    // Actualizar lista de imágenes activas
+    // Si hay imágenes para eliminar, marcar que hubo cambios
     if (imagenesParaEliminar.length > 0) {
+      // Eliminar imágenes
+      for (const imagen of imagenesParaEliminar) {
+        try {
+          const token = localStorage.getItem('token');
+          await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/editor/publicaciones/imagenes/${idPublicacion}/${imagen.id_imagen}`,
+            {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+        } catch (error) {
+          console.error('Error al eliminar imagen:', error);
+        }
+      }
+
+      // Actualizar lista de imágenes y marcar cambios
       await obtenerImagenesPublicacion();
+      setCambiosEnImagenes(true);
     }
   }, [editorInstance, idPublicacion, imagenesActivas, obtenerImagenesPublicacion]);
+
+  // Efecto para desencadenar el guardado automático cuando hay cambios en imágenes
+  useEffect(() => {
+    if (cambiosEnImagenes && onGuardar) {
+      onGuardar();
+      setCambiosEnImagenes(false); // Resetear la bandera después de guardar
+    }
+  }, [cambiosEnImagenes, onGuardar]);
 
   // Configuración del editor
   const editor = useEditor({

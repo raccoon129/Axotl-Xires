@@ -8,6 +8,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Publicacion } from '@/type/typePublicacion';
 import { Skeleton } from '@/components/ui/skeleton';
 import BotonMorado from '@/components/global/genericos/BotonMorado';
+import Head from 'next/head';
 
 const obtenerMensajeVistaPrevia = (estado?: string) => {
     const mensajes = {
@@ -80,8 +81,30 @@ export default function PrevisualizarPublicacion() {
         cargarPublicacion();
     }, [isLoggedIn, params?.id, idUsuario, router]);
 
+    useEffect(() => {
+        // Actualizar el título cuando la publicación se carga
+        if (publicacion?.titulo) {
+            document.title = `Vista previa: ${publicacion.titulo} - Axotl Xires`;
+        } else {
+            document.title = 'Vista previa - Axotl Xires';
+        }
+
+        // Cleanup function para restaurar el título original cuando el componente se desmonte
+        return () => {
+            document.title = 'Axotl Xires';
+        };
+    }, [publicacion?.titulo]);
+
     return (
         <AuthGuard>
+            <Head>
+                <title>
+                    {publicacion?.titulo 
+                        ? `Vista previa: ${publicacion.titulo} - Axotl Xires`
+                        : 'Vista previa - Axotl Xires'
+                    }
+                </title>
+            </Head>
             <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
                 {/* Alerta de vista previa dinámica */}
                 <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -119,7 +142,7 @@ export default function PrevisualizarPublicacion() {
                 </div>
 
                 {cargando ? (
-                    <div>Cargando...</div>
+                    <div></div>
                 ) : error ? (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                         {error}

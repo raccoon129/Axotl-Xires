@@ -106,6 +106,7 @@ export const ContenidoPublicacion: React.FC<ContenidoPublicacionProps> = ({
           idPublicacion={idPublicacion}
           borradorGuardado={borradorGuardado}
           onIniciarEdicionImagen={onIniciarEdicionImagen}
+          onGuardar={onGuardar}
         />
       </div>
     </div>

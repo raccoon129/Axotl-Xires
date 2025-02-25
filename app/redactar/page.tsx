@@ -203,7 +203,7 @@ const RedactarContenido = () => {
       const data: BorradorResponse = await response.json();
       setBorradorGuardado(true);
       setTipoNotificacion("confirmacion");
-      setMensajeGuardado("Borrador guardado exitosamente");
+      setMensajeGuardado("Borrador guardado");
 
       // Actualizar la vista previa con la URL completa de la imagen
       if (data.datos.imagen_portada) {

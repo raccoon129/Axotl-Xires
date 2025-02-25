@@ -296,7 +296,7 @@ const EditarPublicacionContenido = () => {
       }
 
       setTipoNotificacion("confirmacion");
-      setMensajeGuardado("Borrador actualizado exitosamente");
+      setMensajeGuardado("Borrador actualizado");
 
       setTimeout(() => setMensajeGuardado(null), 6000);
 

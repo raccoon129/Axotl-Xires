@@ -9,7 +9,7 @@ Invocar como
       />
 */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -18,6 +18,7 @@ interface NotificacionChipProps {
   titulo: string;
   contenido: string;
   onClose?: () => void;
+  duracion?: number; // Duración en ms (opcional)
 }
 
 const assetUrl = process.env.NEXT_PUBLIC_ASSET_URL;
@@ -34,16 +35,51 @@ const colores = {
   notificacion: "bg-blue-600 text-white",
 };
 
-const NotificacionChip = ({ tipo, titulo, contenido, onClose }: NotificacionChipProps) => {
+const NotificacionChip = ({ 
+  tipo, 
+  titulo, 
+  contenido, 
+  onClose,
+  duracion = 3000 
+}: NotificacionChipProps) => {
   const [visible, setVisible] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Efecto para reproducir el sonido cuando se muestra la notificación
+  useEffect(() => {
+    if (visible) {
+      // Crear elemento de audio
+      audioRef.current = new Audio(sonidos[tipo]);
+      
+      // Reproducir sonido
+      const playPromise = audioRef.current.play();
+      
+      // Manejar posibles errores de reproducción (ej. navegadores que bloquean autoplay)
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Error al reproducir sonido:", error);
+        });
+      }
+    }
+    
+    // Limpiar el audio al desmontar
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, [tipo, visible]);
+
+  // Efecto para el temporizador de cierre automático
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
       onClose?.();
-    }, 3000);
+    }, duracion);
+    
     return () => clearTimeout(timer);
-  }, [tipo, onClose]);
+  }, [duracion, onClose]);
 
   const handleClose = () => {
     setVisible(false);
@@ -58,13 +94,17 @@ const NotificacionChip = ({ tipo, titulo, contenido, onClose }: NotificacionChip
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className={`fixed right-4 bottom-4 p-4 rounded-lg shadow-lg flex items-start space-x-3 ${colores[tipo]}`}
+          className={`fixed right-4 bottom-4 p-4 rounded-lg shadow-lg flex items-start space-x-3 ${colores[tipo]} z-50`}
         >
           <div>
             <strong className="block text-lg font-bold">{titulo}</strong>
             <p>{contenido}</p>
           </div>
-          <button onClick={handleClose} className="ml-auto">
+          <button 
+            onClick={handleClose} 
+            className="ml-auto hover:bg-black/10 rounded-full p-1 transition-colors"
+            aria-label="Cerrar notificación"
+          >
             <X size={20} />
           </button>
         </motion.div>

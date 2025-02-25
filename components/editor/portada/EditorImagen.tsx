@@ -1,21 +1,30 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Upload, Crop, RotateCw, ZoomIn, Move } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, Crop } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
+/**
+ * EditorImagen - Componente para cargar y manipular la imagen de la portada
+ * 
+ * Funcionalidades:
+ * 1. Carga de imagen desde el dispositivo del usuario
+ * 2. Validación de dimensiones y tamaño de la imagen
+ * 3. Opción para recortar la imagen
+ * 
+ * Nota: Los controles de transformación (escala, rotación, posición) 
+ * ahora están en el componente ControlesImagen
+ */
 interface PropiedadesEditorImagen {
-  onImagenCargada: (imagen: HTMLImageElement) => void;
-  posicion: { x: number; y: number };
-  escala: number;
-  rotacion: number;
-  onPosicionChange: (posicion: { x: number; y: number }) => void;
-  onEscalaChange: (escala: number) => void;
-  onRotacionChange: (rotacion: number) => void;
-  onRecorteChange: (activo: boolean) => void;
+  onImagenCargada: (imagen: HTMLImageElement) => void; // Callback cuando se carga una imagen
+  posicion: { x: number; y: number };                  // Posición actual de la imagen (0-100%)
+  escala: number;                                      // Escala actual de la imagen
+  rotacion: number;                                    // Rotación actual de la imagen (grados)
+  onPosicionChange: (posicion: { x: number; y: number }) => void; // Callback para cambio de posición
+  onEscalaChange: (escala: number) => void;            // Callback para cambio de escala
+  onRotacionChange: (rotacion: number) => void;        // Callback para cambio de rotación
+  onRecorteChange: (activo: boolean) => void;          // Callback para activar el recorte
 }
 
 export function EditorImagen({
@@ -28,9 +37,14 @@ export function EditorImagen({
   onRotacionChange,
   onRecorteChange
 }: PropiedadesEditorImagen) {
-  const [arrastrandoImagen, setArrastrandoImagen] = useState(false);
+  // Estado para saber si ya se cargó una imagen
   const [imagenCargada, setImagenCargada] = useState(false);
 
+  /**
+   * Valida que la imagen cumpla con los requisitos mínimos de dimensiones
+   * @param archivo - Archivo de imagen a validar
+   * @returns Promise<boolean> - True si la imagen es válida
+   */
   const validarImagen = (archivo: File): Promise<boolean> => {
     return new Promise((resolve) => {
       const imagen = new Image();
@@ -43,45 +57,39 @@ export function EditorImagen({
     });
   };
 
+  /**
+   * Maneja la carga de una nueva imagen desde el input file
+   * Valida tamaño y dimensiones antes de procesarla
+   */
   const manejarCargaImagen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const archivo = e.target.files?.[0];
     if (!archivo) return;
 
+    // Validar tamaño máximo (5MB)
     if (archivo.size > 5 * 1024 * 1024) {
       alert('La imagen no debe superar los 5MB');
       return;
     }
 
+    // Validar dimensiones mínimas
     const esValida = await validarImagen(archivo);
     if (!esValida) {
       alert('La imagen debe tener al menos 500x500 píxeles');
       return;
     }
 
+    // Cargar la imagen y notificar al componente padre
     const imagen = new Image();
     imagen.onload = () => {
       onImagenCargada(imagen);
       setImagenCargada(true);
+      // Resetear posición, escala y rotación
       onPosicionChange({ x: 50, y: 50 });
       onEscalaChange(1);
       onRotacionChange(0);
     };
     imagen.src = URL.createObjectURL(archivo);
   };
-
-  const manejarArrastre = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    if (!arrastrandoImagen) return;
-
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    onPosicionChange({
-      x: Math.max(0, Math.min(100, x)),
-      y: Math.max(0, Math.min(100, y))
-    });
-  }, [arrastrandoImagen, onPosicionChange]);
 
   return (
     <div className="space-y-6">
@@ -111,73 +119,18 @@ export function EditorImagen({
         </div>
       </div>
 
+      {/* Botón para activar el recorte de imagen - Solo visible cuando hay una imagen cargada */}
       {imagenCargada && (
-        <>
-          {/* Controles de transformación */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <ZoomIn className="w-4 h-4" />
-                Escala
-              </Label>
-              <Slider
-                value={[escala * 100]}
-                onValueChange={([valor]) => onEscalaChange(valor / 100)}
-                min={50}
-                max={150}
-                step={1}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <RotateCw className="w-4 h-4" />
-                Rotación
-              </Label>
-              <Slider
-                value={[rotacion]}
-                onValueChange={([valor]) => onRotacionChange(valor)}
-                min={-180}
-                max={180}
-                step={1}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Move className="w-4 h-4" />
-                Posición
-              </Label>
-              <div
-                className="w-full aspect-[612/792] bg-gray-100 rounded-lg relative cursor-move"
-                onMouseDown={() => setArrastrandoImagen(true)}
-                onMouseUp={() => setArrastrandoImagen(false)}
-                onMouseLeave={() => setArrastrandoImagen(false)}
-                onMouseMove={manejarArrastre as any}
-              >
-                <motion.div
-                  className="absolute w-4 h-4 bg-blue-500 rounded-full"
-                  style={{
-                    left: `${posicion.x}%`,
-                    top: `${posicion.y}%`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => onRecorteChange(true)}
-                className="w-full"
-              >
-                <Crop className="w-4 h-4 mr-2" />
-                Recortar imagen
-              </Button>
-            </div>
-          </div>
-        </>
+        <div className="pt-4">
+          <Button
+            variant="outline"
+            onClick={() => onRecorteChange(true)}
+            className="w-full"
+          >
+            <Crop className="w-4 h-4 mr-2" />
+            Recortar imagen
+          </Button>
+        </div>
       )}
     </div>
   );

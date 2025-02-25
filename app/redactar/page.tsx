@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import ModalPortada from "@/components/editor/Modal";
+import ModalPortada from "@/components/editor/ModalDeslizanteDerecha";
 import GeneradorPortada from "@/components/editor/GeneradorPortada";
 import { DetallesPublicacion } from "@/components/redactar/DetallesPublicacion";
 import { SeccionPortada } from "@/components/redactar/SeleccionPortada";

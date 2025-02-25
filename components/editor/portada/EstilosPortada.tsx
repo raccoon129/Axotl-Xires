@@ -8,14 +8,21 @@ import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ConfiguracionEstilo } from './types';
-
+/**
+ * EstilosPortada - Componente para seleccionar y configurar el estilo visual de la portada
+ * 
+ * Funcionalidades:
+ * 1. Selección entre diferentes estilos predefinidos (clásico, moderno, académico)
+ * 2. Configuración avanzada de colores y opacidad
+ * 3. Vista previa visual de cada estilo
+ */
 interface PropiedadesEstilosPortada {
   estiloActual: string;
   configuracion: ConfiguracionEstilo;
   onEstiloChange: (estilo: string) => void;
   onConfiguracionChange: (config: ConfiguracionEstilo) => void;
 }
-
+// Definición de los estilos disponibles con sus configuraciones predeterminadas
 interface EstiloPortada {
   id: string;
   nombre: string;
@@ -27,9 +34,9 @@ interface EstiloPortada {
 const estilosDisponibles: EstiloPortada[] = [
   {
     id: 'clasico',
-    nombre: 'Clásico',
+    nombre: 'Sencillo',
     descripcion: 'Diseño tradicional con imagen superior y texto inferior',
-    preview: '/previews/portada-clasica.png',
+    preview: `${process.env.NEXT_PUBLIC_ASSET_URL}/img/portadas/C1.gif`,
     configuracionPredeterminada: {
       colorPrimario: '#1a1a1a',
       colorSecundario: '#ffffff',
@@ -40,7 +47,7 @@ const estilosDisponibles: EstiloPortada[] = [
     id: 'moderno',
     nombre: 'Moderno',
     descripcion: 'Diseño con franja lateral y gradiente sobre la imagen',
-    preview: '/previews/portada-moderna.png',
+    preview: `${process.env.NEXT_PUBLIC_ASSET_URL}/img/portadas/C2.gif`,
     configuracionPredeterminada: {
       colorPrimario: '#612c7d',
       colorSecundario: '#ffffff',
@@ -51,7 +58,7 @@ const estilosDisponibles: EstiloPortada[] = [
     id: 'academico',
     nombre: 'Académico',
     descripcion: 'Formato formal con marco y disposición centrada',
-    preview: '/previews/portada-academica.png',
+    preview: `${process.env.NEXT_PUBLIC_ASSET_URL}/img/portadas/C3.gif`,
     configuracionPredeterminada: {
       colorPrimario: '#2c3e50',
       colorSecundario: '#ecf0f1',

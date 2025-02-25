@@ -18,11 +18,12 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { EditorImagen } from './EditorImagen';
-import { EditorTexto } from './EditorTexto';
+import { EditorTexto } from './EditorTextoPortada';
 import { PlantillasPortada } from './PlantillasPortada';
 import { EstilosPortada } from './EstilosPortada';
 import { ElementoTexto, ConfiguracionEstilo, Plantilla } from './types';
 import { Label } from '@/components/ui/label';
+import { ControlesImagen } from './ControlesImagen';
 
 interface PropiedadesGenerador {
   tituloPublicacion: string;
@@ -122,28 +123,36 @@ const configuracionesTextoPorEstilo = {
 const ajustarTextoMultilinea = (
   contexto: CanvasRenderingContext2D,
   texto: string,
-  maxWidth: number
+  anchoMaximo: number
 ): string[] => {
+  // Si no hay texto, devolver array vacío
+  if (!texto) return [];
+  
+  // Dividir el texto por espacios
   const palabras = texto.split(' ');
   const lineas: string[] = [];
   let lineaActual = '';
-
-  palabras.forEach(palabra => {
-    const lineaTemporal = lineaActual + (lineaActual ? ' ' : '') + palabra;
-    const medida = contexto.measureText(lineaTemporal).width;
-
-    if (medida <= maxWidth) {
-      lineaActual = lineaTemporal;
-    } else {
+  
+  // Procesar cada palabra
+  for (let i = 0; i < palabras.length; i++) {
+    const palabra = palabras[i];
+    const lineaConPalabra = lineaActual ? `${lineaActual} ${palabra}` : palabra;
+    const medidas = contexto.measureText(lineaConPalabra);
+    
+    // Si la línea con la nueva palabra excede el ancho máximo, comenzar nueva línea
+    if (medidas.width > anchoMaximo && lineaActual) {
       lineas.push(lineaActual);
       lineaActual = palabra;
+    } else {
+      lineaActual = lineaConPalabra;
     }
-  });
-
+  }
+  
+  // Añadir la última línea si no está vacía
   if (lineaActual) {
     lineas.push(lineaActual);
   }
-
+  
   return lineas;
 };
 
@@ -287,25 +296,7 @@ export function GeneradorPortadaAvanzado({
 
     // Dibujar los elementos de texto
     elementosTexto.forEach(elemento => {
-      contexto.save();
-      
-      // Configurar el estilo del texto
-      contexto.font = `${elemento.tamano}px ${elemento.fuente}`;
-      contexto.fillStyle = elemento.color;
-      contexto.textAlign = elemento.alineacion;
-      
-      // Calcular posición del texto
-      const textX = (elemento.posicion.x / 100) * canvas.width;
-      const textY = (elemento.posicion.y / 100) * canvas.height;
-      
-      // Aplicar rotación al texto
-      contexto.translate(textX, textY);
-      contexto.rotate((elemento.rotacion * Math.PI) / 180);
-      
-      // Dibujar el texto
-      contexto.fillText(elemento.texto, 0, 0);
-      
-      contexto.restore();
+      dibujarTexto(elemento, contexto, canvas.width, canvas.height);
     });
 
     // Guardar el estado en el historial
@@ -325,71 +316,111 @@ export function GeneradorPortadaAvanzado({
     setImagenBase(imagen);
   };
 
-  // Añadir esta función dentro del componente GeneradorPortadaAvanzado
-  const dibujarTexto = useCallback((configEstilo: typeof configuracionesTextoPorEstilo[keyof typeof configuracionesTextoPorEstilo]) => {
-    if (!canvasRef.current || !contexto) return;
-    const canvas = canvasRef.current;
-
-    elementosTexto.forEach(elemento => {
-      const config = elemento.id === 'titulo' ? configEstilo.titulo : configEstilo.autor;
-      
-      contexto.save();
-      contexto.font = `${elemento.tamano}px ${elemento.fuente}`;
-      
-      // Calcular dimensiones del texto para el fondo
-      const lineas = ajustarTextoMultilinea(contexto, elemento.texto, config.maxWidth);
-      const alturaLinea = elemento.tamano * 1.2;
-      const anchuraMaxima = Math.max(...lineas.map(linea => contexto.measureText(linea).width));
-      
-      lineas.forEach((linea, index) => {
-        const x = (elemento.posicion.x / 100) * canvas.width;
-        const y = (elemento.posicion.y / 100) * canvas.height + (index * alturaLinea);
-        
-        contexto.save();
-        contexto.translate(x, y);
-        contexto.rotate((elemento.rotacion * Math.PI) / 180);
-
-        if (elemento.fondoActivo) {
-          // Dibujar el fondo del texto
-          const padding = elemento.paddingFondo;
-          const medidaTexto = contexto.measureText(linea);
-          let rectX = 0;
-          
-          // Ajustar posición X según alineación
-          switch (elemento.alineacion) {
-            case 'center':
-              rectX = -medidaTexto.width / 2 - padding;
-              break;
-            case 'right':
-              rectX = -medidaTexto.width - padding;
-              break;
-            default:
-              rectX = -padding;
-          }
-
-          // Dibujar el fondo con opacidad
-          contexto.fillStyle = elemento.colorFondo;
-          contexto.globalAlpha = elemento.opacidadFondo;
-          contexto.fillRect(
-            rectX,
-            -elemento.tamano + padding/2,
-            medidaTexto.width + padding * 2,
-            elemento.tamano + padding
-          );
-          contexto.globalAlpha = 1;
-        }
-
-        // Dibujar el texto
-        contexto.fillStyle = elemento.color;
-        contexto.textAlign = elemento.alineacion;
-        contexto.fillText(linea, 0, 0);
-        
-        contexto.restore();
+  // Función para dibujar texto con fondo redondeado
+  const dibujarTexto = (
+    elemento: ElementoTexto,
+    contexto: CanvasRenderingContext2D,
+    anchoCanvas: number,
+    altoCanvas: number
+  ) => {
+    if (!elemento.texto) return;
+    
+    contexto.save();
+    
+    // Configurar el estilo del texto
+    contexto.font = `${elemento.tamano}px ${elemento.fuente === 'crimson' ? 'Crimson Text' : elemento.fuente}`;
+    contexto.fillStyle = elemento.color;
+    contexto.textAlign = elemento.alineacion;
+    
+    // Calcular posición del texto
+    const textX = (elemento.posicion.x / 100) * anchoCanvas;
+    const textY = (elemento.posicion.y / 100) * altoCanvas;
+    
+    // Aplicar rotación al texto
+    contexto.translate(textX, textY);
+    contexto.rotate((elemento.rotacion * Math.PI) / 180);
+    
+    // Calcular el ancho máximo para el texto según el tipo de elemento
+    const anchoMaximo = elemento.id === 'titulo' ? anchoCanvas * 0.8 : anchoCanvas * 0.6;
+    
+    // Dividir el texto en múltiples líneas si es necesario
+    const lineas = ajustarTextoMultilinea(contexto, elemento.texto, anchoMaximo);
+    const alturaLinea = elemento.tamano * 1.2; // Espacio entre líneas
+    
+    // Si tiene fondo activo, dibujar el fondo primero
+    if (elemento.fondoActivo) {
+      // Calcular dimensiones totales del texto multilínea
+      let anchoMaximoTexto = 0;
+      lineas.forEach(linea => {
+        const medidas = contexto.measureText(linea);
+        anchoMaximoTexto = Math.max(anchoMaximoTexto, medidas.width);
       });
       
+      const altoTotalTexto = lineas.length * alturaLinea;
+      const anchoFondo = anchoMaximoTexto + (elemento.paddingFondo * 2);
+      const altoFondo = altoTotalTexto + (elemento.paddingFondo * 2);
+      
+      // Ajustar posición del fondo según alineación
+      let xFondo = 0;
+      switch (elemento.alineacion) {
+        case 'center':
+          xFondo = -anchoFondo / 2;
+          break;
+        case 'right':
+          xFondo = -anchoFondo;
+          break;
+        default: // 'left'
+          xFondo = 0;
+          break;
+      }
+      
+      const yFondo = -alturaLinea * (lineas.length - 1) / 2 - elemento.paddingFondo;
+      
+      // Guardar el contexto para el fondo
+      contexto.save();
+      
+      // Configurar el color y opacidad del fondo
+      contexto.fillStyle = elemento.colorFondo;
+      contexto.globalAlpha = elemento.opacidadFondo;
+      
+      // Dibujar fondo con esquinas redondeadas si tiene bordeRedondeado
+      if (elemento.bordeRedondeado && elemento.bordeRedondeado > 0) {
+        const radio = elemento.bordeRedondeado;
+        
+        contexto.beginPath();
+        contexto.moveTo(xFondo + radio, yFondo);
+        contexto.lineTo(xFondo + anchoFondo - radio, yFondo);
+        contexto.arcTo(xFondo + anchoFondo, yFondo, xFondo + anchoFondo, yFondo + radio, radio);
+        contexto.lineTo(xFondo + anchoFondo, yFondo + altoFondo - radio);
+        contexto.arcTo(xFondo + anchoFondo, yFondo + altoFondo, xFondo + anchoFondo - radio, yFondo + altoFondo, radio);
+        contexto.lineTo(xFondo + radio, yFondo + altoFondo);
+        contexto.arcTo(xFondo, yFondo + altoFondo, xFondo, yFondo + altoFondo - radio, radio);
+        contexto.lineTo(xFondo, yFondo + radio);
+        contexto.arcTo(xFondo, yFondo, xFondo + radio, yFondo, radio);
+        contexto.closePath();
+        contexto.fill();
+      } else {
+        // Fondo rectangular sin redondeo
+        contexto.fillRect(
+          xFondo,
+          yFondo,
+          anchoFondo,
+          altoFondo
+        );
+      }
+      
+      // Restaurar el contexto para el texto
       contexto.restore();
+    }
+    
+    // Dibujar cada línea de texto
+    lineas.forEach((linea, indice) => {
+      const yOffset = (indice - (lineas.length - 1) / 2) * alturaLinea;
+      contexto.fillText(linea, 0, yOffset);
     });
-  }, [contexto, elementosTexto]);
+    
+    contexto.restore();
+  };
 
   // Actualizar las funciones de estilo para incluir el dibujo de texto
   const aplicarEstiloClasico = useCallback(() => {
@@ -434,8 +465,10 @@ export function GeneradorPortadaAvanzado({
     contexto.fillRect(0, alturaImagen, width, height - alturaImagen);
 
     // Dibujar texto
-    dibujarTexto(configuracionesTextoPorEstilo.clasico);
-  }, [imagenBase, contexto, posicionImagen, escalaImagen, rotacionImagen, configuracionEstilo, dibujarTexto]);
+    elementosTexto.forEach(elemento => {
+      dibujarTexto(elemento, contexto, width, height);
+    });
+  }, [imagenBase, contexto, posicionImagen, escalaImagen, rotacionImagen, configuracionEstilo, elementosTexto]);
 
   const aplicarEstiloModerno = useCallback(() => {
     if (!canvasRef.current || !contexto || !imagenBase) return;
@@ -472,8 +505,10 @@ export function GeneradorPortadaAvanzado({
     contexto.fillRect(width - franjaAncho, 0, franjaAncho, height);
 
     // Dibujar texto
-    dibujarTexto(configuracionesTextoPorEstilo.moderno);
-  }, [imagenBase, contexto, posicionImagen, escalaImagen, rotacionImagen, configuracionEstilo, dibujarTexto]);
+    elementosTexto.forEach(elemento => {
+      dibujarTexto(elemento, contexto, width, height);
+    });
+  }, [imagenBase, contexto, posicionImagen, escalaImagen, rotacionImagen, configuracionEstilo, elementosTexto]);
 
   const aplicarEstiloAcademico = useCallback(() => {
     if (!canvasRef.current || !contexto || !imagenBase) return;
@@ -521,8 +556,10 @@ export function GeneradorPortadaAvanzado({
     contexto.restore();
 
     // Dibujar texto
-    dibujarTexto(configuracionesTextoPorEstilo.academico);
-  }, [imagenBase, contexto, posicionImagen, escalaImagen, rotacionImagen, configuracionEstilo, dibujarTexto]);
+    elementosTexto.forEach(elemento => {
+      dibujarTexto(elemento, contexto, width, height);
+    });
+  }, [imagenBase, contexto, posicionImagen, escalaImagen, rotacionImagen, configuracionEstilo, elementosTexto]);
 
   // Función auxiliar para convertir hex a rgb
   const hexToRgb = (hex: string) => {
@@ -584,61 +621,14 @@ export function GeneradorPortadaAvanzado({
         <div className="space-y-6">
           {/* Controles de imagen siempre visibles cuando hay imagen */}
           {imagenBase && (
-            <div className="p-4 bg-gray-50 rounded-lg space-y-4">
-              <h3 className="font-medium text-sm text-gray-700">Ajustes de imagen</h3>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <ZoomIn className="w-4 h-4" />
-                    Escala
-                  </Label>
-                  <Slider
-                    value={[escalaImagen * 100]}
-                    onValueChange={([valor]) => onEscalaChange(valor / 100)}
-                    min={50}
-                    max={150}
-                    step={1}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <RotateCw className="w-4 h-4" />
-                    Rotación
-                  </Label>
-                  <Slider
-                    value={[rotacionImagen]}
-                    onValueChange={([valor]) => onRotacionChange(valor)}
-                    min={-180}
-                    max={180}
-                    step={1}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Move className="w-4 h-4" />
-                    Posición
-                  </Label>
-                  <div
-                    className="w-full aspect-[612/792] bg-gray-100 rounded-lg relative cursor-move"
-                    onMouseDown={() => setArrastrandoImagen(true)}
-                    onMouseUp={() => setArrastrandoImagen(false)}
-                    onMouseLeave={() => setArrastrandoImagen(false)}
-                    onMouseMove={manejarArrastre}
-                  >
-                    <motion.div
-                      className="absolute w-4 h-4 bg-blue-500 rounded-full"
-                      style={{
-                        left: `${posicionImagen.x}%`,
-                        top: `${posicionImagen.y}%`,
-                        transform: 'translate(-50%, -50%)'
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ControlesImagen
+              posicion={posicionImagen}
+              escala={escalaImagen}
+              rotacion={rotacionImagen}
+              onPosicionChange={setPosicionImagen}
+              onEscalaChange={setEscalaImagen}
+              onRotacionChange={setRotacionImagen}
+            />
           )}
 
           {/* Tabs para otras opciones */}

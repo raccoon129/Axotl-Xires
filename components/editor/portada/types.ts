@@ -11,6 +11,7 @@ export interface ElementoTexto {
   colorFondo: string;
   opacidadFondo: number;
   paddingFondo: number;
+  bordeRedondeado?: number;
 }
 
 export interface ConfiguracionEstilo {

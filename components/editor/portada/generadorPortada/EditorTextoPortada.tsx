@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ElementoTexto } from './types';
+import { ElementoTexto } from './typesGeneradorPortada';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 

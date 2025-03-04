@@ -18,6 +18,17 @@ export interface ConfiguracionEstilo {
   colorPrimario: string;
   colorSecundario: string;
   opacidadGradiente: number;
+  anchoFranja?: number;
+}
+
+export type TipoEstilo = 'clasico' | 'moderno' | 'academico';
+
+export interface EstiloPortada {
+  id: TipoEstilo;
+  nombre: string;
+  descripcion: string;
+  preview: string;
+  configuracionPredeterminada: ConfiguracionEstilo;
 }
 
 export interface Plantilla {

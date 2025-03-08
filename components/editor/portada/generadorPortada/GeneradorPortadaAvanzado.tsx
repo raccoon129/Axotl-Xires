@@ -22,7 +22,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { EditorImagen } from './EditorImagen';
 import { EditorTexto } from './EditorTextoPortada';
 import { EstilosPortada } from './EstilosPortada';
-import { ControlesImagen } from './ControlesImagen';
+import { ControlesImagen } from './ControlesTransformacionImagen';
 
 // Tipos e interfaces
 import { ElementoTexto, ConfiguracionEstilo, TipoEstilo } from './typesGeneradorPortada';
@@ -186,10 +186,10 @@ export function GeneradorPortadaAvanzado({
   };
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full flex-col md:flex-row">
       {/* Panel de edición */}
-      <div className="w-1/3 bg-white border-r p-4 overflow-y-auto">
-        <div className="space-y-6">
+      <div className="w-full md:w-1/3 bg-white border-r p-2 md:p-4 overflow-y-auto">
+        <div className="space-y-4 md:space-y-6">
           {/* Controles de imagen siempre visibles cuando hay imagen */}
           {imagenBase && (
             <ControlesImagen
@@ -204,18 +204,18 @@ export function GeneradorPortadaAvanzado({
 
           {/* Tabs para otras opciones */}
           <Tabs defaultValue="imagen">
-            <TabsList className="grid grid-cols-3 gap-4 mb-6">
+            <TabsList className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
               <TabsTrigger value="imagen">
-                <ImageIcon className="w-4 h-4 mr-2" />
-                Imagen
+                <ImageIcon className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="text-xs md:text-sm">Imagen</span>
               </TabsTrigger>
               <TabsTrigger value="texto">
-                <Type className="w-4 h-4 mr-2" />
-                Texto
+                <Type className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="text-xs md:text-sm">Texto</span>
               </TabsTrigger>
               <TabsTrigger value="estilo">
-                <Palette className="w-4 h-4 mr-2" />
-                Estilo
+                <Palette className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                <span className="text-xs md:text-sm">Estilo</span>
               </TabsTrigger>
             </TabsList>
 
@@ -252,24 +252,42 @@ export function GeneradorPortadaAvanzado({
       </div>
 
       {/* Área de previsualización */}
-      <div className="flex-1 bg-gray-100 p-4">
-        <div className="relative w-full h-full flex items-center justify-center">
-          <canvas
-            ref={canvasRef}
-            width={612}
-            height={792}
-            className="border shadow-lg bg-white"
-          />
+      <div className="flex-1 bg-gray-100 p-2 md:p-4 overflow-hidden flex flex-col">
+        <div className="relative flex-1 flex items-center justify-center">
+          <div className="canvas-container relative overflow-hidden" 
+               style={{
+                 maxWidth: '100%',
+                 maxHeight: 'calc(100vh - 10rem)',
+                 display: 'flex',
+                 justifyContent: 'center',
+                 alignItems: 'center'
+               }}>
+            <canvas
+              ref={canvasRef}
+              width={612}
+              height={792}
+              className="border shadow-lg bg-white"
+              style={{
+                maxWidth: '100%',
+                maxHeight: 'calc(100vh - 10rem)',
+                objectFit: 'contain',
+                width: 'auto',
+                height: 'auto',
+                aspectRatio: '612/792'
+              }}
+            />
+          </div>
           
           {/* Controles adicionales */}
-          <div className="absolute bottom-4 right-4 flex gap-2">
+          <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 flex gap-1 md:gap-2">
             <Button
               variant="secondary"
               size="sm"
               onClick={deshacer}
               disabled={!puedeDeshacer}
+              className="text-xs md:text-sm"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3 h-3 md:w-4 md:h-4" />
             </Button>
             <Button
               variant="default"
@@ -279,7 +297,7 @@ export function GeneradorPortadaAvanzado({
                   alGuardar(canvasRef.current.toDataURL('image/png'));
                 }
               }}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-xs md:text-sm"
             >
               Guardar portada
             </Button>

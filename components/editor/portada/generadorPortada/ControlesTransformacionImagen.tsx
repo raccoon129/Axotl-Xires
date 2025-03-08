@@ -5,7 +5,7 @@ import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 
 /**
- * ControlesImagen - Componente independiente para los controles de transformación de imagen
+ * ControlesTransformacionImagen - Componente independiente para los controles de transformación de imagen
  * 
  * Proporciona controles para:
  * 1. Ajustar la escala de la imagen

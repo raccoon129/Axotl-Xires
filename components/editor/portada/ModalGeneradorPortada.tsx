@@ -74,7 +74,7 @@ export function ModalGeneradorPortada({
       alCerrar={alCerrar}
       titulo="Crear portada para la publicación"
     >
-      <div className="h-[calc(100vh-8rem)] w-full">
+      <div className="h-[calc(100vh-8rem)] w-full overflow-hidden">
         <GeneradorPortadaAvanzado
           tituloPublicacion={titulo}
           nombreAutor={nombreAutorFinal}

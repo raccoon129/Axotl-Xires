@@ -70,28 +70,28 @@ const Modal: React.FC<ModalProps> = ({
           // Eliminamos el onClick para evitar cierres accidentales
         >
           <motion.div
-            className="relative bg-white h-full w-2/3 shadow-lg overflow-y-auto"
+            className="relative bg-white h-full w-full sm:w-4/5 md:w-3/4 lg:w-2/3 shadow-lg overflow-hidden"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.3, ease: 'easeOut' }}
           >
-            <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b">
+            <div className="sticky top-0 bg-white z-10 px-3 py-2 md:px-6 md:py-4 border-b">
               <div className="flex justify-between items-center">
-                {titulo && <h2 className="text-xl font-semibold">{titulo}</h2>}
+                {titulo && <h2 className="text-lg md:text-xl font-semibold">{titulo}</h2>}
                 <button
                   onClick={alCerrar}
-                  className="text-gray-500 hover:text-gray-700 transition p-2 rounded-full hover:bg-gray-100"
+                  className="text-gray-500 hover:text-gray-700 transition p-1 md:p-2 rounded-full hover:bg-gray-100"
                   aria-label="Cerrar"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
                 </button>
               </div>
             </div>
-            <div className="p-6">{children}</div>
+            <div className="p-2 md:p-6 overflow-hidden h-[calc(100%-4rem)]">{children}</div>
           </motion.div>
         </motion.div>
       )}

@@ -119,7 +119,7 @@ export function EditorImagen({
         </div>
       </div>
 
-      {/* Botón para activar el recorte de imagen - Solo visible cuando hay una imagen cargada */}
+      {/* Botón para activar el recorte de imagen - Solo visible cuando hay una imagen cargada 
       {imagenCargada && (
         <div className="pt-4">
           <Button
@@ -132,6 +132,7 @@ export function EditorImagen({
           </Button>
         </div>
       )}
+        */}
     </div>
   );
 } 

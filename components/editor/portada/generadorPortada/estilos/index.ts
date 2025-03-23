@@ -4,13 +4,14 @@
  */
 
 import { ConfiguracionEstilo, ElementoTexto } from '../typesGeneradorPortada';
+import { Dimensiones, Posicion } from '../utilidades/transformaciones';
 
 // Interfaces comunes para los estilos
 export interface PropiedadesEstilo {
   contexto: CanvasRenderingContext2D;
   imagen: HTMLImageElement;
-  dimensiones: { ancho: number; alto: number };
-  posicion: { x: number; y: number };
+  dimensiones: Dimensiones;
+  posicion: Posicion;
   escala: number;
   rotacion: number;
   configuracion: ConfiguracionEstilo;
@@ -51,4 +52,4 @@ export {
   aplicarEstiloClasico,
   aplicarEstiloModerno,
   aplicarEstiloAcademico
-}; 
+};

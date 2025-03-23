@@ -3,12 +3,12 @@
  * Proporciona funciones para escalar, rotar y posicionar imágenes
  */
 
-interface Dimensiones {
+export interface Dimensiones {
   ancho: number;
   alto: number;
 }
 
-interface Posicion {
+export interface Posicion {
   x: number;
   y: number;
 }
@@ -61,4 +61,4 @@ export const aplicarTransformaciones = (
   
   // Restaurar el estado del contexto
   contexto.restore();
-}; 
+};

@@ -6,17 +6,7 @@
 import { ConfiguracionEstilo, ElementoTexto } from '../typesGeneradorPortada';
 import { aplicarTransformaciones } from '../utilidades/transformaciones';
 import { dibujarTexto } from '../utilidades/ajusteTexto';
-
-interface PropiedadesEstilo {
-  contexto: CanvasRenderingContext2D;
-  imagen: HTMLImageElement;
-  dimensiones: { ancho: number; alto: number };
-  posicion: { x: number; y: number };
-  escala: number;
-  rotacion: number;
-  configuracion: ConfiguracionEstilo;
-  elementosTexto: ElementoTexto[];
-}
+import { PropiedadesEstilo } from './index';
 
 /**
  * Aplica el estilo clásico a la portada
@@ -63,4 +53,4 @@ export const aplicarEstiloClasico = ({
   elementosTexto.forEach(elemento => {
     dibujarTexto(elemento, contexto, dimensiones);
   });
-}; 
+};

@@ -8,17 +8,7 @@ import { ConfiguracionEstilo, ElementoTexto } from '../typesGeneradorPortada';
 import { aplicarTransformaciones } from '../utilidades/transformaciones';
 import { dibujarTexto } from '../utilidades/ajusteTexto';
 import { hexARgb } from '../utilidades/colores';
-
-interface PropiedadesEstilo {
-  contexto: CanvasRenderingContext2D;
-  imagen: HTMLImageElement;
-  dimensiones: { ancho: number; alto: number };
-  posicion: { x: number; y: number };
-  escala: number;
-  rotacion: number;
-  configuracion: ConfiguracionEstilo;
-  elementosTexto: ElementoTexto[];
-}
+import { PropiedadesEstilo } from './index';
 
 /**
  * Aplica el estilo moderno a la portada
@@ -86,4 +76,4 @@ export const aplicarEstiloModerno = ({
   elementosAjustados.forEach(elemento => {
     dibujarTexto(elemento, contexto, dimensiones);
   });
-}; 
+};

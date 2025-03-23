@@ -75,102 +75,107 @@ export function EstilosPortada({
 
         {mostrarConfiguracionAvanzada && (
           <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <div className="space-y-2">
-              <Label>Color primario</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={configuracion.colorPrimario}
-                  onChange={(e) => onConfiguracionChange({
-                    ...configuracion,
-                    colorPrimario: e.target.value
-                  })}
-                  className="w-12 h-12 p-1 rounded"
-                />
-                <Input
-                  type="text"
-                  value={configuracion.colorPrimario}
-                  onChange={(e) => onConfiguracionChange({
-                    ...configuracion,
-                    colorPrimario: e.target.value
-                  })}
-                  className="flex-1"
-                  placeholder="#000000"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Color secundario</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={configuracion.colorSecundario}
-                  onChange={(e) => onConfiguracionChange({
-                    ...configuracion,
-                    colorSecundario: e.target.value
-                  })}
-                  className="w-12 h-12 p-1 rounded"
-                />
-                <Input
-                  type="text"
-                  value={configuracion.colorSecundario}
-                  onChange={(e) => onConfiguracionChange({
-                    ...configuracion,
-                    colorSecundario: e.target.value
-                  })}
-                  className="flex-1"
-                  placeholder="#ffffff"
-                />
-              </div>
-            </div>
-
-            {/* Mostrar opacidad del gradiente solo para el estilo moderno */}
-            {estiloActual === 'moderno' && (
+            {/* Color primario - Solo visible para estilos moderno y académico */}
+            {estiloActual !== 'clasico' && (
               <div className="space-y-2">
-                <Label>Opacidad del gradiente</Label>
-                <div className="flex items-center gap-2">
-                  <Slider
-                    value={[configuracion.opacidadGradiente * 100]}
-                    onValueChange={([valor]) => onConfiguracionChange({
+                <Label>Color primario</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={configuracion.colorPrimario}
+                    onChange={(e) => onConfiguracionChange({
                       ...configuracion,
-                      opacidadGradiente: valor / 100
+                      colorPrimario: e.target.value
                     })}
-                    min={0}
-                    max={100}
-                    step={1}
+                    className="w-12 h-12 p-1 rounded"
                   />
-                  <span className="text-sm text-gray-500 w-12 text-right">
-                    {Math.round(configuracion.opacidadGradiente * 100)}%
-                  </span>
+                  <Input
+                    type="text"
+                    value={configuracion.colorPrimario}
+                    onChange={(e) => onConfiguracionChange({
+                      ...configuracion,
+                      colorPrimario: e.target.value
+                    })}
+                    className="flex-1"
+                    placeholder="#000000"
+                  />
                 </div>
               </div>
             )}
 
-            {/* Control de ancho de franja (solo visible para estilo moderno) */}
-            {estiloActual === 'moderno' && (
+            {/* Color secundario - Visible para estilos clásico y académico */}
+            {estiloActual !== 'moderno' && (
               <div className="space-y-2">
-                <Label>Ancho de franja lateral</Label>
-                <div className="flex items-center gap-2">
-                  <Slider
-                    value={[(configuracion.anchoFranja || 0.8) * 100]}
-                    onValueChange={([valor]) => onConfiguracionChange({
+                <Label>Color secundario</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={configuracion.colorSecundario}
+                    onChange={(e) => onConfiguracionChange({
                       ...configuracion,
-                      anchoFranja: valor / 100
+                      colorSecundario: e.target.value
                     })}
-                    min={20}
-                    max={100}
-                    step={1}
+                    className="w-12 h-12 p-1 rounded"
                   />
-                  <span className="text-sm text-gray-500 w-12 text-right">
-                    {Math.round((configuracion.anchoFranja || 0.8) * 100)}%
-                  </span>
+                  <Input
+                    type="text"
+                    value={configuracion.colorSecundario}
+                    onChange={(e) => onConfiguracionChange({
+                      ...configuracion,
+                      colorSecundario: e.target.value
+                    })}
+                    className="flex-1"
+                    placeholder="#ffffff"
+                  />
                 </div>
               </div>
+            )}
+
+            {/* Controles específicos para el estilo moderno */}
+            {estiloActual === 'moderno' && (
+              <>
+                <div className="space-y-2">
+                  <Label>Opacidad del gradiente</Label>
+                  <div className="flex items-center gap-2">
+                    <Slider
+                      value={[configuracion.opacidadGradiente * 100]}
+                      onValueChange={([valor]) => onConfiguracionChange({
+                        ...configuracion,
+                        opacidadGradiente: valor / 100
+                      })}
+                      min={0}
+                      max={100}
+                      step={1}
+                    />
+                    <span className="text-sm text-gray-500 w-12 text-right">
+                      {Math.round(configuracion.opacidadGradiente * 100)}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Ancho de franja lateral</Label>
+                  <div className="flex items-center gap-2">
+                    <Slider
+                      value={[(configuracion.anchoFranja || 0.8) * 100]}
+                      onValueChange={([valor]) => onConfiguracionChange({
+                        ...configuracion,
+                        anchoFranja: valor / 100
+                      })}
+                      min={20}
+                      max={100}
+                      step={1}
+                    />
+                    <span className="text-sm text-gray-500 w-12 text-right">
+                      {Math.round((configuracion.anchoFranja || 0.8) * 100)}%
+                    </span>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
       </div>
     </div>
   );
-} 
+}

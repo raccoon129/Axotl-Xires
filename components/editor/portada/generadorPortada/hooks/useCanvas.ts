@@ -4,7 +4,7 @@
  */
 
 import { useRef, useEffect, useState } from 'react';
-import { ElementoTexto } from '../typesGeneradorPortada';
+import { Dimensiones, Posicion, aplicarTransformaciones } from '../utilidades/transformaciones';
 
 interface PropiedadesCanvas {
   ancho: number;
@@ -15,6 +15,7 @@ interface PropiedadesCanvas {
 export const useCanvas = ({ ancho, alto, onContextoListo }: PropiedadesCanvas) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [contexto, setContexto] = useState<CanvasRenderingContext2D | null>(null);
+  const [cargando, setCargando] = useState<boolean>(false);
 
   // Inicializar el canvas
   useEffect(() => {
@@ -41,21 +42,31 @@ export const useCanvas = ({ ancho, alto, onContextoListo }: PropiedadesCanvas) =
    */
   const dibujarImagen = (
     imagen: HTMLImageElement,
-    posicion: { x: number; y: number },
+    posicion: Posicion,
     escala: number,
     rotacion: number
   ) => {
     if (!contexto || !canvasRef.current) return;
+    
+    setCargando(true);
+    
+    const dimensiones: Dimensiones = {
+      ancho: canvasRef.current.width,
+      alto: canvasRef.current.height
+    };
 
     contexto.save();
-    // Implementación del dibujo de la imagen...
+    aplicarTransformaciones(contexto, imagen, posicion, escala, rotacion, dimensiones);
     contexto.restore();
+    
+    setCargando(false);
   };
 
   return {
     canvasRef,
     contexto,
     limpiarCanvas,
-    dibujarImagen
+    dibujarImagen,
+    cargando
   };
-}; 
+};

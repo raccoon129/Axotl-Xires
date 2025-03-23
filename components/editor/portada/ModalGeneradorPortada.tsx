@@ -65,9 +65,8 @@ export function ModalGeneradorPortada({
     }
   }, [autor, userProfile, userName]);
 
-  // Para depuración
-  console.log("Datos de usuario:", { userName, userProfile, nombreAutorFinal });
-
+  // Eliminar console.log de depuración
+  
   return (
     <Modal
       estaAbierto={estaAbierto}
@@ -83,4 +82,4 @@ export function ModalGeneradorPortada({
       </div>
     </Modal>
   );
-} 
+}

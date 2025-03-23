@@ -11,7 +11,6 @@ import {
   Type, 
   Layout, 
   Palette,
-  RotateCcw
 } from 'lucide-react';
 
 // Componentes UI
@@ -29,7 +28,6 @@ import { ElementoTexto, ConfiguracionEstilo, TipoEstilo } from './typesGenerador
 
 // Hooks personalizados
 import { useCanvas } from './hooks/useCanvas';
-import { useHistorial } from './hooks/useHistorial';
 import { useEstilos } from './hooks/useEstilos';
 
 interface PropiedadesGenerador {
@@ -113,12 +111,6 @@ export function GeneradorPortadaAvanzado({
     }
   });
 
-  const {
-    guardarEstado,
-    deshacer,
-    puedeDeshacer
-  } = useHistorial();
-
   // Efecto para inicializar los elementos de texto con los valores del estilo seleccionado
   useEffect(() => {
     if (tituloPublicacion || nombreAutor) {
@@ -136,10 +128,6 @@ export function GeneradorPortadaAvanzado({
     setPosicionImagen({ x: 50, y: 50 });
     setEscalaImagen(1);
     setRotacionImagen(0);
-    
-    if (canvasRef.current) {
-      guardarEstado(canvasRef.current.toDataURL());
-    }
   };
 
   // Renderiza la portada con el estilo actual
@@ -159,10 +147,6 @@ export function GeneradorPortadaAvanzado({
       configuracion,
       elementosTexto
     });
-
-    if (canvasRef.current) {
-      guardarEstado(canvasRef.current.toDataURL());
-    }
   };
 
   // Efecto para renderizar cuando cambian las propiedades
@@ -278,17 +262,8 @@ export function GeneradorPortadaAvanzado({
             />
           </div>
           
-          {/* Controles adicionales */}
+          {/* Controles adicionales - Eliminado botón de deshacer, solo mantener guardar */}
           <div className="absolute bottom-2 md:bottom-4 right-2 md:right-4 flex gap-1 md:gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={deshacer}
-              disabled={!puedeDeshacer}
-              className="text-xs md:text-sm"
-            >
-              <RotateCcw className="w-3 h-3 md:w-4 md:h-4" />
-            </Button>
             <Button
               variant="default"
               size="sm"
@@ -306,4 +281,4 @@ export function GeneradorPortadaAvanzado({
       </div>
     </div>
   );
-} 
+}

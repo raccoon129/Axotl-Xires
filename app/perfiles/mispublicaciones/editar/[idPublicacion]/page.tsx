@@ -19,6 +19,8 @@ import { TipoPublicacion, BorradorResponse } from "@/type/tipoPublicacion";
 import LoaderAxotl from "@/components/global/LoaderAxotl";
 import BotonEnviarParaRevision from '@/components/redactar/BotonEnviarParaRevision';
 import { ModalEdicionImagen } from '@/components/editor/ModalEdicionImagen';
+import { Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const EditarPublicacionContenido = () => {
   // Inicializamos borradorGuardado como true porque ya existe la publicación
@@ -410,6 +412,11 @@ const EditarPublicacionContenido = () => {
     setEditorCallback(null);
   };
 
+  // Función para manejar la redirección a la vista previa
+  const handleVistaPrevia = () => {
+    enrutador.push(`/perfiles/mispublicaciones/previsualizar/${idPublicacion}`);
+  };
+
   // Renderizado condicional basado en el estado de acceso
   if (accesoPermitido === null) {
     return <LoaderAxotl />;
@@ -479,6 +486,17 @@ const EditarPublicacionContenido = () => {
                 setTipoSeleccionado={setTipoSeleccionado}
                 tiposPublicacion={tiposPublicacion}
               />
+              {/* Botón de Vista Previa */}
+              <div className="mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={handleVistaPrevia}
+                  className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-300"
+                >
+                  <Eye className="w-4 h-4" />
+                  Ver vista previa
+                </Button>
+              </div>              
             </motion.section>
 
             <motion.section
@@ -544,8 +562,17 @@ const EditarPublicacionContenido = () => {
           dimensiones={dimensionesPortada}
         />
 
-        {/* Botón Enviar para revisión */}
-        <div className="flex justify-end gap-4 mt-6 px-4 md:px-0">
+        {/* Botones de acción */}
+        <div className="flex flex-col md:flex-row justify-between gap-4 mt-6 px-4 md:px-0">
+          <Button 
+            variant="outline" 
+            onClick={handleVistaPrevia}
+            className="flex items-center gap-2 bg-white hover:bg-gray-50 shadow-md"
+          >
+            <Eye className="w-4 h-4" />
+            Ver vista previa
+          </Button>
+          
           <BotonEnviarParaRevision
             idBorradorActual={parseInt(idPublicacion as string)}
             onEnviar={enviarParaRevision}

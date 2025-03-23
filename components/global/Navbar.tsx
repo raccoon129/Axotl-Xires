@@ -169,7 +169,7 @@ const Navbar = () => {
                         Hola, {getFirstName()}
                       </p>
                       <Link
-                        href="/perfiles"
+                        href={`/perfiles/${idUsuario}`}
                         className="block mt-2 text-sm text-gray-600 bg-white hover:bg-gray-50 px-2 py-1 rounded-md transition-colors duration-200"
                       >
                         Mi perfil
@@ -392,7 +392,7 @@ const Navbar = () => {
                       Hola, {getFirstName()}
                     </p>
                     <Link
-                      href="/perfiles"
+                      href={`/perfiles/${idUsuario}`}
                       onClick={handleLinkClick}
                       className="text-gray-700 bg-white hover:bg-gray-50 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                     >

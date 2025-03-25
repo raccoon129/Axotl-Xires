@@ -18,7 +18,7 @@ import OrderedList from '@tiptap/extension-ordered-list';
 import ListItem from '@tiptap/extension-list-item';
 import MenuEditor from './MenuEditor';
 import { useState, useEffect, useCallback } from 'react';
-import NotificacionChip from '@/components/global/NotificacionChip';
+import NotificacionChip from '@/components/global/genericos/NotificacionChip';
 import { motion } from "framer-motion";
 import { ModalEdicionImagen } from './ModalEdicionImagen';
 // Este componente maneja el editor de texto enriquecido con soporte para imágenes

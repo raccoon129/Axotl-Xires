@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from '@/hooks/useAuth';
 import BotonMorado from "@/components/global/genericos/BotonMorado";
-import NotificacionChip from '@/components/global/NotificacionChip';
+import NotificacionChip from '@/components/global/genericos/NotificacionChip';
 
 const FormularioInicioSesion = () => {
   const [correo, setCorreo] = useState('');

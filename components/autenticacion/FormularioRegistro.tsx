@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from 'next/navigation';
-import NotificacionChip from '../global/NotificacionChip';
+import NotificacionChip from '../global/genericos/NotificacionChip';
 import { createPortal } from 'react-dom';
 import BotonMorado from '../global/genericos/BotonMorado';
 

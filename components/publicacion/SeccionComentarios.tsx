@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import NotificacionChip from '@/components/global/NotificacionChip';
+import NotificacionChip from '@/components/global/genericos/NotificacionChip';
 
 interface Comentario {
   id_comentario: number;

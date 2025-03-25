@@ -9,7 +9,7 @@ import TarjetaPublicacion from '@/components/publicacion/TarjetaPublicacionAdmin
 import { Publicacion } from '@/type/typePublicacion';
 import { AuthGuard } from '@/components/autenticacion/AuthGuard';
 import { motion, AnimatePresence } from 'framer-motion';
-import NotificacionChip from '@/components/global/NotificacionChip';
+import NotificacionChip from '@/components/global/genericos/NotificacionChip';
 
 export default function PaginaPublicaciones() {
     const enrutador = useRouter();

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'react-hot-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import NotificacionChip from '@/components/global/NotificacionChip';
+import NotificacionChip from '@/components/global/genericos/NotificacionChip';
 import { InformacionBasica } from '@/components/configuracion/InformacionBasica';
 import { FotoPerfil } from '@/components/configuracion/FotoPerfil';
 import { CambiarContrasena } from '@/components/configuracion/CambiarContrasena';

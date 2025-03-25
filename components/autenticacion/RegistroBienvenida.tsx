@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { FotoPerfil } from '../configuracion/FotoPerfil';
 import { RecortadorImagen } from '../configuracion/RecortadorImagen';
 import { useRouter, useSearchParams } from 'next/navigation';
-import NotificacionChip from '../global/NotificacionChip';
+import NotificacionChip from '../global/genericos/NotificacionChip';
 import { createPortal } from 'react-dom';
 import confetti from 'canvas-confetti';
 import Tooltip from '../global/Tooltip';

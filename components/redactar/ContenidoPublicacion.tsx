@@ -1,6 +1,6 @@
 // components/redactar/ContenidoPublicacion.tsx
 import { Save } from "lucide-react";
-import NotificacionChip from "@/components/global/NotificacionChip";
+import NotificacionChip from "@/components/global/genericos/NotificacionChip";
 import dynamic from "next/dynamic";
 import Tooltip from "@/components/global/Tooltip";
 

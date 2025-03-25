@@ -167,10 +167,10 @@ export const ModalEdicionImagen: React.FC<ModalEdicionImagenProps> = ({
             initial={{ scale: 0.95 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0.95 }}
-            className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden"
+            className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col overflow-hidden"
           >
-            {/* Encabezado */}
-            <div className="p-4 border-b flex justify-between items-center">
+            {/* Encabezado - fijo */}
+            <div className="p-4 border-b flex justify-between items-center shrink-0">
               <h2 className="text-xl font-semibold">Editar imagen</h2>
               <button
                 onClick={onCancelar}
@@ -180,126 +180,128 @@ export const ModalEdicionImagen: React.FC<ModalEdicionImagenProps> = ({
               </button>
             </div>
 
-            {/* Contenido principal - Grid de dos columnas */}
-            <div className="grid grid-cols-3 gap-6 p-6">
-              {/* Área de recorte - 2 columnas */}
-              <div className="col-span-2 bg-gray-50 rounded-lg overflow-hidden">
-                <ReactCrop
-                  crop={crop}
-                  onChange={c => setCrop(c)}
-                  aspect={undefined}
-                  className="max-h-[60vh] overflow-auto"
-                >
-                  <img
-                    ref={imagenRef}
-                    src={imagenPrevia}
-                    alt="Imagen a editar"
-                    className="max-w-full h-auto"
-                    style={{
-                      filter: `brightness(${brillo}%) contrast(${contraste}%) ${esGrises ? 'grayscale(100%)' : ''}`,
-                      transform: `rotate(${rotacion}deg)`
-                    }}
-                  />
-                </ReactCrop>
-              </div>
-
-              {/* Panel de controles - 1 columna */}
-              <div className="space-y-6">
-                {/* Descripción de la imagen */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium mb-4">Descripción de la imagen</h3>
-                  <div className="space-y-2">
-                    <textarea
-                      value={descripcion}
-                      onChange={(e) => {
-                        setDescripcion(e.target.value);
-                        if (errorDescripcion) setErrorDescripcion(false);
+            {/* Contenido principal - con scroll */}
+            <div className="overflow-y-auto flex-grow">
+              <div className="grid grid-cols-3 gap-6 p-6">
+                {/* Área de recorte - 2 columnas */}
+                <div className="col-span-2 bg-gray-50 rounded-lg overflow-hidden">
+                  <ReactCrop
+                    crop={crop}
+                    onChange={c => setCrop(c)}
+                    aspect={undefined}
+                    className="max-h-[60vh] overflow-auto"
+                  >
+                    <img
+                      ref={imagenRef}
+                      src={imagenPrevia}
+                      alt="Imagen a editar"
+                      className="max-w-full h-auto"
+                      style={{
+                        filter: `brightness(${brillo}%) contrast(${contraste}%) ${esGrises ? 'grayscale(100%)' : ''}`,
+                        transform: `rotate(${rotacion}deg)`
                       }}
-                      placeholder="Describe detalladamente el contenido de la imagen. Esta descripción aparecerá en la publicación final."
-                      className={`w-full h-32 p-3 border rounded-lg resize-none ${
-                        errorDescripcion ? 'border-red-500' : 'border-gray-200'
-                      }`}
                     />
-                    {errorDescripcion && (
-                      <p className="text-red-500 text-sm">
-                        La descripción debe tener al menos 10 caracteres
-                      </p>
-                    )}
-                    <p className="text-gray-500 text-sm">
-                      Caracteres: {descripcion.length}
-                    </p>
-                  </div>
+                  </ReactCrop>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="font-medium mb-4">Ajustes</h3>
-                  
-                  {/* Filtro B/N */}
-                  <div className="mb-4">
-                    <button
-                      onClick={() => setEsGrises(!esGrises)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors w-full ${
-                        esGrises ? 'bg-gray-800 text-white' : 'bg-white border'
-                      }`}
-                    >
-                      <ImageOff size={20} />
-                      Blanco y negro
-                    </button>
+                {/* Panel de controles - 1 columna */}
+                <div className="space-y-6">
+                  {/* Descripción de la imagen */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium mb-4">Descripción de la imagen</h3>
+                    <div className="space-y-2">
+                      <textarea
+                        value={descripcion}
+                        onChange={(e) => {
+                          setDescripcion(e.target.value);
+                          if (errorDescripcion) setErrorDescripcion(false);
+                        }}
+                        placeholder="Describe detalladamente el contenido de la imagen. Esta descripción aparecerá en la publicación final."
+                        className={`w-full h-32 p-3 border rounded-lg resize-none ${
+                          errorDescripcion ? 'border-red-500' : 'border-gray-200'
+                        }`}
+                      />
+                      {errorDescripcion && (
+                        <p className="text-red-500 text-sm">
+                          La descripción debe tener al menos 10 caracteres
+                        </p>
+                      )}
+                      <p className="text-gray-500 text-sm">
+                        Caracteres: {descripcion.length}
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Brillo */}
-                  <div className="mb-4">
-                    <label className="flex items-center gap-2 text-sm mb-2">
-                      <SunMedium size={16} />
-                      Brillo
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="200"
-                      value={brillo}
-                      onChange={(e) => setBrillo(Number(e.target.value))}
-                      className="w-full"
-                    />
-                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="font-medium mb-4">Ajustes</h3>
+                    
+                    {/* Filtro B/N */}
+                    <div className="mb-4">
+                      <button
+                        onClick={() => setEsGrises(!esGrises)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors w-full ${
+                          esGrises ? 'bg-gray-800 text-white' : 'bg-white border'
+                        }`}
+                      >
+                        <ImageOff size={20} />
+                        Blanco y negro
+                      </button>
+                    </div>
 
-                  {/* Contraste */}
-                  <div className="mb-4">
-                    <label className="flex items-center gap-2 text-sm mb-2">
-                      <Contrast size={16} />
-                      Contraste
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="200"
-                      value={contraste}
-                      onChange={(e) => setContraste(Number(e.target.value))}
-                      className="w-full"
-                    />
-                  </div>
+                    {/* Brillo */}
+                    <div className="mb-4">
+                      <label className="flex items-center gap-2 text-sm mb-2">
+                        <SunMedium size={16} />
+                        Brillo
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="200"
+                        value={brillo}
+                        onChange={(e) => setBrillo(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
 
-                  {/* Rotación */}
-                  <div>
-                    <label className="flex items-center gap-2 text-sm mb-2">
-                      <RotateCw size={16} />
-                      Rotación
-                    </label>
-                    <input
-                      type="range"
-                      min="-180"
-                      max="180"
-                      value={rotacion}
-                      onChange={(e) => setRotacion(Number(e.target.value))}
-                      className="w-full"
-                    />
+                    {/* Contraste */}
+                    <div className="mb-4">
+                      <label className="flex items-center gap-2 text-sm mb-2">
+                        <Contrast size={16} />
+                        Contraste
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="200"
+                        value={contraste}
+                        onChange={(e) => setContraste(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+
+                    {/* Rotación */}
+                    <div>
+                      <label className="flex items-center gap-2 text-sm mb-2">
+                        <RotateCw size={16} />
+                        Rotación
+                      </label>
+                      <input
+                        type="range"
+                        min="-180"
+                        max="180"
+                        value={rotacion}
+                        onChange={(e) => setRotacion(Number(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Pie del modal */}
-            <div className="p-4 border-t flex justify-between items-center">
+            {/* Pie del modal - fijo */}
+            <div className="p-4 border-t flex justify-between items-center shrink-0">
               <div className="text-sm text-gray-500">
                 * La descripción es obligatoria y aparecerá como pie de imagen en la publicación
               </div>

@@ -72,7 +72,7 @@ const MenuEditor: React.FC<MenuEditorProps> = ({ editor, onImageUpload, disabled
         await onImageUpload(archivo);
         e.target.value = '';
       } catch (error) {
-        console.error('Error al procesar la imagen:', error);
+        //console.error('Error al procesar la imagen:', error);
       }
     }
   };

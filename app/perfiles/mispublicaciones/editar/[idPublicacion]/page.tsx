@@ -564,15 +564,6 @@ const EditarPublicacionContenido = () => {
 
         {/* Botones de acción */}
         <div className="flex flex-col md:flex-row justify-between gap-4 mt-6 px-4 md:px-0">
-          <Button 
-            variant="outline" 
-            onClick={handleVistaPrevia}
-            className="flex items-center gap-2 bg-white hover:bg-gray-50 shadow-md"
-          >
-            <Eye className="w-4 h-4" />
-            Ver vista previa
-          </Button>
-          
           <BotonEnviarParaRevision
             idBorradorActual={parseInt(idPublicacion as string)}
             onEnviar={enviarParaRevision}

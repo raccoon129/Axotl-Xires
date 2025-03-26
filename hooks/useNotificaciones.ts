@@ -93,7 +93,7 @@ export const useNotificaciones = () => {
     // Ejemplos de enlaces según el tipo de notificación
     switch (notif.tipo) {
       case 'comentario':
-        return `/publicaciones/${notif.id_referencia}#comentario-${notif.id_origen}`;
+        return `/publicaciones/${notif.id_referencia}`;
       case 'favorito':
         return `/publicaciones/${notif.id_referencia}`;
       case 'seguimiento':

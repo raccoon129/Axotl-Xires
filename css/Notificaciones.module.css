@@ -1,0 +1,49 @@
+/* Estilos para el sistema de notificaciones */
+
+.badgeNotificacion {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+  animation: pulso 2s infinite;
+}
+
+.notificacionNoLeida {
+  background-color: rgba(59, 130, 246, 0.08);
+  transition: background-color 0.2s ease;
+}
+
+.notificacionLeida {
+  background-color: white;
+  transition: background-color 0.2s ease;
+}
+
+.indicadorNoLeida {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #3b82f6;
+}
+
+@keyframes pulso {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

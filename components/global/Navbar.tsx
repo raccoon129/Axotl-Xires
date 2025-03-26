@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import BarraProgreso from "./Navbar_BarraProgreso";
 import { ResultadosBusqueda } from "../busqueda/ResultadosBusqueda";
+import { useNotificaciones } from '@/hooks/useNotificaciones';
+import { PanelNotificaciones } from '@/components/notificaciones/PanelNotificaciones';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,6 +31,17 @@ const Navbar = () => {
   const verMasRef = useRef<HTMLButtonElement>(null);
 
   const { isLoggedIn, isLoading, logout, idUsuario } = useAuth();
+
+  const {
+    notificaciones,
+    noLeidas,
+    cargando: cargandoNotificaciones,
+    error: errorNotificaciones,
+    marcarComoLeida,
+    marcarTodasComoLeidas,
+    obtenerNotificaciones,
+    obtenerCantidadNoLeidas
+  } = useNotificaciones();
 
   // Obtener datos del usuario
   useEffect(() => {
@@ -71,6 +84,11 @@ const Navbar = () => {
       }
       if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
         setIsNotificationsOpen(false);
+      }
+      if (busquedaRef.current && !busquedaRef.current.contains(event.target as Node) && 
+          (event.target as Node).nodeName !== 'INPUT' && 
+          (event.target as HTMLElement).id !== 'searchInput') {
+        setMostrarResultados(false);
       }
     };
 
@@ -127,26 +145,44 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             <div className="relative" ref={notificationsRef}>
               <button
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 bg-white"
+                onClick={() => {
+                  // Actualizar notificaciones al abrir el panel
+                  if (!isNotificationsOpen) {
+                    obtenerNotificaciones();
+                  } else {
+                    // Si ya está abierto, al cerrar actualizamos el contador
+                    obtenerCantidadNoLeidas();
+                  }
+                  setIsNotificationsOpen(!isNotificationsOpen);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200 bg-white relative"
                 aria-label="Notificaciones"
               >
                 <Bell className="h-5 w-5 text-gray-600" />
+                {/* Indicador de notificaciones no leídas */}
+                {noLeidas > 0 && (
+                  <span className="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full min-w-[18px] flex items-center justify-center">
+                    {noLeidas > 99 ? '99+' : noLeidas}
+                  </span>
+                )}
               </button>
+              
+              {/* Panel de notificaciones */}
               <AnimatePresence>
                 {isNotificationsOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50"
-                  >
-                    <p className="text-gray-500 text-sm">No tienes notificaciones</p>
-                  </motion.div>
+                  <PanelNotificaciones
+                    notificaciones={notificaciones}
+                    cargando={cargandoNotificaciones}
+                    error={errorNotificaciones}
+                    onMarcarLeida={marcarComoLeida}
+                    onMarcarTodasLeidas={marcarTodasComoLeidas}
+                    onCerrar={() => setIsNotificationsOpen(false)}
+                  />
                 )}
               </AnimatePresence>
             </div>
+            
+            {/* Resto del código de AuthButtons (menú de usuario) */}
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

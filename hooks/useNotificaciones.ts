@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 
 // Interfaz para definir la estructura de una notificación
@@ -16,13 +16,13 @@ export const useNotificaciones = () => {
   const { idUsuario, isLoggedIn } = useAuth();
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [noLeidas, setNoLeidas] = useState<number>(0);
-  const [cargando, setCargando] = useState<boolean>(true);
+  const [cargando, setCargando] = useState<boolean>(false); // Iniciar en false para no mostrar estados de carga innecesarios
   const [error, setError] = useState<string | null>(null);
 
   // Función para obtener las notificaciones del usuario
-  const obtenerNotificaciones = async () => {
+  const obtenerNotificaciones = useCallback(async () => {
+    // Verificación estricta de autenticación
     if (!isLoggedIn || !idUsuario) {
-      setCargando(false);
       return;
     }
 
@@ -31,6 +31,12 @@ export const useNotificaciones = () => {
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        // No hay token, no hacer la petición
+        setCargando(false);
+        return;
+      }
+
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/notificaciones/${idUsuario}`,
         {
@@ -50,11 +56,11 @@ export const useNotificaciones = () => {
       if (datos.status === 'success' && datos.datos && Array.isArray(datos.datos.notificaciones)) {
         // Transformar las notificaciones al formato que espera nuestro frontend
         const notificacionesFormateadas = datos.datos.notificaciones.map((notif: any) => ({
-          id: notif.id_notificacion,
+          id: notif.id_notificacion || `temp-${Math.random()}`, // ID seguro
           tipo: notif.tipo || 'sistema',
           mensaje: notif.contenido,
           leida: notif.leida === 1, // Convertir 0/1 a booleano
-          fecha: notif.fecha_creacion,
+          fecha: notif.fecha_creacion || new Date().toISOString(), // Fecha segura
           enlace: obtenerEnlaceNotificacion(notif),
           id_origen: notif.id_origen
         }));
@@ -86,10 +92,10 @@ export const useNotificaciones = () => {
     } finally {
       setCargando(false);
     }
-  };
+  }, [isLoggedIn, idUsuario]);
 
-  // Función para determinar el enlace basado en el tipo de notificación
-  const obtenerEnlaceNotificacion = (notif: any) => {
+  // Resto de funciones, asegurando que usen useCallback para evitar recreaciones
+  const obtenerEnlaceNotificacion = useCallback((notif: any) => {
     // Ejemplos de enlaces según el tipo de notificación
     switch (notif.tipo) {
       case 'comentario':
@@ -100,18 +106,18 @@ export const useNotificaciones = () => {
         return `/perfil/${notif.id_origen}`;
       case 'sistema':
       default:
-        // Para notificaciones del sistema, podría no haber enlace. Queda pendiente implementar en el management console
         return notif.id_referencia ? `/publicaciones/${notif.id_referencia}` : undefined;
     }
-  };
+  }, []);
 
   // Función optimizada para obtener solo la cantidad de notificaciones no leídas
-  // Útil para actualizaciones rápidas del badge sin recargar todas las notificaciones
-  const obtenerCantidadNoLeidas = async () => {
+  const obtenerCantidadNoLeidas = useCallback(async () => {
     if (!isLoggedIn || !idUsuario) return;
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) return; // No hay token, no hacer la petición
+
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/notificaciones/${idUsuario}/no-leidas`,
         {
@@ -137,14 +143,16 @@ export const useNotificaciones = () => {
       console.error('Error al obtener cantidad de notificaciones no leídas:', err);
       // En caso de error, mantener el valor actual
     }
-  };
+  }, [isLoggedIn, idUsuario]);
 
   // Función para marcar una notificación como leída
-  const marcarComoLeida = async (idNotificacion: number) => {
+  const marcarComoLeida = useCallback(async (idNotificacion: number) => {
     if (!isLoggedIn || !idUsuario) return;
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) return; // No hay token, no hacer la petición
+
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/notificaciones/${idUsuario}/${idNotificacion}`,
         {
@@ -173,14 +181,16 @@ export const useNotificaciones = () => {
     } catch (err) {
       console.error('Error al marcar notificación como leída:', err);
     }
-  };
+  }, [isLoggedIn, idUsuario]);
 
   // Función para marcar todas las notificaciones como leídas
-  const marcarTodasComoLeidas = async () => {
+  const marcarTodasComoLeidas = useCallback(async () => {
     if (!isLoggedIn || !idUsuario) return;
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) return; // No hay token, no hacer la petición
+
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/notificaciones/${idUsuario}/todas/leidas`,
         {
@@ -205,13 +215,24 @@ export const useNotificaciones = () => {
     } catch (err) {
       console.error('Error al marcar todas las notificaciones como leídas:', err);
     }
-  };
+  }, [isLoggedIn, idUsuario]);
 
-  // Cargar notificaciones al iniciar o cuando cambie el estado de autenticación
+  // Uso de useEffect con verificación estricta y dependencias correctas
   useEffect(() => {
-    if (isLoggedIn && idUsuario) {
-      obtenerNotificaciones();
+    // Verificación estricta para no ejecutar nada si no hay sesión
+    if (!isLoggedIn || !idUsuario) {
+      // Limpiar estados cuando no hay sesión
+      setNotificaciones([]);
+      setNoLeidas(0);
+      setCargando(false);
+      setError(null);
+      return;
     }
+    
+    // Solo cargar notificaciones si hay sesión activa
+    obtenerNotificaciones();
+    
+    // No incluir obtenerNotificaciones en las dependencias para evitar un bucle
   }, [isLoggedIn, idUsuario]);
 
   // Configurar un intervalo para refrescar el contador de notificaciones no leídas
@@ -223,11 +244,17 @@ export const useNotificaciones = () => {
 
     // Refrescar cada 2 minutos (solo la cantidad, no todas las notificaciones)
     const intervalo = setInterval(() => {
-      obtenerCantidadNoLeidas();
+      // Verificar nuevamente que el usuario siga con sesión antes de hacer la petición
+      if (isLoggedIn && idUsuario) {
+        obtenerCantidadNoLeidas();
+      } else {
+        // Si ya no hay sesión, limpiar el intervalo
+        clearInterval(intervalo);
+      }
     }, 2 * 60 * 1000);
 
     return () => clearInterval(intervalo);
-  }, [isLoggedIn, idUsuario]);
+  }, [isLoggedIn, idUsuario, obtenerCantidadNoLeidas]);
 
   return {
     notificaciones,

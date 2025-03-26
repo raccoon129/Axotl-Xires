@@ -18,12 +18,12 @@ interface PanelNotificacionesProps {
 }
 
 export const PanelNotificaciones: React.FC<PanelNotificacionesProps> = ({
-  notificaciones,
-  cargando,
-  error,
-  onMarcarLeida,
-  onMarcarTodasLeidas,
-  onCerrar
+  notificaciones = [], // valor por defecto para evitar problemas
+  cargando = false,
+  error = null,
+  onMarcarLeida = async () => {}, // función vacía como fallback
+  onMarcarTodasLeidas = async () => {}, // función vacía como fallback
+  onCerrar = () => {}
 }) => {
   const router = useRouter();
   const [animacionSalida, setAnimacionSalida] = useState(false);
@@ -98,12 +98,21 @@ export const PanelNotificaciones: React.FC<PanelNotificacionesProps> = ({
 
   // Contenido del panel según el estado
   const renderContenido = () => {
+    // Verificar si hay un array válido de notificaciones
+    if (!Array.isArray(notificaciones)) {
+      return (
+        <div className="p-4 text-center">
+          <p className="text-gray-500 text-sm">No se pudieron cargar las notificaciones</p>
+        </div>
+      );
+    }
+
     if (cargando) {
       // Mostrar esqueletos durante la carga
       return (
         <div className="space-y-4 p-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-start space-x-3">
+            <div key={`skeleton-${i}`} className="flex items-start space-x-3">
               <Skeleton className="w-8 h-8 rounded-full" />
               <div className="space-y-2 flex-1">
                 <Skeleton className="h-4 w-full" />

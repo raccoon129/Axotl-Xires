@@ -1,7 +1,7 @@
 // components/FormularioInicioSesion.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,16 @@ const FormularioInicioSesion = () => {
   const [mensajeError, setMensajeError] = useState('');
   const router = useRouter();
   const { updateAuthAfterLogin } = useAuth();
+  // Agregar referencia para prevenir envíos duplicados
+  const isSubmitting = useRef(false);
 
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Comprobar si ya hay una solicitud en curso
+    if (cargando || isSubmitting.current) return;
+    
+    isSubmitting.current = true;
     setCargando(true);
     setMostrarError(false);
 
@@ -54,6 +61,7 @@ const FormularioInicioSesion = () => {
       setMostrarError(true);
     } finally {
       setCargando(false);
+      isSubmitting.current = false;
     }
   };
 
@@ -81,6 +89,7 @@ const FormularioInicioSesion = () => {
         <BotonMorado 
           type="submit" 
           cargando={cargando}
+          disabled={cargando}
           className="w-full"
         >
           {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}

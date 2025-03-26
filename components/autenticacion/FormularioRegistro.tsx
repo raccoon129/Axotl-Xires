@@ -1,7 +1,7 @@
 // components/FormularioRegistro.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,8 @@ const FormularioRegistro = () => {
   const [botonDeshabilitado, setBotonDeshabilitado] = useState(false);
   const [registroExitoso, setRegistroExitoso] = useState(false);
   const router = useRouter();
+  // Agregar referencia para prevenir envíos duplicados
+  const isSubmitting = useRef(false);
 
   const mostrarNotificacion = (tipo: "excepcion" | "confirmacion" | "notificacion", titulo: string, contenido: string, callback?: () => void) => {
     const notificacion = document.createElement('div');
@@ -77,6 +79,9 @@ const FormularioRegistro = () => {
   const manejarEnvio = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Comprobar si ya hay una solicitud en curso
+    if (cargando || isSubmitting.current) return;
+    
     if (!aceptaTerminos) {
       mostrarNotificacion(
         "excepcion",
@@ -95,6 +100,7 @@ const FormularioRegistro = () => {
       return;
     }
 
+    isSubmitting.current = true;
     setBotonDeshabilitado(true);
     setCargando(true);
 
@@ -129,6 +135,7 @@ const FormularioRegistro = () => {
         );
         setBotonDeshabilitado(false);
         setCargando(false);
+        isSubmitting.current = false;
         return;
       }
 
@@ -180,6 +187,7 @@ const FormularioRegistro = () => {
     } finally {
       setBotonDeshabilitado(false);
       setCargando(false);
+      isSubmitting.current = false;
     }
   };
 

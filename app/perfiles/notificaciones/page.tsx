@@ -91,12 +91,13 @@ export default function NotificacionesPage() {
 
   // Función para cargar notificaciones con paginación y filtros
   const cargarNotificacionesPaginadas = async () => {
-    if (!idUsuario) return;
+    // Verificación estricta de autenticación
     
     setActualizando(true);
     
     try {
       const token = localStorage.getItem('token');
+
       const estadoLeida = filtro === 'no-leidas' ? 'false' : 'all';
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/notificaciones/${idUsuario}?page=${paginaActual}&limit=${elementosPorPagina}&leidas=${estadoLeida}`,
@@ -156,9 +157,12 @@ export default function NotificacionesPage() {
     }
   };
 
-  // Efecto para cargar notificaciones al cambiar el filtro o la página
+  // Efecto para cargar notificaciones al cambiar el filtro o la página,
+  // pero solo si hay sesión activa
   useEffect(() => {
-    cargarNotificacionesPaginadas();
+    if (idUsuario) {
+      cargarNotificacionesPaginadas();
+    }
   }, [filtro, paginaActual, idUsuario]);
 
   // Establecer el título de la página

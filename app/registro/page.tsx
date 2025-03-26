@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 import BloquearLoginRegistro from '@/components/autenticacion/BloquearLoginRegistro';
 import RegistroClientPage from '@/components/autenticacion/RegistroClientPage';
+import RegistroContainer from '@/components/autenticacion/RegistroContainer';
 
 export const metadata: Metadata = {
   title: 'Crear una Cuenta - Axotl Xires',
@@ -17,8 +18,14 @@ export const metadata: Metadata = {
 
 export default function PaginaRegistro() {
   return (
-    <BloquearLoginRegistro>
-      <RegistroClientPage />
-    </BloquearLoginRegistro>
+    <div className="flex flex-col gap-8">
+      <BloquearLoginRegistro>
+        <RegistroClientPage />
+      </BloquearLoginRegistro>
+      
+      <div className="mt-8">
+        <RegistroContainer />
+      </div>
+    </div>
   );
 }

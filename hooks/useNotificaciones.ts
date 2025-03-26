@@ -100,7 +100,7 @@ export const useNotificaciones = () => {
         return `/perfil/${notif.id_origen}`;
       case 'sistema':
       default:
-        // Para notificaciones del sistema, podría no haber enlace
+        // Para notificaciones del sistema, podría no haber enlace. Queda pendiente implementar en el management console
         return notif.id_referencia ? `/publicaciones/${notif.id_referencia}` : undefined;
     }
   };

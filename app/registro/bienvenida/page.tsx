@@ -9,12 +9,12 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow',
 };
 
-export default async function PaginaBienvenida({
+export default function PaginaBienvenida({
   searchParams,
 }: {
-  searchParams: { token: string };
+  searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  const token = searchParams.token;
+  const token = searchParams.token as string;
   
   if (!token) {
     redirect('/registro');
@@ -25,4 +25,4 @@ export default async function PaginaBienvenida({
       <RegistroBienvenida />
     </FondoAjolote>
   );
-} 
+}

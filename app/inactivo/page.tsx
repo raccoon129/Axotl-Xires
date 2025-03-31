@@ -1,1 +1,0 @@
-//Proximo a implementar cuando el sitio esté inactivo o la API esté caida

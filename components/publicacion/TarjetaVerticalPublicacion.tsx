@@ -171,7 +171,8 @@ export const TarjetaVerticalPublicacion = ({
             fecha_publicacion: publicacion.fecha_publicacion || "Fecha no disponible",
             imagen_portada: publicacion.imagen_portada,
             categoria: publicacion.tipo_publicacion,
-            favoritos: publicacion.total_favoritos
+            favoritos: publicacion.total_favoritos,
+            id_usuario: publicacion.id_usuario || 0 // Añadimos la propiedad id_usuario requerida
           }}
         />
       )}

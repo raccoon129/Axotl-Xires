@@ -6,8 +6,13 @@ import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
+import { Suspense } from 'react';
 
-export default function ExitoPage() {
+// Forzar renderizado dinámico para evitar errores de prerenderización
+export const dynamic = 'force-dynamic';
+
+// Componente cliente que contiene la lógica y usa useSearchParams
+function ContenidoExito() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const searchParams = useSearchParams();
@@ -98,5 +103,14 @@ export default function ExitoPage() {
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+// Componente principal exportado que envuelve el contenido en Suspense
+export default function ExitoPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-100 flex items-center justify-center">Cargando...</div>}>
+      <ContenidoExito />
+    </Suspense>
   );
 }

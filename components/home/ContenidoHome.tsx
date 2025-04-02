@@ -177,7 +177,8 @@ export function ContenidoHome({ publicacionesRecientes }: PropiedadesContenidoHo
             fecha_publicacion: publicacionSeleccionada.fecha_publicacion || "Fecha no disponible",
             imagen_portada: publicacionSeleccionada.imagen_portada,
             categoria: publicacionSeleccionada.tipo_publicacion,
-            favoritos: publicacionSeleccionada.total_favoritos
+            favoritos: publicacionSeleccionada.total_favoritos,
+            id_usuario: publicacionSeleccionada.id_usuario || 0 // Añadimos la propiedad id_usuario requerida
           }}
         />
       )}

@@ -9,12 +9,15 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow',
 };
 
-export default function PaginaBienvenida({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
-  const token = searchParams.token as string;
+interface PageProps {
+  params?: Promise<{ [key: string]: string | string[] }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function PaginaBienvenida({ searchParams }: PageProps) {
+  // Esperar a que se resuelva la Promise de searchParams
+  const resolvedSearchParams = await searchParams;
+  const token = resolvedSearchParams?.token as string;
   
   if (!token) {
     redirect('/registro');

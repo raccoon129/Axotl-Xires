@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { ResultadosBusqueda } from '@/components/busqueda/ResultadosBusqueda';
+
+// Forzar renderizado dinámico para evitar errores de prerenderización
+export const dynamic = 'force-dynamic';
 
 interface ResultadoBusqueda {
   id_publicacion: number;
@@ -20,7 +23,8 @@ interface ResultadoBusqueda {
   coincidencia_en: string;
 }
 
-export default function PaginaBusqueda() {
+// Componente que contiene la lógica y usa useSearchParams
+function ContenidoBusqueda() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
@@ -314,5 +318,14 @@ export default function PaginaBusqueda() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+// Componente principal exportado que envuelve el contenido en Suspense
+export default function PaginaBusqueda() {
+  return (
+    <Suspense fallback={<div className="container mx-auto py-8 px-4 md:px-6 max-w-7xl">Cargando resultados...</div>}>
+      <ContenidoBusqueda />
+    </Suspense>
   );
 }

@@ -28,9 +28,9 @@ export const TarjetaPublicacionMiniCategorias = ({
   const [autorId, setAutorId] = useState<number | null>(null);
   const router = useRouter();
 
-  const obtenerUrlPortada = (nombreImagen: string | null) => {
-    if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
-    return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+  const obtenerUrlPortada = (idPublicacion: number | null) => {
+    if (!idPublicacion) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+    return `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada`;
   };
 
   const irALectura = () => {
@@ -68,7 +68,7 @@ export const TarjetaPublicacionMiniCategorias = ({
             <div className="absolute inset-0 bg-gray-200 animate-pulse rounded" />
           )}
           <Image
-            src={obtenerUrlPortada(publicacion.imagen_portada)}
+            src={obtenerUrlPortada(publicacion.id_publicacion)}
             alt={publicacion.titulo}
             fill
             className={`object-cover rounded transition-opacity duration-300 ${

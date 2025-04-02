@@ -309,9 +309,9 @@ const ModalDetallesPublicacion = ({
   };
 
   // Función para construir la URL de la portada
-  const obtenerUrlPortada = (nombreImagen: string | null) => {
-    if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
-    return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+  const obtenerUrlPortada = (idPublicacion: number) => {
+    if (!idPublicacion) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+    return `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada`;
   };
 
   const irALectorInmersivo = () => {
@@ -409,7 +409,7 @@ const ModalDetallesPublicacion = ({
                       <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                     )}
                     <img
-                      src={obtenerUrlPortada(publicacion.imagen_portada)}
+                      src={obtenerUrlPortada(publicacion.id_publicacion)}
                       alt={publicacion.titulo}
                       className={`w-full h-full object-cover transition-opacity duration-300 ${
                         imageLoaded ? 'opacity-100' : 'opacity-0'

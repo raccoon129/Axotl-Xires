@@ -50,9 +50,9 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
     };
 
     // Función para construir la URL de la portada
-    const obtenerUrlPortada = (nombreImagen: string | null) => {
-        if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
-        return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+    const obtenerUrlPortada = (idPublicacion: number | null) => {
+        if (!idPublicacion) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+        return `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada`;
     };
 
     const irALectura = () => {
@@ -93,7 +93,7 @@ const TarjetaPublicacionPerfil: FC<PropsTarjetaPublicacionPerfil> = ({
                                 <Skeleton className="w-full h-full absolute top-0 left-0" />
                             )}
                             <img
-                                src={obtenerUrlPortada(publicacion.imagen_portada)}
+                                src={obtenerUrlPortada(publicacion.id_publicacion)}
                                 alt={publicacion.titulo}
                                 className={`w-full h-full object-cover rounded-md shadow-sm transition-opacity duration-300 ${
                                     imageLoaded ? 'opacity-100' : 'opacity-0'

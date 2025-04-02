@@ -86,9 +86,9 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
         return estado === 'borrador' || estado === 'rechazado';
     };
 
-    const obtenerUrlPortada = (nombreImagen: string | undefined | null) => {
-        if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
-        return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+    const obtenerUrlPortada = (idPublicacion: number | undefined | null) => {
+        if (!idPublicacion) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+        return `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada`;
     };
 
     const irALectura = () => {
@@ -246,7 +246,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                             <Skeleton className="w-full h-full absolute top-0 left-0" />
                         )}
                         <img
-                            src={obtenerUrlPortada(publicacion?.imagen_portada)}
+                            src={obtenerUrlPortada(publicacion?.id_publicacion)}
                             alt={publicacion?.titulo}
                             className="w-full h-full object-cover rounded-md shadow-sm transition-opacity duration-300"
                             style={{ opacity: imageLoaded ? 1 : 0 }}

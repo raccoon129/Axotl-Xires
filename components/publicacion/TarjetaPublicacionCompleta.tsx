@@ -35,9 +35,9 @@ export const TarjetaPublicacionCompleta = ({
     });
   };
 
-  const obtenerUrlPortada = (nombreImagen: string | null) => {
-    if (!nombreImagen) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
-    return `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${nombreImagen}`;
+  const obtenerUrlPortada = (idPublicacion: number | null) => {
+    if (!idPublicacion) return `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`;
+    return `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada`;
   };
 
   const irALectura = () => {
@@ -52,7 +52,7 @@ export const TarjetaPublicacionCompleta = ({
           <div className="absolute inset-0 bg-gray-200 animate-pulse" />
         )}
         <Image
-          src={obtenerUrlPortada(publicacion.imagen_portada)}
+          src={obtenerUrlPortada(publicacion.id_publicacion)}
           alt={publicacion.titulo}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

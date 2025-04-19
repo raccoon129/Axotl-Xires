@@ -4,7 +4,7 @@ import { FC, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Publicacion } from '@/type/typePublicacion';
-import { Eye, Edit, AlertCircle, Lock, Unlock, BookOpen } from 'lucide-react';
+import { Eye, Edit, AlertCircle, Lock, Unlock, BookOpen, PenSquare, EyeOff, Trash2, Clock, FileClock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import {
@@ -37,6 +37,7 @@ interface PropsTarjetaPublicacion {
     alSolicitarBaja: (id: number) => void;
     isLoading?: boolean;
     onPrivacidadCambiada?: (idPublicacion: number, nuevoEstado: number) => void;
+    alVerRevision?: (id: number) => void; // Nuevo prop para ver revisión
 }
 
 const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
@@ -45,7 +46,8 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     alEditar,
     alSolicitarBaja,
     isLoading = false,
-    onPrivacidadCambiada
+    onPrivacidadCambiada,
+    alVerRevision
 }) => {
     const router = useRouter();
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -67,7 +69,8 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
             borrador: 'bg-gray-200 text-gray-700',
             en_revision: 'bg-yellow-200 text-yellow-700',
             publicado: 'bg-green-200 text-green-700',
-            rechazado: 'bg-red-200 text-red-700'
+            rechazado: 'bg-red-200 text-red-700',
+            solicita_cambios: 'bg-orange-200 text-orange-700'
         };
         return colores[estado];
     };
@@ -77,13 +80,14 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
             borrador: 'Borrador',
             en_revision: 'En Revisión',
             publicado: 'Publicado',
-            rechazado: 'Regresado'
+            rechazado: 'Rechazado',
+            solicita_cambios: 'Cambios Solicitados'
         };
         return formatos[estado];
     };
 
     const puedeEditar = (estado: Publicacion['estado']) => {
-        return estado === 'borrador' || estado === 'rechazado';
+        return estado === 'borrador' || estado === 'solicita_cambios';
     };
 
     const obtenerUrlPortada = (idPublicacion: number | undefined | null) => {
@@ -94,6 +98,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
     const irALectura = () => {
         if (publicacion?.estado === 'en_revision' || 
             publicacion?.estado === 'borrador' || 
+            publicacion?.estado === 'solicita_cambios' ||
             publicacion?.estado === 'rechazado') {
             router.push(`/perfiles/mispublicaciones/previsualizar/${publicacion.id_publicacion}`);
         } else {
@@ -161,6 +166,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
         }
     };
 
+    //Se cambio a "Solicitar Eliminación" para que sea más claro
     const solicitarBaja = async () => {
         if (confirmacionTexto.toLowerCase() !== 'solicitar') return;
         
@@ -283,6 +289,27 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                         </div>
                         
                         <div className="mt-4 space-y-3">
+                            {/* Sección 1: Botón de Ver Revisión destacado para solicita_cambios */}
+                            {publicacion?.estado === 'solicita_cambios' && alVerRevision && (
+                                <div className="mb-3 bg-orange-50 p-3 rounded-lg border border-orange-200">
+                                    <div className="flex items-center gap-2 text-orange-700 mb-2">
+                                        <Clock className="w-5 h-5" />
+                                        <span className="font-medium">Se han solicitado cambios en tu publicación</span>
+                                    </div>
+                                    <p className="text-sm text-orange-600 mb-3">
+                                        Revisa los comentarios del revisor para realizar las modificaciones necesarias.
+                                    </p>
+                                    <Button 
+                                        onClick={() => alVerRevision(publicacion!.id_publicacion)}
+                                        className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                                    >
+                                        <FileClock className="w-4 h-4" />
+                                        Ver detalles de la revisión
+                                    </Button>
+                                </div>
+                            )}
+                            
+                            {/* Sección 2: Botones principales */}
                             <div className="flex flex-wrap gap-2">
                                 <Button 
                                     variant="outline" 
@@ -291,7 +318,8 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                 >
                                     {publicacion?.estado === 'en_revision' || 
                                      publicacion?.estado === 'borrador' || 
-                                     publicacion?.estado === 'rechazado' ? (
+                                     publicacion?.estado === 'rechazado' ||
+                                     publicacion?.estado === 'solicita_cambios' ? (
                                         <>
                                             <Eye className="w-4 h-4" />
                                             Ver vista previa
@@ -306,16 +334,21 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                 
                                 {publicacion?.estado && puedeEditar(publicacion.estado) && (
                                     <Button 
-                                        variant="outline"
+                                        variant={publicacion.estado === 'solicita_cambios' ? 'default' : 'outline'}
                                         onClick={() => alEditar(publicacion!.id_publicacion)}
-                                        className="flex items-center gap-2 bg-white hover:bg-gray-50"
+                                        className={`flex items-center gap-2 ${
+                                            publicacion.estado === 'solicita_cambios' 
+                                                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                                                : 'bg-white hover:bg-gray-50'
+                                        }`}
                                     >
                                         <Edit className="w-4 h-4" />
-                                        Editar
+                                        {publicacion.estado === 'solicita_cambios' ? 'Editar y resolver' : 'Editar'}
                                     </Button>
                                 )}
                             </div>
 
+                            {/* Sección 3: Botones secundarios */}
                             <div className="flex flex-wrap gap-2">
                                 {publicacion?.estado === 'publicado' && (
                                     <Button
@@ -344,7 +377,7 @@ const TarjetaPublicacion: FC<PropsTarjetaPublicacion> = ({
                                     className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
                                 >
                                     <AlertCircle className="w-4 h-4" />
-                                    Solicitar Baja
+                                    Solicitar Eliminación
                                 </Button>
                             </div>
                         </div>

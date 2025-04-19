@@ -13,6 +13,6 @@ export interface Publicacion {
   tipo_publicacion: string;
   total_favoritos: number;
   total_comentarios: number;
-  estado: 'borrador' | 'en_revision' | 'publicado' | 'rechazado';
+  estado: 'borrador' | 'en_revision' | 'publicado' | 'rechazado' | 'solicita_cambios';
   es_privada: number;
 }

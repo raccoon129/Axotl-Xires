@@ -10,6 +10,7 @@ import { Publicacion } from '@/type/typePublicacion';
 import { AuthGuard } from '@/components/autenticacion/AuthGuard';
 import { motion, AnimatePresence } from 'framer-motion';
 import NotificacionChip from '@/components/global/genericos/NotificacionChip';
+import ModalDetallesRevision from '@/components/publicacion/ModalDetallesRevision';
 
 export default function PaginaPublicaciones() {
     const enrutador = useRouter();
@@ -24,6 +25,8 @@ export default function PaginaPublicaciones() {
         titulo: string;
         contenido: string;
     }>>([]);
+    const [mostrarModalRevision, setMostrarModalRevision] = useState<boolean>(false);
+    const [publicacionSeleccionada, setPublicacionSeleccionada] = useState<number | null>(null);
 
     // Obtener estados únicos de las publicaciones
     const estadosDisponibles = useMemo(() => {
@@ -87,6 +90,11 @@ export default function PaginaPublicaciones() {
         enrutador.push(`/perfiles/mispublicaciones/editar/${id}`);
     };
 
+    const manejarVerRevision = (id: number) => {
+        setPublicacionSeleccionada(id);
+        setMostrarModalRevision(true);
+    };
+
     const agregarNotificacion = (notificacion: {
         tipo: "excepcion" | "confirmacion" | "notificacion";
         titulo: string;
@@ -120,7 +128,8 @@ export default function PaginaPublicaciones() {
             borrador: 'bg-gray-500 hover:bg-gray-600',
             en_revision: 'bg-yellow-500 hover:bg-yellow-600',
             publicado: 'bg-green-500 hover:bg-green-600',
-            rechazado: 'bg-red-500 hover:bg-red-600'
+            rechazado: 'bg-red-500 hover:bg-red-600',
+            solicita_cambios: 'bg-orange-500 hover:bg-orange-600' // Nuevo estado con color naranja
         };
         return colores[estado as keyof typeof colores] || 'bg-gray-200 hover:bg-gray-300';
     };
@@ -225,11 +234,24 @@ export default function PaginaPublicaciones() {
                                         alEditar={manejarEdicion}
                                         alSolicitarBaja={manejarSolicitudBaja}
                                         onPrivacidadCambiada={handlePrivacidadCambiada}
+                                        alVerRevision={manejarVerRevision}
                                     />
                                 </motion.div>
                             ))}
                         </motion.div>
                     </AnimatePresence>
+                )}
+
+                {publicacionSeleccionada && (
+                    <ModalDetallesRevision 
+                        idPublicacion={publicacionSeleccionada}
+                        estaAbierto={mostrarModalRevision}
+                        alCerrar={() => setMostrarModalRevision(false)}
+                        onEditar={() => {
+                            setMostrarModalRevision(false);
+                            manejarEdicion(publicacionSeleccionada);
+                        }}
+                    />
                 )}
 
                 {notificaciones.map((notificacion) => (

@@ -14,16 +14,20 @@ const obtenerMensajeVistaPrevia = (estado?: string) => {
     const mensajes = {
         borrador: {
             titulo: "Vista Previa de Borrador",
-            descripcion: "Esta es una vista previa de tu publicación en borrador"
+            descripcion: "Esta es una vista previa de tu publicación en borrador. Tus ediciones se visualizarán aquí antes de ser publicadas."
         },
         en_revision: {
             titulo: "Vista Previa en Revisión",
-            descripcion: "Esta es una vista previa de tu publicación que está siendo revisada"
+            descripcion: "Esta es una vista previa de tu publicación que está siendo revisada."
         },
         rechazado: {
-            titulo: "Vista Previa de Publicación Regresada",
-            descripcion: "Esta es una vista previa de tu publicación que fue regresada para correcciones"
-        }
+            titulo: "Vista Previa de Publicación Rechazada",
+            descripcion: "Esta es una vista previa de tu publicación que fue rechazada por no cumplir con los términos de este servicio."
+        },
+        solicita_cambios: {
+            titulo: "Vista Previa de Publicación con Cambios Solicitados",
+            descripcion: "Esta es una vista previa de tu publicación que requiere cambios. Lee los detalles de la revisión para más información."
+        },
     };
     return mensajes[estado as keyof typeof mensajes] || mensajes.borrador;
 };
@@ -61,7 +65,7 @@ export default function PrevisualizarPublicacion() {
 
                 if (data.status === 'success') {
                     // Verificar el estado de la publicación
-                    if (!['borrador', 'en_revision', 'rechazado'].includes(data.datos.estado)) {
+                    if (!['borrador', 'en_revision', 'rechazado', 'solicita_cambios'].includes(data.datos.estado)) {
                         throw new Error('No tienes permiso para ver esta vista previa');
                     }
                     setPublicacion(data.datos);

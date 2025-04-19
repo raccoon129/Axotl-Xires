@@ -123,7 +123,7 @@ const EditarPublicacionContenido = () => {
           return;
         }
 
-        if (publicacion.estado !== "borrador") {
+        if (publicacion.estado == "borrador" && publicacion.estado == "en_revision") {
           setAccesoPermitido(false);
           setMensajeError("Solo se pueden editar publicaciones en estado borrador");
           return;

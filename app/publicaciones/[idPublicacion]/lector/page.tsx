@@ -36,8 +36,8 @@ export default function PaginaLector() {
 
   useEffect(() => {
     try {
-      const urlApi = `${process.env.NEXT_PUBLIC_API_URL}/api/descargas/${params.idPublicacion}?visualizar=true`;
-      const urlLectorCompleta = `${process.env.NEXT_PUBLIC_LECTOR_URL}/?pdfUrl=${encodeURIComponent(urlApi)}`;
+      const urlLectorCompleta = `${process.env.NEXT_PUBLIC_API_URL}/api/flipbook/${params.idPublicacion}`;
+      //const urlLectorCompleta = `${process.env.NEXT_PUBLIC_LECTOR_URL}/?pdfUrl=${encodeURIComponent(urlApi)}`;
       setUrlLector(urlLectorCompleta);
       
       setTimeout(() => {

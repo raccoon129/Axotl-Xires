@@ -151,6 +151,12 @@ export default function NotificacionesPage() {
         return `/publicaciones/${notif.id_referencia}`;
       case 'seguimiento':
         return `/perfil/${notif.id_origen}`;
+      case 'cambios_solicitados':
+        return `/perfiles/mispublicaciones/revisiones/${notif.id_referencia}`;
+      case 'revision_iniciada':
+        return `/perfiles/mispublicaciones/revisiones/${notif.id_referencia}`;
+      case 'moderacion':
+        //return `/publicaciones/${notif.id_referencia}`;
       case 'sistema':
       default:
         return notif.id_referencia ? `/publicaciones/${notif.id_referencia}` : undefined;
@@ -197,6 +203,33 @@ export default function NotificacionesPage() {
             </svg>
           </div>
         );
+        case 'cambios_solicitados':
+          return (
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+            </div>
+          );
+        case 'revision_iniciada':
+          return (
+            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-orange-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 6v6l4 2"></path>
+              </svg>
+            </div>
+          );
+          case 'moderacion':
+            return (
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M15 9l-6 6M9 9l6 6"></path>
+                </svg>
+              </div>
+            );
       case 'sistema':
       default:
         return (

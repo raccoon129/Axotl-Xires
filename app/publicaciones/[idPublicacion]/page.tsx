@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar } from '@/components/ui/avatar';
-import { Calendar, MessageSquare, Star, BookOpen, X, Download } from 'lucide-react';
+import { Calendar, MessageSquare, Star, BookOpen, X, Download, FileText, Maximize2 } from 'lucide-react';
 import Link from 'next/link';
 import { SeccionComentarios } from '@/components/publicacion/SeccionComentarios';
 import { useAuth } from '@/hooks/useAuth';
@@ -106,6 +106,16 @@ const EsqueletoLectura = () => (
               {/* Skeleton para el botón de Modo Lectura */}
               <div className="flex-1 lg:flex-none">
                 <Skeleton className="h-[38px] w-full rounded-lg bg-blue-100/50" />
+              </div>
+
+              {/* Skeleton para el botón de Ver en HTML */}
+              <div className="flex-1 lg:flex-none">
+                <Skeleton className="h-[38px] w-full rounded-lg" />
+              </div>
+              
+              {/* Skeleton para el botón de Inmersivo */}
+              <div className="flex-1 lg:flex-none">
+                <Skeleton className="h-[38px] w-full rounded-lg bg-purple-100/50" />
               </div>
 
               {/* Skeleton para el botón de PDF */}
@@ -551,6 +561,38 @@ export default function PublicacionPage() {
                     <BookOpen className="w-4 h-4" />
                     <span className="text-sm font-medium">Modo Lectura</span>
                   </motion.button>
+
+                  <Link 
+                    href={`/publicaciones/${params.idPublicacion}/formato`}
+                    className="flex-1 lg:flex-none"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5
+                                bg-white hover:bg-gray-50 rounded-lg transition-all duration-200
+                                border border-gray-200 text-gray-700"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span className="text-sm font-medium">Ver en HTML</span>
+                    </motion.button>
+                  </Link>
+
+                  <Link 
+                    href={`/publicaciones/${params.idPublicacion}/lector`}
+                    className="flex-1 lg:flex-none"
+                  >
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5
+                                bg-purple-50 hover:bg-purple-100 rounded-lg transition-all duration-200
+                                text-purple-600 border border-purple-200"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                      <span className="text-sm font-medium">Inmersivo</span>
+                    </motion.button>
+                  </Link>
 
                   <Link 
                     href={`/publicaciones/${params.idPublicacion}/descargar`}

@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from '@/hooks/useAuth';
 import { 
   ArrowLeft, 
@@ -17,16 +16,11 @@ import {
   CheckCircle, 
   X, 
   Clock, 
-  Calendar, 
   MessageCircle, 
-  ClockIcon, 
   Users, 
-  FileCheck, 
   Calendar as CalendarIcon, 
-  CheckSquare, 
-  XSquare, 
-  AlertOctagon,
-  Eye
+  Eye,
+  User
 } from 'lucide-react';
 
 // Tipos para la respuesta de la API
@@ -99,7 +93,6 @@ const HistorialRevisionesPage = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [datos, setDatos] = useState<DatosRevision | null>(null);
-  const [revisionExpandida, setRevisionExpandida] = useState<number | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   
   // Formatear fecha legible
@@ -137,7 +130,7 @@ const HistorialRevisionesPage = () => {
       const token = localStorage.getItem('token');
       
       const respuesta = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/revision/estadisticas/${idPublicacion}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/revision/publicacion/${idPublicacion}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -151,7 +144,34 @@ const HistorialRevisionesPage = () => {
         throw new Error(datosRespuesta.mensaje || 'Error al cargar el historial de revisiones');
       }
       
-      setDatos(datosRespuesta.datos);
+      // Obtenemos los datos detallados de la publicación con revisiones y comentarios
+      const datosPublicacion = datosRespuesta.datos;
+      
+      // Ahora obtenemos las estadísticas y ciclos
+      const respuestaEstadisticas = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/revision/estadisticas/${idPublicacion}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      
+      const datosEstadisticas = await respuestaEstadisticas.json();
+      
+      if (!respuestaEstadisticas.ok) {
+        throw new Error(datosEstadisticas.mensaje || 'Error al cargar las estadísticas');
+      }
+      
+      // Combinamos los datos de ambas respuestas
+      const datosCombinados = {
+        publicacion: datosPublicacion.publicacion,
+        revisiones: datosPublicacion.revisiones,
+        estadisticas: datosEstadisticas.datos.estadisticas,
+        ciclos_revision: datosEstadisticas.datos.ciclos_revision || []
+      };
+      
+      setDatos(datosCombinados);
       
     } catch (error) {
       console.error('Error:', error);
@@ -188,11 +208,17 @@ const HistorialRevisionesPage = () => {
     return colores[estado] || 'bg-gray-100 text-gray-700';
   };
   
-  const toggleRevision = (idRevision: number) => {
-    if (revisionExpandida === idRevision) {
-      setRevisionExpandida(null);
-    } else {
-      setRevisionExpandida(idRevision);
+  const obtenerIconoResultado = (resultado: string) => {
+    switch (resultado) {
+      case 'aprobado':
+        return <CheckCircle size={16} className="text-green-600" />;
+      case 'rechazado':
+        return <X size={16} className="text-red-600" />;
+      case 'solicita_cambios':
+        return <Clock size={16} className="text-orange-600" />;
+      case 'en_revision':
+      default:
+        return <Clock size={16} className="text-yellow-600" />;
     }
   };
   
@@ -217,7 +243,7 @@ const HistorialRevisionesPage = () => {
   return (
     <AuthGuard>
       <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
-        {/* Banner superior, similar al de previsualización */}
+        {/* Banner superior */}
         <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
           <div className="flex items-center gap-3">
             <div className="bg-purple-100 rounded-full p-2">
@@ -284,7 +310,15 @@ const HistorialRevisionesPage = () => {
                           ? 'Cambios Solicitados' 
                           : datos?.publicacion.estado === 'en_revision'
                             ? 'En Revisión'
-                            : datos?.publicacion.estado}
+                            : datos?.publicacion.estado === 'borrador'
+                              ? 'Borrador'
+                              : datos?.publicacion.estado === 'aprobado'
+                                ? 'Aprobado'
+                                : datos?.publicacion.estado === 'rechazado'
+                                  ? 'Rechazado'
+                                  : datos?.publicacion.estado === 'publicado'
+                                    ? 'Publicado'
+                                    : datos?.publicacion.estado}
                       </span>
                     </div>
                     
@@ -345,92 +379,96 @@ const HistorialRevisionesPage = () => {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4">Revisiones y Comentarios</h2>
               
-              {datos?.revisiones.length === 0 ? (
-                <p className="text-gray-500 italic">No hay revisiones disponibles para esta publicación.</p>
+              {datos?.revisiones && datos.revisiones.length === 0 ? (
+                <p className="text-gray-500 italic text-center py-8">
+                  No hay revisiones disponibles para esta publicación.
+                </p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {datos?.revisiones.map((revision) => (
-                    <Card key={revision.id_revision} className="overflow-hidden">
-                      <CardHeader className="p-4 cursor-pointer" onClick={() => toggleRevision(revision.id_revision)}>
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <FileText size={18} className="text-gray-500" />
-                            <CardTitle className="text-base">
-                              {revision.detalle_revision || 'Revisión'}
+                    <Card key={revision.id_revision} className="border-l-4 border-l-gray-300">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <span className="text-gray-800">{revision.detalle_revision}</span>
+                              
+                              {revision.aprobado === true && (
+                                <Badge className="bg-green-100 text-green-700 border-green-200">
+                                  <CheckCircle size={12} className="mr-1" />
+                                  Aprobada
+                                </Badge>
+                              )}
+                              
+                              {revision.aprobado === false && (
+                                <Badge className="bg-red-100 text-red-700 border-red-200">
+                                  <X size={12} className="mr-1" />
+                                  Rechazada
+                                </Badge>
+                              )}
+                              
+                              {revision.aprobado === null && (
+                                <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+                                  <Clock size={12} className="mr-1" />
+                                  Solicita cambios
+                                </Badge>
+                              )}
                             </CardTitle>
                             
-                            {revision.aprobado === true && (
-                              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                <CheckCircle size={12} className="mr-1" />
-                                Aprobada
-                              </Badge>
-                            )}
-                            
-                            {revision.aprobado === false && (
-                              <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                                <X size={12} className="mr-1" />
-                                Rechazada
-                              </Badge>
-                            )}
-                            
-                            {revision.aprobado === null && (
-                              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                                <Clock size={12} className="mr-1" />
-                                Solicita cambios
-                              </Badge>
-                            )}
+                            <CardDescription className="flex items-center gap-1 mt-1">
+                              <CalendarIcon size={12} />
+                              <span>{revision.fecha_revision_formateada || formatearFecha(revision.fecha_creacion)}</span>
+                            </CardDescription>
                           </div>
                           
-                          <span className="text-xs text-gray-500">
-                            {revision.fecha_revision_formateada || formatearFecha(revision.fecha_creacion)}
-                          </span>
+                          <div className="flex items-center gap-1 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded">
+                            <User size={14} />
+                            <span>{revision.revisor}</span>
+                          </div>
                         </div>
                       </CardHeader>
-                      
-                      {revisionExpandida === revision.id_revision && (
-                        <CardContent className="p-4 pt-0">
-                          <Separator className="mb-4" />
-                          
-                          {revision.descripcion_revision && (
-                            <div className="mb-4">
-                              <p className="text-sm text-gray-700">
-                                <span className="font-medium">Descripción: </span>
-                                {revision.descripcion_revision}
-                              </p>
-                            </div>
-                          )}
-                          
-                          <div className="mb-2 flex items-center gap-2">
-                            <MessageCircle size={14} className="text-gray-500" />
-                            <h4 className="font-medium text-sm">
-                              Comentarios ({revision.comentarios?.length || revision.total_comentarios || 0})
-                            </h4>
+                      <CardContent>
+                        {/* Descripción de la revisión */}
+                        {revision.descripcion_revision && (
+                          <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <p className="text-sm text-gray-700">
+                              {revision.descripcion_revision}
+                            </p>
                           </div>
-                          
-                          {revision.comentarios && revision.comentarios.length > 0 ? (
-                            <div className="space-y-3 mt-2">
-                              {revision.comentarios.map(comentario => (
-                                <div 
-                                  key={comentario.id_comentario} 
-                                  className="bg-gray-50 rounded-lg p-3 border border-gray-200"
-                                >
-                                  <div className="flex justify-between items-center mb-1 text-xs">
-                                    <span className="font-medium text-gray-700">
-                                      {comentario.autor_comentario}
-                                    </span>
-                                    <span className="text-gray-500">
-                                      {comentario.fecha_comentario_formateada || formatearFecha(comentario.fecha_creacion)}
-                                    </span>
-                                  </div>
-                                  <p className="text-sm text-gray-600">{comentario.contenido}</p>
-                                </div>
-                              ))}
+                        )}
+
+                        {/* Comentarios - Cada revisión tiene un comentario individual */}
+                        {revision.comentarios && revision.comentarios.length > 0 ? (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 mb-2">
+                              <MessageCircle size={16} className="text-blue-500" />
+                              <h4 className="font-medium text-sm text-blue-700">Comentario</h4>
                             </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 italic">No hay comentarios disponibles.</p>
-                          )}
-                        </CardContent>
-                      )}
+                            
+                            {revision.comentarios.map((comentario) => (
+                              <div 
+                                key={comentario.id_comentario} 
+                                className="bg-blue-50 rounded-lg p-3 border border-blue-200"
+                              >
+                                <div className="flex items-start justify-between mb-2">
+                                  <div className="flex items-center gap-1 text-xs font-medium text-blue-700">
+                                    <User size={12} />
+                                    {comentario.autor_comentario}
+                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    {comentario.fecha_comentario_formateada || formatearFecha(comentario.fecha_creacion)}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700">{comentario.contenido}</p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-500 italic border border-dashed border-gray-200 p-3 rounded-lg text-center">
+                            No hay comentarios en esta revisión.
+                          </div>
+                        )}
+                      </CardContent>
                     </Card>
                   ))}
                 </div>
@@ -449,7 +487,7 @@ const HistorialRevisionesPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex flex-col items-center p-3 bg-blue-50 rounded-lg">
                     <span className="text-blue-700 font-bold text-2xl">
-                      {datos?.estadisticas.total_revisiones || 0}
+                      {datos?.estadisticas?.total_revisiones || 0}
                     </span>
                     <span className="text-xs text-blue-600 text-center">
                       Revisiones Totales
@@ -458,20 +496,16 @@ const HistorialRevisionesPage = () => {
                   
                   <div className="flex flex-col items-center p-3 bg-purple-50 rounded-lg">
                     <span className="text-purple-700 font-bold text-2xl">
-                      {datos?.estadisticas.iteraciones_completas || 0}
+                      {datos?.estadisticas?.iteraciones_completas || 0}
                     </span>
                     <span className="text-xs text-purple-600 text-center">
                       Ciclos Completados
                     </span>
                   </div>
                   
-
-                  
-
-                  
                   <div className="flex flex-col items-center p-3 bg-orange-50 rounded-lg">
                     <span className="text-orange-700 font-bold text-2xl">
-                      {datos?.estadisticas.revisiones_con_cambios || 0}
+                      {datos?.estadisticas?.revisiones_con_cambios || 0}
                     </span>
                     <span className="text-xs text-orange-600 text-center">
                       Solicitud de Cambios
@@ -480,8 +514,9 @@ const HistorialRevisionesPage = () => {
                   
                   <div className="flex flex-col items-center p-3 bg-gray-50 rounded-lg">
                     <span className="text-gray-700 font-bold text-2xl">
-                      {datos?.estadisticas.tiempo_total_revision_dias ? 
-                        formatearDias(datos.estadisticas.tiempo_total_revision_dias) : '0 días'}
+                      {datos?.estadisticas?.tiempo_total_revision_dias 
+                        ? formatearDias(datos.estadisticas.tiempo_total_revision_dias) 
+                        : '0 días'}
                     </span>
                     <span className="text-xs text-gray-600 text-center">
                       Tiempo Total
@@ -509,7 +544,7 @@ const HistorialRevisionesPage = () => {
               </CardContent>
             </Card>
             
-            {/* Línea de tiempo con revisiones más recientes arriba */}
+            {/* Línea de tiempo mejorada */}
             {datos?.ciclos_revision && datos.ciclos_revision.length > 0 && (
               <Card>
                 <CardHeader className="pb-2">
@@ -520,59 +555,92 @@ const HistorialRevisionesPage = () => {
                     {/* Línea vertical continua */}
                     <div className="absolute left-2.5 top-0 bottom-0 w-[1px] bg-gray-200"></div>
                     
-                    <div className="space-y-8 relative">
+                    <div className="space-y-6 relative">
                       {/* Invertimos el orden para que la más reciente esté arriba */}
-                      {[...datos.ciclos_revision].reverse().map((ciclo, index) => (
-                        <div key={ciclo.ciclo} className="relative">
-                          {/* Marcador en la línea */}
-                          <div className="absolute left-[-18px] top-0 w-5 h-5 rounded-full bg-white border-2 border-blue-500 z-10"></div>
-                          
-                          {/* Fecha del ciclo - ahora la fecha está dentro de la tarjeta */}
-                          <div className="bg-white p-4 rounded-lg border shadow-sm">
-                            <div className="flex justify-between items-center mb-1">
-                              <h3 className="font-medium text-gray-800">
-                                Ciclo {ciclo.ciclo}
-                              </h3>
-                              <span className="text-xs text-gray-500">
-                                {formatearFecha(ciclo.fecha_inicio).split(' ')[0]}
-                              </span>
-                            </div>
-
-                            <div className="flex justify-between items-center mb-3">
-                              <Badge className={obtenerColorEstado(ciclo.resultado)}>
-                                {ciclo.resultado === 'solicita_cambios'
-                                  ? 'Solicita Cambios'
-                                  : ciclo.resultado.charAt(0).toUpperCase() + ciclo.resultado.slice(1)}
-                              </Badge>
-                              
-                              <span className="text-xs text-gray-500">
-                                {formatearFecha(ciclo.fecha_fin).split(' ')[0]}
-                              </span>
+                      {[...datos.ciclos_revision].reverse().map((ciclo, index) => {
+                        // Determinamos el color del marcador según el resultado
+                        const colorMarcador = ciclo.resultado === 'aprobado' 
+                          ? 'border-green-500 bg-green-100' 
+                          : ciclo.resultado === 'rechazado' 
+                            ? 'border-red-500 bg-red-100' 
+                            : ciclo.resultado === 'solicita_cambios' 
+                              ? 'border-orange-500 bg-orange-100' 
+                              : 'border-blue-500 bg-blue-100';
+                            
+                        // Determinamos el color del borde izquierdo de la tarjeta
+                        const colorBordeTarjeta = ciclo.resultado === 'aprobado' 
+                          ? 'border-l-green-500' 
+                          : ciclo.resultado === 'rechazado' 
+                            ? 'border-l-red-500' 
+                            : ciclo.resultado === 'solicita_cambios' 
+                              ? 'border-l-orange-500' 
+                              : 'border-l-blue-500';
+                        
+                        return (
+                          <div key={ciclo.ciclo} className="relative">
+                            {/* Marcador en la línea */}
+                            <div className={`absolute left-[-18px] top-0 w-5 h-5 rounded-full border-2 z-10 ${colorMarcador}`}>
+                              {obtenerIconoResultado(ciclo.resultado)}
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div className="flex items-center gap-1">
-                                <FileText size={12} className="text-gray-500" />
-                                <span className="text-gray-700">
-                                  <span className="font-medium">Revisiones:</span> {ciclo.revisiones}
-                                </span>
+                            {/* Tarjeta del ciclo con borde izquierdo coloreado */}
+                            <div className={`bg-white p-4 rounded-lg border border-l-4 shadow-sm ${colorBordeTarjeta}`}>
+                              <div className="flex justify-between items-center mb-3">
+                                <h3 className="font-medium text-gray-800">
+                                  Ciclo {ciclo.ciclo}
+                                </h3>
+                                <Badge className={obtenerColorEstado(ciclo.resultado)}>
+                                  {ciclo.resultado === 'solicita_cambios'
+                                    ? 'Solicita Cambios'
+                                    : ciclo.resultado === 'en_revision'
+                                      ? 'En Revisión'  
+                                      : ciclo.resultado.charAt(0).toUpperCase() + ciclo.resultado.slice(1)}
+                                </Badge>
                               </div>
                               
-                              <div className="flex items-center gap-1">
-                                <Clock size={12} className="text-gray-500" />
-                                <span className="text-gray-700">
-                                  <span className="font-medium">Duración:</span>{' '}
-                                  {
-                                    new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime() > 0
-                                      ? formatearDias((new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime()) / (1000 * 60 * 60 * 24))
-                                      : 'Mismo día'
-                                  }
-                                </span>
+                              <div className="grid grid-cols-1 gap-2 text-sm">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600">Inicio:</span>
+                                  <span className="text-gray-800 font-medium">
+                                    {formatearFecha(ciclo.fecha_inicio).split(' ')[0]}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600">Finalización:</span>
+                                  <span className="text-gray-800 font-medium">
+                                    {formatearFecha(ciclo.fecha_fin).split(' ')[0]}
+                                  </span>
+                                </div>
+                                
+                                <Separator className="my-2" />
+                                
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1">
+                                    <FileText size={14} className="text-gray-500" />
+                                    <span className="text-gray-700">
+                                      Revisiones: <span className="font-medium">{ciclo.revisiones}</span>
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-1">
+                                    <Clock size={14} className="text-gray-500" />
+                                    <span className="text-gray-700">
+                                      <span className="font-medium">
+                                        {
+                                          new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime() > 0
+                                            ? formatearDias((new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime()) / (1000 * 60 * 60 * 24))
+                                            : 'Mismo día'
+                                        }
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </CardContent>

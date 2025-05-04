@@ -90,7 +90,10 @@ function ContenidoExito() {
           ¡Publicación enviada exitosamente!
         </h1>
         <p className="text-gray-600 mb-6">
-          Tu publicación ha sido enviada para revisión. Te comentaremos cualquier actualización.
+          Tu publicación ha sido enviada para revisión.
+        </p>
+        <p className="text-gray-600 mb-6">
+          Puedes ver el estado de tu publicación en la sección de "Administrar mis Publicaciones"
         </p>
         <div className="space-y-3">
           <Button

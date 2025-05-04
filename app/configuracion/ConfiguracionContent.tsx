@@ -237,7 +237,7 @@ const ConfiguracionContent = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
-        <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
+      <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
           Configuración de la cuenta
         </h1>
 

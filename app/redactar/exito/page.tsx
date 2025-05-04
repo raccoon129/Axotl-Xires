@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import confetti from 'canvas-confetti';
 import { motion } from 'framer-motion';
@@ -24,6 +23,9 @@ function ContenidoExito() {
       router.replace('/redactar');
       return;
     }
+
+    // Desplazar automáticamente hasta arriba
+    window.scrollTo(0, 0);
 
     setMounted(true);
     document.title = "Publicación Enviada - Axotl Xires";
@@ -79,12 +81,16 @@ function ContenidoExito() {
         transition={{ delay: 0.2 }}
         className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center"
       >
-        <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+        <img 
+          src={`${process.env.NEXT_PUBLIC_ASSET_URL}/logoMorado2.png`} 
+          alt="Logo Axotl Xires" 
+          className="h-20 mx-auto mb-4"
+        />
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           ¡Publicación enviada exitosamente!
         </h1>
         <p className="text-gray-600 mb-6">
-          Tu publicación ha sido enviada para revisión. Te notificaremos cuando haya sido revisada.
+          Tu publicación ha sido enviada para revisión. Te comentaremos cualquier actualización.
         </p>
         <div className="space-y-3">
           <Button

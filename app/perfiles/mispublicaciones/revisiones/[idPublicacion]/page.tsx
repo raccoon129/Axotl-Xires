@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import Tooltip from '@/components/global/Tooltip';
+
 import { useAuth } from '@/hooks/useAuth';
 import { 
   ArrowLeft, 
@@ -22,7 +24,12 @@ import {
   Eye,
   User
 } from 'lucide-react';
-
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
 // Tipos para la respuesta de la API
 interface Comentario {
   id_comentario: number;
@@ -244,18 +251,12 @@ const HistorialRevisionesPage = () => {
     <AuthGuard>
       <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
         {/* Banner superior */}
-        <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-purple-100 rounded-full p-2">
-              <FileText className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <h2 className="text-purple-700 font-medium">Historial de revisiones</h2>
-              <p className="text-purple-600 text-sm">
-                Aquí puedes ver todas las revisiones y comentarios de tu publicación a través del tiempo.
-              </p>
-            </div>
-          </div>
+        <div className="mb-6 flex items-center">
+          <Tooltip message="Aquí puedes ver todas las revisiones y comentarios de tu publicación a través del tiempo.">
+            <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 cursor-help">
+              Historial de Revisiones
+            </h1>
+          </Tooltip>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -385,30 +386,35 @@ const HistorialRevisionesPage = () => {
                 </p>
               ) : (
                 <div className="space-y-6">
-                  {datos?.revisiones.map((revision) => (
-                    <Card key={revision.id_revision} className="border-l-4 border-l-gray-300">
+                  {/* Revisión más reciente (Actual) */}
+                  {datos?.revisiones && datos.revisiones.length > 0 && (
+                    <Card className="border-l-4 border-l-blue-500">
                       <CardHeader className="pb-2">
                         <div className="flex justify-between items-start">
                           <div>
                             <CardTitle className="text-base flex items-center gap-2">
-                              <span className="text-gray-800">{revision.detalle_revision}</span>
+                              <span className="text-gray-800">{datos.revisiones[0].detalle_revision}</span>
                               
-                              {revision.aprobado === true && (
+                              <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                                Actual
+                              </Badge>
+                              
+                              {datos.revisiones[0].aprobado === true && (
                                 <Badge className="bg-green-100 text-green-700 border-green-200">
                                   <CheckCircle size={12} className="mr-1" />
                                   Aprobada
                                 </Badge>
                               )}
                               
-                              {revision.aprobado === false && (
+                              {datos.revisiones[0].aprobado === false && (
                                 <Badge className="bg-red-100 text-red-700 border-red-200">
                                   <X size={12} className="mr-1" />
                                   Rechazada
                                 </Badge>
                               )}
                               
-                              {revision.aprobado === null && (
-                                <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+                              {datos.revisiones[0].aprobado === null && (
+                                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100 hover:text-orange-700">
                                   <Clock size={12} className="mr-1" />
                                   Solicita cambios
                                 </Badge>
@@ -417,35 +423,35 @@ const HistorialRevisionesPage = () => {
                             
                             <CardDescription className="flex items-center gap-1 mt-1">
                               <CalendarIcon size={12} />
-                              <span>{revision.fecha_revision_formateada || formatearFecha(revision.fecha_creacion)}</span>
+                              <span>{datos.revisiones[0].fecha_revision_formateada || formatearFecha(datos.revisiones[0].fecha_creacion)}</span>
                             </CardDescription>
                           </div>
                           
                           <div className="flex items-center gap-1 text-sm text-gray-600 bg-gray-50 px-2 py-1 rounded">
                             <User size={14} />
-                            <span>{revision.revisor}</span>
+                            <span>{datos.revisiones[0].revisor}</span>
                           </div>
                         </div>
                       </CardHeader>
                       <CardContent>
                         {/* Descripción de la revisión */}
-                        {revision.descripcion_revision && (
+                        {datos.revisiones[0].descripcion_revision && (
                           <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
                             <p className="text-sm text-gray-700">
-                              {revision.descripcion_revision}
+                              {datos.revisiones[0].descripcion_revision}
                             </p>
                           </div>
                         )}
 
-                        {/* Comentarios - Cada revisión tiene un comentario individual */}
-                        {revision.comentarios && revision.comentarios.length > 0 ? (
+                        {/* Comentarios */}
+                        {datos.revisiones[0].comentarios && datos.revisiones[0].comentarios.length > 0 ? (
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 mb-2">
                               <MessageCircle size={16} className="text-blue-500" />
                               <h4 className="font-medium text-sm text-blue-700">Comentario</h4>
                             </div>
                             
-                            {revision.comentarios.map((comentario) => (
+                            {datos.revisiones[0].comentarios.map((comentario) => (
                               <div 
                                 key={comentario.id_comentario} 
                                 className="bg-blue-50 rounded-lg p-3 border border-blue-200"
@@ -470,7 +476,104 @@ const HistorialRevisionesPage = () => {
                         )}
                       </CardContent>
                     </Card>
-                  ))}
+                  )}
+
+                  {/* Historial de revisiones (Acordeón) */}
+                  {datos?.revisiones && datos.revisiones.length > 1 && (
+                    <div className="mt-8">
+                      <h3 className="text-lg font-medium text-gray-700 mb-3">Historial de revisiones</h3>
+                      <div className="space-y-3">
+                        {datos.revisiones.slice(1).map((revision) => (
+                          <Accordion 
+                            type="single" 
+                            collapsible 
+                            key={revision.id_revision}
+                            className="border rounded-md"
+                          >
+                            <AccordionItem value="item-1" className="border-none">
+                              <AccordionTrigger className="px-4 py-3 hover:bg-gray-50">
+                                <div className="flex items-center gap-2 text-left">
+                                  <span className="text-sm font-medium">{revision.detalle_revision}</span>
+                                  
+                                  {revision.aprobado === true && (
+                                    <Badge className="bg-green-100 text-green-700 border-green-200">
+                                      <CheckCircle size={12} className="mr-1" />
+                                      Aprobada
+                                    </Badge>
+                                  )}
+                                  
+                                  {revision.aprobado === false && (
+                                    <Badge className="bg-red-100 text-red-700 border-red-200">
+                                      <X size={12} className="mr-1" />
+                                      Rechazada
+                                    </Badge>
+                                  )}
+                                  
+                                  {revision.aprobado === null && (
+                                    <Badge className="bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100 hover:text-orange-700">
+                                      <Clock size={12} className="mr-1" />
+                                      Solicita cambios
+                                    </Badge>
+                                  )}
+                                  
+                                  <span className="text-xs text-gray-500 ml-auto">
+                                    {revision.fecha_revision_formateada || formatearFecha(revision.fecha_creacion)}
+                                  </span>
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent className="px-4 pb-4">
+                                <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
+                                  <User size={14} />
+                                  <span>Revisado por: {revision.revisor}</span>
+                                </div>
+                                
+                                {/* Descripción de la revisión */}
+                                {revision.descripcion_revision && (
+                                  <div className="mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <p className="text-sm text-gray-700">
+                                      {revision.descripcion_revision}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {/* Comentarios */}
+                                {revision.comentarios && revision.comentarios.length > 0 ? (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <MessageCircle size={16} className="text-blue-500" />
+                                      <h4 className="font-medium text-sm text-blue-700">Comentario</h4>
+                                    </div>
+                                    
+                                    {revision.comentarios.map((comentario) => (
+                                      <div 
+                                        key={comentario.id_comentario} 
+                                        className="bg-blue-50 rounded-lg p-3 border border-blue-200"
+                                      >
+                                        <div className="flex items-start justify-between mb-2">
+                                          <div className="flex items-center gap-1 text-xs font-medium text-blue-700">
+                                            <User size={12} />
+                                            {comentario.autor_comentario}
+                                          </div>
+                                          <span className="text-xs text-gray-500">
+                                            {comentario.fecha_comentario_formateada || formatearFecha(comentario.fecha_creacion)}
+                                          </span>
+                                        </div>
+                                        <p className="text-sm text-gray-700">{comentario.contenido}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-gray-500 italic border border-dashed border-gray-200 p-3 rounded-lg text-center">
+                                    No hay comentarios en esta revisión.
+                                  </div>
+                                )}
+                              </AccordionContent>
+                            </AccordionItem>
+                          </Accordion>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -544,97 +647,71 @@ const HistorialRevisionesPage = () => {
               </CardContent>
             </Card>
             
-            {/* Línea de tiempo mejorada */}
+            {/* Línea de tiempo simplificada */}
             {datos?.ciclos_revision && datos.ciclos_revision.length > 0 && (
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">Línea de Tiempo</CardTitle>
+                  <CardDescription>Historial de ciclos de revisión</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="relative pl-6">
                     {/* Línea vertical continua */}
                     <div className="absolute left-2.5 top-0 bottom-0 w-[1px] bg-gray-200"></div>
                     
-                    <div className="space-y-6 relative">
-                      {/* Invertimos el orden para que la más reciente esté arriba */}
-                      {[...datos.ciclos_revision].reverse().map((ciclo, index) => {
-                        // Determinamos el color del marcador según el resultado
-                        const colorMarcador = ciclo.resultado === 'aprobado' 
-                          ? 'border-green-500 bg-green-100' 
-                          : ciclo.resultado === 'rechazado' 
-                            ? 'border-red-500 bg-red-100' 
-                            : ciclo.resultado === 'solicita_cambios' 
-                              ? 'border-orange-500 bg-orange-100' 
-                              : 'border-blue-500 bg-blue-100';
-                            
-                        // Determinamos el color del borde izquierdo de la tarjeta
-                        const colorBordeTarjeta = ciclo.resultado === 'aprobado' 
-                          ? 'border-l-green-500' 
-                          : ciclo.resultado === 'rechazado' 
-                            ? 'border-l-red-500' 
-                            : ciclo.resultado === 'solicita_cambios' 
-                              ? 'border-l-orange-500' 
-                              : 'border-l-blue-500';
+                    <div className="space-y-5 relative">
+                      {/* Mostramos los ciclos con el más reciente arriba */}
+                      {[...datos.ciclos_revision].reverse().map((ciclo) => {
+                        // Estado simplificado
+                        const estado = 
+                          ciclo.resultado === 'solicita_cambios' ? 'Cambios solicitados' :
+                          ciclo.resultado === 'aprobado' ? 'Aprobado' :
+                          ciclo.resultado === 'rechazado' ? 'Rechazado' : 'En revisión';
+                        
+                        // Color según estado
+                        const colorEstado = 
+                          ciclo.resultado === 'solicita_cambios' ? 'text-orange-600 bg-orange-50 border-orange-200' :
+                          ciclo.resultado === 'aprobado' ? 'text-green-600 bg-green-50 border-green-200' :
+                          ciclo.resultado === 'rechazado' ? 'text-red-600 bg-red-50 border-red-200' : 
+                          'text-blue-600 bg-blue-50 border-blue-200';
+                        
+                        // Cálculo de duración
+                        const duracion = 
+                          new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime() > 0
+                            ? formatearDias((new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime()) / (1000 * 60 * 60 * 24))
+                            : 'Mismo día';
                         
                         return (
                           <div key={ciclo.ciclo} className="relative">
-                            {/* Marcador en la línea */}
-                            <div className={`absolute left-[-18px] top-0 w-5 h-5 rounded-full border-2 z-10 ${colorMarcador}`}>
-                              {obtenerIconoResultado(ciclo.resultado)}
-                            </div>
+                            {/* Marcador circular simple */}
+                            <div className="absolute left-[-18px] top-1 w-4 h-4 rounded-full border bg-white z-10 border-gray-400"></div>
                             
-                            {/* Tarjeta del ciclo con borde izquierdo coloreado */}
-                            <div className={`bg-white p-4 rounded-lg border border-l-4 shadow-sm ${colorBordeTarjeta}`}>
-                              <div className="flex justify-between items-center mb-3">
-                                <h3 className="font-medium text-gray-800">
-                                  Ciclo {ciclo.ciclo}
-                                </h3>
-                                <Badge className={obtenerColorEstado(ciclo.resultado)}>
-                                  {ciclo.resultado === 'solicita_cambios'
-                                    ? 'Solicita Cambios'
-                                    : ciclo.resultado === 'en_revision'
-                                      ? 'En Revisión'  
-                                      : ciclo.resultado.charAt(0).toUpperCase() + ciclo.resultado.slice(1)}
+                            {/* Contenido simple */}
+                            <div className="bg-white rounded-md">
+                              <div className="flex items-center gap-3">
+                                <span className="text-lg font-semibold text-gray-700">{ciclo.ciclo}</span>
+                                <Badge className={`${colorEstado}`}>
+                                  {estado}
                                 </Badge>
                               </div>
                               
-                              <div className="grid grid-cols-1 gap-2 text-sm">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-gray-600">Inicio:</span>
-                                  <span className="text-gray-800 font-medium">
-                                    {formatearFecha(ciclo.fecha_inicio).split(' ')[0]}
-                                  </span>
+                              <div className="mt-2 text-sm text-gray-600">
+                                <div className="flex items-center gap-2">
+                                  <CalendarIcon size={14} /> 
+                                  {formatearFecha(ciclo.fecha_inicio).split(' ')[0]} 
+                                  <span className="text-gray-400">→</span>
+                                  {formatearFecha(ciclo.fecha_fin).split(' ')[0]}
                                 </div>
                                 
-                                <div className="flex items-center justify-between">
-                                  <span className="text-gray-600">Finalización:</span>
-                                  <span className="text-gray-800 font-medium">
-                                    {formatearFecha(ciclo.fecha_fin).split(' ')[0]}
-                                  </span>
-                                </div>
-                                
-                                <Separator className="my-2" />
-                                
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between mt-1">
                                   <div className="flex items-center gap-1">
-                                    <FileText size={14} className="text-gray-500" />
-                                    <span className="text-gray-700">
-                                      Revisiones: <span className="font-medium">{ciclo.revisiones}</span>
-                                    </span>
+                                    <Clock size={14} /> 
+                                    <span>{duracion}</span>
                                   </div>
                                   
-                                  <div className="flex items-center gap-1">
-                                    <Clock size={14} className="text-gray-500" />
-                                    <span className="text-gray-700">
-                                      <span className="font-medium">
-                                        {
-                                          new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime() > 0
-                                            ? formatearDias((new Date(ciclo.fecha_fin).getTime() - new Date(ciclo.fecha_inicio).getTime()) / (1000 * 60 * 60 * 24))
-                                            : 'Mismo día'
-                                        }
-                                      </span>
-                                    </span>
-                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    {ciclo.revisiones} revisión{ciclo.revisiones !== 1 ? 'es' : ''}
+                                  </span>
                                 </div>
                               </div>
                             </div>

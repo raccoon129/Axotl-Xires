@@ -24,7 +24,8 @@ export default function PaginaFormatoHTML() {
         if (respuesta.ok) {
           const data = await respuesta.json();
           setTituloPublicacion(data.datos.titulo);
-          document.title = `${data.datos.titulo} - Formato HTML - Axotl Xires`;
+          // Actualizado el formato del título de la página
+          document.title = `${data.datos.titulo} en HTML con formato - Axotl Xires`;
         }
       } catch (error) {
         console.error('Error al obtener el título:', error);
@@ -74,7 +75,7 @@ export default function PaginaFormatoHTML() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="sticky top-0 z-10 bg-white shadow-md border-b border-gray-200">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
@@ -108,7 +109,7 @@ export default function PaginaFormatoHTML() {
             )}
             <iframe 
               src={`${process.env.NEXT_PUBLIC_API_URL}/api/visualizar/${idPublicacion}`}
-              className="w-full min-h-[1900px] border-0"
+              className="w-full min-h-[2900px] border-0"
               onLoad={() => setIframeLoaded(true)}
               title={`${tituloPublicacion} - Formato HTML`}
             />

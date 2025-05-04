@@ -11,25 +11,25 @@ const Footer = () => {
               Axotl Xires Publicaciones
             </h3>
             <h4 className="text-lg mb-4">
-              Plataforma para la divulgación de artículos científicos y
+              Plataforma para la divulgación y redacción de artículos científicos y
               académicos.
             </h4>
-            <h6>Alpha 0.0.1</h6>
+            <h6>Beta 0.0.0</h6>
           </div>
           <div className="flex flex-col space-y-2">
-            <Link href="/axotl/terminos" className="hover:text-purple-600">
+            <Link href="https://ayuda.axotl.org/terminos-condiciones" className="hover:text-purple-600">
               Términos y Condiciones
             </Link>
-            <Link href="/axotl/contacto" className="hover:text-purple-600">
+            <Link href="https://ayuda.axotl.org/contacto" className="hover:text-purple-600">
               Contacto
             </Link>
-            <Link href="/axotl/copyright" className="hover:text-purple-600">
+            <Link href="https://ayuda.axotl.org/copyright" className="hover:text-purple-600">
               Copyright
             </Link>
-            <Link href="/axotl/nosotros" className="hover:text-purple-600">
+            <Link href="https://ayuda.axotl.org/nosotros" className="hover:text-purple-600">
               Sobre Nosotros
             </Link>
-            <Link href="/axotl" className="hover:text-purple-600">
+            <Link href="https://ayuda.axotl.org/acerca-de" className="hover:text-purple-600">
               Acerca de
             </Link>
             <Link
@@ -51,7 +51,7 @@ const Footer = () => {
             </h4>
             <div className="flex space-x-4">
               <a
-                href="https://linkedin.com"
+                href="https://www.linkedin.com/company/axotl-xires/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-purple-600"
@@ -59,7 +59,7 @@ const Footer = () => {
                 <Linkedin size={24} />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/axotl-xires"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-purple-600"
@@ -67,7 +67,7 @@ const Footer = () => {
                 <Instagram size={24} />
               </a>
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61569988029422"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-purple-600"

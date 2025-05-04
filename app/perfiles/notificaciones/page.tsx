@@ -467,12 +467,12 @@ export default function NotificacionesPage() {
     <AuthGuard>
       <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 flex items-center">
-            <BellIcon className="mr-3 h-7 w-7 text-purple-600" />
-            Centro de Notificaciones
+          <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6 flex items-center">
+        <BellIcon className="h-7 w-7 text-purple-600 mr-3" />
+        Centro de Notificaciones
           </h1>
           <p className="text-gray-600">
-            Mantente al día con toda la actividad relacionada con tu cuenta
+        Mantente al día con toda la actividad relacionada con tu cuenta
           </p>
         </div>
 

@@ -1,21 +1,18 @@
-// app/perfiles/[idUsuario]/perfilUsuarioClient.tsx
-// Este archivo se encarga de cargar el contenido de cada usuario respondiendo a
-// una petición de la API, recuperndo su el ID del perfil
-
 "use client";
-import { Publicacion } from "@/type/typePublicacion";
 
+import { Publicacion } from "@/type/typePublicacion";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import TarjetaPublicacionPerfil from "@/components/publicacion/TarjetaPublicacionPerfil";
-import { useRouter } from "next/navigation";
-import Head from "next/head";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, UserX } from "lucide-react";
 
 const PerfilUsuarioClient = () => {
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userNotFound, setUserNotFound] = useState(false); // Nuevo estado para usuario no encontrado
   const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
   const [isLoadingPublicaciones, setIsLoadingPublicaciones] = useState(true);
   const router = useRouter();
@@ -31,12 +28,21 @@ const PerfilUsuarioClient = () => {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/detalles/${idUsuario}`
         );
+        
         if (response.ok) {
           const data = await response.json();
           setUserData(data.datos);
+        } else if (response.status === 404) {
+          // Usuario no encontrado
+          setUserNotFound(true);
+          document.title = "Usuario no encontrado - Axotl Xires";
+        } else {
+          // Otros errores
+          console.error("Error al obtener los datos del usuario:", response.statusText);
         }
       } catch (error) {
         console.error("Error al cargar los datos del usuario:", error);
+        setUserNotFound(true); // En caso de error, asumimos que el usuario no existe
       } finally {
         setIsLoading(false);
       }
@@ -136,6 +142,22 @@ const PerfilUsuarioClient = () => {
     if (diferenciaDias === 2) return "Antes de ayer";
     return formatearFecha(fecha);
   };
+
+  // Si el usuario no existe, mostramos un mensaje amigable
+  if (userNotFound) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
+          <UserX size={64} className="mx-auto text-gray-400 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Usuario no encontrado</h2>
+          <p className="text-gray-600 mb-6">
+            El perfil de usuario que estás buscando no existe o ha sido deshabilitado.
+          </p>
+ 
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">

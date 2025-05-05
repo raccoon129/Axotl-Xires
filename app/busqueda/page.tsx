@@ -92,9 +92,9 @@ function ContenidoBusqueda() {
     }
   };
 
-  // Componente SkeletonResultado
+  // Componente SkeletonResultado - modificarlo para que coincida con la estructura y dimensiones finales
   const SkeletonResultado = () => (
-    <div className="flex gap-4 bg-white p-6 rounded-lg shadow animate-pulse">
+    <div className="flex gap-4 bg-white p-6 rounded-lg shadow">
       <div className="flex-shrink-0">
         <div className="h-32 w-24 bg-gray-200 rounded" />
       </div>
@@ -116,7 +116,7 @@ function ContenidoBusqueda() {
   // Si no está montado, mostrar un estado inicial consistente
   if (!isMounted) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
         <div className="space-y-3 mb-8">
           <Skeleton className="h-8 w-2/3" />
           <Skeleton className="h-5 w-48" />
@@ -216,7 +216,7 @@ function ContenidoBusqueda() {
   // Si hay query, mostrar skeleton mientras carga
   if (query && cargando) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
         <div className="space-y-3 mb-8 animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-2/3" />
           <div className="h-5 bg-gray-200 rounded w-48" />
@@ -241,7 +241,7 @@ function ContenidoBusqueda() {
   // Renderizado normal cuando hay query
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
-      <h1 className="text-2xl font-bold mb-2">
+      <h1 className="text-2xl md:text-3xl font-semibold text-gray-700 mb-6">
         Resultados de búsqueda para "{query}"
       </h1>
       <p className="text-gray-600 mb-8">

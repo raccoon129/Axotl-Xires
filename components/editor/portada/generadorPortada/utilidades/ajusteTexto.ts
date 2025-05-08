@@ -8,7 +8,7 @@ import { Dimensiones } from './transformaciones';
 
 /**
  * Dibuja texto en el canvas con las propiedades especificadas
- * Incluye soporte para fondos, rotación y alineación
+ * Incluye soporte para fondos, rotación, alineación y ajuste automático con saltos de línea
  */
 export const dibujarTexto = (
   elemento: ElementoTexto,
@@ -19,12 +19,6 @@ export const dibujarTexto = (
   
   // No dibujar si no hay texto
   if (!elemento.texto) return;
-  
-  // Configurar estilos de texto
-  contexto.font = `${elemento.tamano}px ${elemento.fuente || 'sans-serif'}`;
-  contexto.fillStyle = elemento.color;
-  contexto.textAlign = elemento.alineacion;
-  contexto.textBaseline = 'middle'; // Alinear verticalmente al centro
   
   // Calcular posición en píxeles
   const x = (elemento.posicion.x / 100) * ancho;
@@ -39,70 +33,184 @@ export const dibujarTexto = (
     contexto.rotate((elemento.rotacion * Math.PI) / 180);
     contexto.translate(-x, -y);
   }
+
+  // Calcular el ancho máximo disponible según la alineación
+  const margen = 20; // margen de seguridad en píxeles
+  let anchoMaximo: number;
   
-  // Si el fondo está activo, dibujarlo primero
+  if (elemento.alineacion === 'center') {
+    anchoMaximo = Math.min(x * 2, (ancho - x) * 2) - margen * 2;
+  } else if (elemento.alineacion === 'left') {
+    anchoMaximo = ancho - x - margen;
+  } else { // 'right'
+    anchoMaximo = x - margen;
+  }
+  
+  // Ajustar tamaño de fuente y calcular líneas
+  let tamanoFuente = elemento.tamano;
+  let lineas: string[] = [];
+  
+  // Intentar ajustar hasta un tamaño mínimo razonable
+  do {
+    contexto.font = `${tamanoFuente}px ${elemento.fuente || 'sans-serif'}`;
+    lineas = dividirTextoEnLineas(elemento.texto, contexto, anchoMaximo);
+    
+    const alturaLinea = tamanoFuente * 1.2; // Factor de interlineado
+    const alturaTotal = lineas.length * alturaLinea;
+    const alturaMaxima = alto * 0.3; // Máximo 30% del alto del canvas
+    
+    // Si el texto cabe o llegamos al tamaño mínimo, salir
+    if (alturaTotal <= alturaMaxima || tamanoFuente <= 12) break;
+    
+    // Reducir tamaño gradualmente
+    tamanoFuente = Math.max(12, tamanoFuente - 2);
+    
+  } while (tamanoFuente > 12);
+  
+  // Configurar estilos de texto finales
+  contexto.font = `${tamanoFuente}px ${elemento.fuente || 'sans-serif'}`;
+  contexto.fillStyle = elemento.color;
+  contexto.textAlign = elemento.alineacion;
+  contexto.textBaseline = 'middle';
+  
+  // Calcular altura total del bloque de texto
+  const alturaLinea = tamanoFuente * 1.2;
+  const alturaTextoTotal = lineas.length * alturaLinea;
+  
+  // Dibujar fondo si está activo
   if (elemento.fondoActivo) {
-    // Medir el ancho del texto
-    const medidaTexto = contexto.measureText(elemento.texto);
-    const anchoTexto = medidaTexto.width;
-    // Una mejor aproximación de la altura del texto (varía según la fuente)
-    const alturaTexto = elemento.tamano * 0.7; 
-    
-    // Calcular dimensiones del fondo (con padding)
     const padding = elemento.paddingFondo || 0;
-    let xFondo = x;
-    const yFondo = y - (alturaTexto / 2) - padding;
-    const anchoFondo = anchoTexto + (padding * 2);
-    const altoFondo = alturaTexto + (padding * 2);
     
-    // Ajustar posición x según la alineación
+    // Medir el ancho máximo de todas las líneas
+    let anchoMaximoTexto = 0;
+    lineas.forEach(linea => {
+      const medida = contexto.measureText(linea);
+      anchoMaximoTexto = Math.max(anchoMaximoTexto, medida.width);
+    });
+    
+    // Calcular posición del fondo según alineación
+    let xFondo = x;
     if (elemento.alineacion === 'center') {
-      xFondo = x - (anchoTexto / 2) - padding;
+      xFondo = x - (anchoMaximoTexto / 2) - padding;
     } else if (elemento.alineacion === 'right') {
-      xFondo = x - anchoTexto - padding;
+      xFondo = x - anchoMaximoTexto - padding;
     } else { // 'left'
       xFondo = x - padding;
     }
     
-    // Guardar la opacidad global actual
+    const yFondo = y - (alturaTextoTotal / 2) - padding;
+    const anchoFondo = anchoMaximoTexto + (padding * 2);
+    const altoFondo = alturaTextoTotal + (padding * 2);
+    
+    // Guardar opacidad y dibujar fondo
     const opacidadOriginal = contexto.globalAlpha;
-    
-    // Aplicar opacidad para el fondo
     contexto.globalAlpha = elemento.opacidadFondo;
-    
-    // Dibujar el fondo con esquinas redondeadas si es necesario
     contexto.fillStyle = elemento.colorFondo;
     
+    // Dibujar con bordes redondeados si corresponde
     if (elemento.bordeRedondeado && elemento.bordeRedondeado > 0) {
-      // Dibujar rectángulo con esquinas redondeadas
-      const radio = elemento.bordeRedondeado;
-      contexto.beginPath();
-      contexto.moveTo(xFondo + radio, yFondo);
-      contexto.lineTo(xFondo + anchoFondo - radio, yFondo);
-      contexto.arcTo(xFondo + anchoFondo, yFondo, xFondo + anchoFondo, yFondo + radio, radio);
-      contexto.lineTo(xFondo + anchoFondo, yFondo + altoFondo - radio);
-      contexto.arcTo(xFondo + anchoFondo, yFondo + altoFondo, xFondo + anchoFondo - radio, yFondo + altoFondo, radio);
-      contexto.lineTo(xFondo + radio, yFondo + altoFondo);
-      contexto.arcTo(xFondo, yFondo + altoFondo, xFondo, yFondo + altoFondo - radio, radio);
-      contexto.lineTo(xFondo, yFondo + radio);
-      contexto.arcTo(xFondo, yFondo, xFondo + radio, yFondo, radio);
-      contexto.closePath();
-      contexto.fill();
+      dibujarRectanguloRedondeado(
+        contexto, 
+        xFondo, 
+        yFondo, 
+        anchoFondo, 
+        altoFondo, 
+        elemento.bordeRedondeado
+      );
     } else {
-      // Dibujar rectángulo normal
       contexto.fillRect(xFondo, yFondo, anchoFondo, altoFondo);
     }
     
-    // Restaurar la opacidad original para el texto
     contexto.globalAlpha = opacidadOriginal;
   }
   
-  // Dibujar el texto
+  // Dibujar cada línea de texto
   contexto.fillStyle = elemento.color;
-  contexto.fillText(elemento.texto, x, y);
+  const yInicial = y - (alturaTextoTotal / 2) + (alturaLinea / 2);
+  
+  lineas.forEach((linea, indice) => {
+    contexto.fillText(linea, x, yInicial + (indice * alturaLinea));
+  });
   
   // Restaurar el estado
   contexto.restore();
+};
+
+/**
+ * Divide un texto en líneas que se ajustan al ancho máximo
+ */
+const dividirTextoEnLineas = (
+  texto: string,
+  contexto: CanvasRenderingContext2D,
+  anchoMaximo: number
+): string[] => {
+  // Si el texto cabe en una línea, devolverlo directamente
+  if (contexto.measureText(texto).width <= anchoMaximo) {
+    return [texto];
+  }
+  
+  const palabras = texto.split(' ');
+  const lineas: string[] = [];
+  let lineaActual = '';
+  
+  for (const palabra of palabras) {
+    const lineaConPalabra = lineaActual ? `${lineaActual} ${palabra}` : palabra;
+    
+    if (contexto.measureText(lineaConPalabra).width <= anchoMaximo) {
+      lineaActual = lineaConPalabra;
+    } else {
+      // Si la línea actual tiene contenido, guardarla
+      if (lineaActual) {
+        lineas.push(lineaActual);
+        lineaActual = palabra;
+      } else {
+        // La palabra sola es demasiado larga, dividirla por caracteres
+        let palabraTemp = '';
+        for (const caracter of palabra) {
+          const prueba = palabraTemp + caracter;
+          if (contexto.measureText(prueba).width <= anchoMaximo) {
+            palabraTemp = prueba;
+          } else {
+            lineas.push(palabraTemp);
+            palabraTemp = caracter;
+          }
+        }
+        lineaActual = palabraTemp;
+      }
+    }
+  }
+  
+  // Añadir la última línea
+  if (lineaActual) {
+    lineas.push(lineaActual);
+  }
+  
+  return lineas;
+};
+
+/**
+ * Dibuja un rectángulo con esquinas redondeadas
+ */
+const dibujarRectanguloRedondeado = (
+  contexto: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  ancho: number,
+  alto: number,
+  radio: number
+) => {
+  contexto.beginPath();
+  contexto.moveTo(x + radio, y);
+  contexto.lineTo(x + ancho - radio, y);
+  contexto.arcTo(x + ancho, y, x + ancho, y + radio, radio);
+  contexto.lineTo(x + ancho, y + alto - radio);
+  contexto.arcTo(x + ancho, y + alto, x + ancho - radio, y + alto, radio);
+  contexto.lineTo(x + radio, y + alto);
+  contexto.arcTo(x, y + alto, x, y + alto - radio, radio);
+  contexto.lineTo(x, y + radio);
+  contexto.arcTo(x, y, x + radio, y, radio);
+  contexto.closePath();
+  contexto.fill();
 };
 
 /**

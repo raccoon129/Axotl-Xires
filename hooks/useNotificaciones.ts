@@ -127,21 +127,32 @@ export const useNotificaciones = () => {
         }
       );
 
+      // Si la respuesta no es exitosa, manejarlo sin lanzar error
       if (!respuesta.ok) {
-        throw new Error('Error al obtener cantidad de notificaciones no leídas');
+        console.warn(`Error en respuesta de API (código: ${respuesta.status}): notificaciones no leídas`);
+        return; // Salir sin cambiar el estado
       }
 
       const datos = await respuesta.json();
       
-      // Actualizar con la estructura correcta de la respuesta
-      if (datos.status === 'success' && datos.datos && typeof datos.datos.no_leidas === 'number') {
-        setNoLeidas(datos.datos.no_leidas);
+      // Verificar estructura completa y manejar caso NULL
+      if (
+        datos?.status === 'success' && 
+        datos?.datos && 
+        datos.datos.hasOwnProperty('no_leidas') && 
+        datos.datos.no_leidas !== null
+      ) {
+        // Solo actualizar si el valor es un número válido
+        if (typeof datos.datos.no_leidas === 'number' && !isNaN(datos.datos.no_leidas)) {
+          setNoLeidas(datos.datos.no_leidas);
+        }
       } else {
-        console.warn('Respuesta inesperada de la API de notificaciones no leídas:', datos);
+        console.info('API devolvió estructura incompleta o valor nulo para notificaciones no leídas');
+        // No actualizar el contador si los datos son inválidos
       }
     } catch (err) {
       console.error('Error al obtener cantidad de notificaciones no leídas:', err);
-      // En caso de error, mantener el valor actual
+      // En caso de error, mantener el valor actual (no hacer nada)
     }
   }, [isLoggedIn, idUsuario]);
 

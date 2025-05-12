@@ -96,14 +96,20 @@ export const useNotificaciones = () => {
 
   // Resto de funciones, asegurando que usen useCallback para evitar recreaciones
   const obtenerEnlaceNotificacion = useCallback((notif: any) => {
-    // Ejemplos de enlaces según el tipo de notificación
     switch (notif.tipo) {
       case 'comentario':
-        return `/publicaciones/${notif.id_referencia}`;
+        return `/publicaciones/${notif.id_referencia}#comentario-${notif.id_origen}`;
       case 'favorito':
         return `/publicaciones/${notif.id_referencia}`;
       case 'seguimiento':
         return `/perfil/${notif.id_origen}`;
+      case 'cambios_solicitados':
+        return `/perfiles/mispublicaciones/revisiones/${notif.id_referencia}`;
+      case 'revision_iniciada':
+        return `/perfiles/mispublicaciones/revisiones/${notif.id_referencia}`;
+      case 'moderacion':
+        // Si necesitas descomentar esta línea según lo que requieras
+        // return `/publicaciones/${notif.id_referencia}`;
       case 'sistema':
       default:
         return notif.id_referencia ? `/publicaciones/${notif.id_referencia}` : undefined;

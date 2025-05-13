@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
 import { RecortadorImagen } from './RecortadorImagen';
@@ -15,6 +15,7 @@ interface PropiedadesFotoPerfil {
   onImagenParaRecortar: (imagenSrc: string) => void;
   onActualizacionExitosa: () => Promise<void>;
   onNotificacion: (tipo: "excepcion" | "confirmacion" | "notificacion", titulo: string, contenido: string) => void;
+  fotoRecortada: File | null; // Nueva propiedad para recibir la foto del componente padre
 }
 
 export function FotoPerfil({
@@ -25,13 +26,14 @@ export function FotoPerfil({
   nombreFoto,
   onImagenParaRecortar,
   onActualizacionExitosa,
-  onNotificacion
+  onNotificacion,
+  fotoRecortada // Recibir la foto recortada directamente del padre
 }: PropiedadesFotoPerfil) {
   const [isLoading, setIsLoading] = useState(false);
   const [imagenParaRecortar, setImagenParaRecortar] = useState<string | null>(null);
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [timestamp, setTimestamp] = useState(Date.now());
-  const [fotoActual, setFotoActual] = useState<File | null>(null);
+  const [mostrarFotoLocal, setMostrarFotoLocal] = useState(false);
 
   const obtenerUrlFotoPerfil = () => {
     if (!nombreFoto || !idUsuario) {
@@ -39,6 +41,11 @@ export function FotoPerfil({
     }
     return `${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${nombreFoto}?t=${timestamp}`;
   };
+
+  // Reset del estado local cuando cambia nombreFoto (después de actualizar)
+  useEffect(() => {
+    setMostrarFotoLocal(false);
+  }, [nombreFoto]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,7 +70,6 @@ export function FotoPerfil({
   };
 
   const handleImagenRecortada = (file: File) => {
-    setFotoActual(file); // Guardar el archivo para enviarlo más tarde
     onFileChange(file);
     setImagenParaRecortar(null);
   };
@@ -78,7 +84,15 @@ export function FotoPerfil({
    */
   const actualizarFotoPerfil = async () => {
     // Verificamos que exista un ID de usuario y un archivo de foto para enviar
-    if (!idUsuario || !hayNuevaFoto || !fotoActual) return;
+    if (!idUsuario || !hayNuevaFoto || !fotoRecortada) {
+      // Mensaje de depuración para identificar qué falta
+      console.log("No se puede actualizar foto:", { 
+        idUsuario, 
+        hayNuevaFoto, 
+        tieneFotoRecortada: !!fotoRecortada 
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -87,7 +101,8 @@ export function FotoPerfil({
       
       // Creamos un objeto FormData para enviar el archivo
       const datosFormulario = new FormData();
-      datosFormulario.append('foto_perfil', fotoActual);
+      // Utilizamos la foto recortada que viene del componente padre
+      datosFormulario.append('foto_perfil', fotoRecortada);
       
       // Realizamos la petición PUT con el archivo
       const respuesta = await fetch(
@@ -96,9 +111,9 @@ export function FotoPerfil({
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`
-            // No incluimos 'Content-Type' porque FormData lo establece automáticamente con el boundary
+            // No incluimos 'Content-Type' porque FormData lo establece automáticamente
           },
-          body: datosFormulario // FormData para envío de archivos
+          body: datosFormulario
         }
       );
 
@@ -113,6 +128,9 @@ export function FotoPerfil({
       // Actualizamos el perfil en el contexto de autenticación
       await onActualizacionExitosa();
       
+      // Restablecer el estado para mostrar la nueva imagen del servidor
+      setMostrarFotoLocal(false);
+      
       // Actualizamos el timestamp para forzar la recarga de la imagen
       setTimestamp(Date.now());
       
@@ -123,6 +141,7 @@ export function FotoPerfil({
         datos.mensaje || "La foto de perfil se ha actualizado correctamente"
       );
     } catch (error) {
+      console.error('Error completo:', error);
       // Manejamos cualquier error que ocurra durante el proceso
       onNotificacion(
         "excepcion",
@@ -135,6 +154,13 @@ export function FotoPerfil({
     }
   };
 
+  // Al recibir un archivo recortado, mostrar la vista previa local
+  useEffect(() => {
+    if (fotoRecortada) {
+      setMostrarFotoLocal(true);
+    }
+  }, [fotoRecortada]);
+
   return (
     <>
       <section id="foto-perfil" className="bg-white p-6 rounded-lg shadow-lg">
@@ -144,7 +170,7 @@ export function FotoPerfil({
           </h2>
           <Button
             onClick={actualizarFotoPerfil}
-            disabled={isLoading || !hayNuevaFoto}
+            disabled={isLoading || !fotoRecortada}
             className="bg-blue-600 text-white"
           >
             {isLoading ? 'Guardando...' : 'Actualizar foto'}
@@ -153,11 +179,12 @@ export function FotoPerfil({
         <div className="flex flex-col items-center space-y-4">
           <div className="relative w-32 h-32">
             <Image
-              src={hayNuevaFoto ? fotoPreview : obtenerUrlFotoPerfil()}
+              src={mostrarFotoLocal && hayNuevaFoto ? fotoPreview : obtenerUrlFotoPerfil()}
               alt="Foto de perfil"
               fill
               className="rounded-full object-cover border-2 border-gray-200"
               unoptimized
+              key={`foto-perfil-${timestamp}`} // Forzar re-renderizado al cambiar timestamp
             />
           </div>
           <input
@@ -179,6 +206,11 @@ export function FotoPerfil({
           <p className="text-sm text-gray-500">
             JPG o PNG. Máximo 1MB.
           </p>
+          {fotoRecortada && mostrarFotoLocal && (
+            <p className="text-sm text-green-600 font-medium">
+              Nueva imagen seleccionada. Haz clic en "Actualizar foto" para guardar.
+            </p>
+          )}
         </div>
       </section>
 

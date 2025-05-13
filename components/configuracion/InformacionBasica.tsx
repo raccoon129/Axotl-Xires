@@ -130,6 +130,7 @@ export function InformacionBasica({
               onChange={onInputChange}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
+              placeholder='Ej: Ajoloberto Pérez García'
             />
           </Tooltip>
         </div>
@@ -145,6 +146,7 @@ export function InformacionBasica({
               onChange={onInputChange}
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
+              placeholder='Ej: Estudiante del estanque de biología'
             />
           </Tooltip>
         </div>
@@ -159,6 +161,7 @@ export function InformacionBasica({
             onChange={onInputChange}
             className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
             disabled={isLoading}
+            placeholder='Ej: correo@ejemplo.mx'
           />
         </div>
       </div>

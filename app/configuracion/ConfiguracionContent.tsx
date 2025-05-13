@@ -110,6 +110,7 @@ const ConfiguracionContent = () => {
   };
 
   const handleFileChange = (file: File) => {
+    //console.log("Recibido archivo recortado:", file.name, file.size, file.type); // Log para depuración
     setFotoPerfil(file);
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -177,7 +178,15 @@ const ConfiguracionContent = () => {
 
   // Wrapper para refreshProfile que siempre devuelve una Promise<void>
   const handleRefreshProfile = async (): Promise<void> => {
-    await refreshProfile();
+    try {
+      await refreshProfile();
+      // Si hay una foto recortada, limpiarla después de actualizar exitosamente
+      if (fotoPerfil) {
+        setFotoPerfil(null);
+      }
+    } catch (error) {
+      console.error('Error al actualizar perfil:', error);
+    }
     return Promise.resolve();
   };
 
@@ -467,6 +476,7 @@ const ConfiguracionContent = () => {
                 onImagenParaRecortar={handleImagenParaRecortar}
                 onActualizacionExitosa={handleRefreshProfile}
                 onNotificacion={mostrarNotificacion}
+                fotoRecortada={fotoPerfil} // Pasamos el archivo directamente al componente hijo
               />
             </motion.section>
 

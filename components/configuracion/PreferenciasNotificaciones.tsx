@@ -184,7 +184,7 @@ export function PreferenciasNotificaciones({
           <div className="space-y-0.5">
             <Label className="font-medium text-gray-700">Notificaciones por correo electrónico</Label>
             <p className="text-sm text-gray-500">
-              Recibe un correo cuando hay nuevas interacciones o actividad relevante
+              Recibe un correo cuando existan nuevas interacciones o actividad relevante
             </p>
           </div>
           <Switch

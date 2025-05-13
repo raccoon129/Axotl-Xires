@@ -8,28 +8,30 @@ import { toast } from 'react-hot-toast';
 
 interface PropiedadesFotoPerfil {
   fotoPreview: string;
-  isLoading: boolean;
   onFileChange: (file: File) => void;
-  onActualizar: () => void;
   hayNuevaFoto: boolean;
   idUsuario: string | null;
   nombreFoto: string | null;
   onImagenParaRecortar: (imagenSrc: string) => void;
+  onActualizacionExitosa: () => Promise<void>;
+  onNotificacion: (tipo: "excepcion" | "confirmacion" | "notificacion", titulo: string, contenido: string) => void;
 }
 
 export function FotoPerfil({
   fotoPreview,
-  isLoading,
   onFileChange,
-  onActualizar,
   hayNuevaFoto,
   idUsuario,
   nombreFoto,
-  onImagenParaRecortar
+  onImagenParaRecortar,
+  onActualizacionExitosa,
+  onNotificacion
 }: PropiedadesFotoPerfil) {
+  const [isLoading, setIsLoading] = useState(false);
   const [imagenParaRecortar, setImagenParaRecortar] = useState<string | null>(null);
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [timestamp, setTimestamp] = useState(Date.now());
+  const [fotoActual, setFotoActual] = useState<File | null>(null);
 
   const obtenerUrlFotoPerfil = () => {
     if (!nombreFoto || !idUsuario) {
@@ -61,6 +63,7 @@ export function FotoPerfil({
   };
 
   const handleImagenRecortada = (file: File) => {
+    setFotoActual(file); // Guardar el archivo para enviarlo más tarde
     onFileChange(file);
     setImagenParaRecortar(null);
   };
@@ -69,9 +72,67 @@ export function FotoPerfil({
     inputFileRef.current?.click();
   };
 
-  const handleActualizar = async () => {
-    await onActualizar();
-    setTimestamp(Date.now());
+  /**
+   * Actualiza la foto de perfil del usuario
+   * Esta función envía el archivo de imagen al servidor mediante FormData
+   */
+  const actualizarFotoPerfil = async () => {
+    // Verificamos que exista un ID de usuario y un archivo de foto para enviar
+    if (!idUsuario || !hayNuevaFoto || !fotoActual) return;
+
+    setIsLoading(true);
+    try {
+      // Obtenemos el token de autenticación
+      const token = localStorage.getItem('token');
+      
+      // Creamos un objeto FormData para enviar el archivo
+      const datosFormulario = new FormData();
+      datosFormulario.append('foto_perfil', fotoActual);
+      
+      // Realizamos la petición PUT con el archivo
+      const respuesta = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/configuracion/usuarios/${idUsuario}/foto`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`
+            // No incluimos 'Content-Type' porque FormData lo establece automáticamente con el boundary
+          },
+          body: datosFormulario // FormData para envío de archivos
+        }
+      );
+
+      // Procesamos la respuesta del servidor
+      const datos = await respuesta.json();
+      
+      // Si la respuesta no es exitosa, lanzamos un error
+      if (!respuesta.ok) {
+        throw new Error(datos.mensaje || 'Error al actualizar foto de perfil');
+      }
+      
+      // Actualizamos el perfil en el contexto de autenticación
+      await onActualizacionExitosa();
+      
+      // Actualizamos el timestamp para forzar la recarga de la imagen
+      setTimestamp(Date.now());
+      
+      // Mostramos notificación de éxito
+      onNotificacion(
+        "confirmacion",
+        "Foto actualizada",
+        datos.mensaje || "La foto de perfil se ha actualizado correctamente"
+      );
+    } catch (error) {
+      // Manejamos cualquier error que ocurra durante el proceso
+      onNotificacion(
+        "excepcion",
+        "Error",
+        error instanceof Error ? error.message : "Error al actualizar foto"
+      );
+    } finally {
+      // Finalizamos el estado de carga independientemente del resultado
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -82,7 +143,7 @@ export function FotoPerfil({
             Foto de Perfil
           </h2>
           <Button
-            onClick={handleActualizar}
+            onClick={actualizarFotoPerfil}
             disabled={isLoading || !hayNuevaFoto}
             className="bg-blue-600 text-white"
           >
@@ -130,4 +191,4 @@ export function FotoPerfil({
       )}
     </>
   );
-} 
+}

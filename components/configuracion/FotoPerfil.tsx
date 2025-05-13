@@ -13,9 +13,11 @@ interface PropiedadesFotoPerfil {
   idUsuario: string | null;
   nombreFoto: string | null;
   onImagenParaRecortar: (imagenSrc: string) => void;
-  onActualizacionExitosa: () => Promise<void>;
-  onNotificacion: (tipo: "excepcion" | "confirmacion" | "notificacion", titulo: string, contenido: string) => void;
-  fotoRecortada: File | null; // Nueva propiedad para recibir la foto del componente padre
+  onActualizacionExitosa?: () => Promise<void>; // Hacemos opcional para compatibilidad
+  onActualizar?: () => Promise<void>;           // Alias alternativo usado en RegistroBienvenida
+  onNotificacion?: (tipo: "excepcion" | "confirmacion" | "notificacion", titulo: string, contenido: string) => void;
+  fotoRecortada?: File | null; // Hacemos opcional para compatibilidad
+  isLoading?: boolean;        // Añadimos para compatibilidad con RegistroBienvenida
 }
 
 export function FotoPerfil({
@@ -26,14 +28,19 @@ export function FotoPerfil({
   nombreFoto,
   onImagenParaRecortar,
   onActualizacionExitosa,
+  onActualizar, // Nueva prop alternativa
   onNotificacion,
-  fotoRecortada // Recibir la foto recortada directamente del padre
+  fotoRecortada,
+  isLoading: externalLoading // Prop de carga externa
 }: PropiedadesFotoPerfil) {
   const [isLoading, setIsLoading] = useState(false);
   const [imagenParaRecortar, setImagenParaRecortar] = useState<string | null>(null);
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [timestamp, setTimestamp] = useState(Date.now());
   const [mostrarFotoLocal, setMostrarFotoLocal] = useState(false);
+
+  // Determinar el estado de carga final (prioridad a la prop externa si existe)
+  const cargando = externalLoading !== undefined ? externalLoading : isLoading;
 
   const obtenerUrlFotoPerfil = () => {
     if (!nombreFoto || !idUsuario) {
@@ -84,7 +91,7 @@ export function FotoPerfil({
    */
   const actualizarFotoPerfil = async () => {
     // Verificamos que exista un ID de usuario y un archivo de foto para enviar
-    if (!idUsuario || !hayNuevaFoto || !fotoRecortada) {
+    if (!idUsuario || !hayNuevaFoto || !(fotoRecortada || fotoPreview)) {
       // Mensaje de depuración para identificar qué falta
       console.log("No se puede actualizar foto:", { 
         idUsuario, 
@@ -101,8 +108,11 @@ export function FotoPerfil({
       
       // Creamos un objeto FormData para enviar el archivo
       const datosFormulario = new FormData();
-      // Utilizamos la foto recortada que viene del componente padre
-      datosFormulario.append('foto_perfil', fotoRecortada);
+      // Utilizamos la foto recortada que viene del componente padre o propia
+      const archivoParaEnviar = fotoRecortada || fotoPreview;
+      if (archivoParaEnviar) {
+        datosFormulario.append('foto_perfil', archivoParaEnviar);
+      }
       
       // Realizamos la petición PUT con el archivo
       const respuesta = await fetch(
@@ -126,7 +136,11 @@ export function FotoPerfil({
       }
       
       // Actualizamos el perfil en el contexto de autenticación
-      await onActualizacionExitosa();
+      if (onActualizacionExitosa) {
+        await onActualizacionExitosa();
+      } else if (onActualizar) {
+        await onActualizar(); // Usar el método alternativo si existe
+      }
       
       // Restablecer el estado para mostrar la nueva imagen del servidor
       setMostrarFotoLocal(false);
@@ -134,20 +148,24 @@ export function FotoPerfil({
       // Actualizamos el timestamp para forzar la recarga de la imagen
       setTimestamp(Date.now());
       
-      // Mostramos notificación de éxito
-      onNotificacion(
-        "confirmacion",
-        "Foto actualizada",
-        datos.mensaje || "La foto de perfil se ha actualizado correctamente"
-      );
+      // Mostramos notificación de éxito si está disponible
+      if (onNotificacion) {
+        onNotificacion(
+          "confirmacion",
+          "Foto actualizada",
+          datos.mensaje || "La foto de perfil se ha actualizado correctamente"
+        );
+      }
     } catch (error) {
       console.error('Error completo:', error);
       // Manejamos cualquier error que ocurra durante el proceso
-      onNotificacion(
-        "excepcion",
-        "Error",
-        error instanceof Error ? error.message : "Error al actualizar foto"
-      );
+      if (onNotificacion) {
+        onNotificacion(
+          "excepcion",
+          "Error",
+          error instanceof Error ? error.message : "Error al actualizar foto"
+        );
+      }
     } finally {
       // Finalizamos el estado de carga independientemente del resultado
       setIsLoading(false);
@@ -170,10 +188,10 @@ export function FotoPerfil({
           </h2>
           <Button
             onClick={actualizarFotoPerfil}
-            disabled={isLoading || !fotoRecortada}
+            disabled={cargando || !hayNuevaFoto || !(fotoRecortada || fotoPreview)}
             className="bg-blue-600 text-white"
           >
-            {isLoading ? 'Guardando...' : 'Actualizar foto'}
+            {cargando ? 'Guardando...' : 'Actualizar foto'}
           </Button>
         </div>
         <div className="flex flex-col items-center space-y-4">
@@ -193,11 +211,11 @@ export function FotoPerfil({
             accept="image/jpeg,image/png"
             onChange={handleFileSelect}
             className="hidden"
-            disabled={isLoading}
+            disabled={cargando}
           />
           <Button
             onClick={handleClickCambiarFoto}
-            disabled={isLoading}
+            disabled={cargando}
             variant="outline"
             className="bg-blue-600 text-white hover:bg-blue-700"
           >

@@ -123,9 +123,9 @@ const EditarPublicacionContenido = () => {
           return;
         }
 
-        if (publicacion.estado == "borrador" && publicacion.estado == "en_revision") {
+        if (publicacion.estado !== "borrador" && publicacion.estado !== "solicita_cambios") {
           setAccesoPermitido(false);
-          setMensajeError("Solo se pueden editar publicaciones en estado borrador");
+          setMensajeError(`No se puede editar esta publicación porque su estado es "${publicacion.estado}". Solo se pueden editar publicaciones en estado de borrador o que se hayan solicitado cambios.`);
           return;
         }
 
@@ -426,21 +426,13 @@ const EditarPublicacionContenido = () => {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <div className="text-red-600 text-center mb-4">
-            <svg 
-              className="mx-auto h-12 w-12" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-              />
-            </svg>
-          </div>
+        <div className="text-red-600 mb-4">
+            <img 
+              src={`${process.env.NEXT_PUBLIC_ASSET_URL}/logoRoto.png`}
+              alt="Acceso Restringido"
+              className="mx-auto h-20 w-auto"
+            />
+            </div>
           <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
             Acceso Denegado
           </h2>

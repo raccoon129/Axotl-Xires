@@ -336,21 +336,13 @@ export default function PublicacionPage() {
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center"
         >
-          <div className="text-red-600 mb-4">
-            <svg 
-              className="mx-auto h-12 w-12" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M12 15v2m0 0v2m0-2h2m-2 0H8m4-6V4" 
-              />
-            </svg>
-          </div>
+            <div className="text-red-600 mb-4">
+            <img 
+              src={`${process.env.NEXT_PUBLIC_ASSET_URL}/logoRoto.png`}
+              alt="Acceso Restringido"
+              className="mx-auto h-20 w-auto"
+            />
+            </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Acceso Restringido
           </h2>

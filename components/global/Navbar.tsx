@@ -29,6 +29,8 @@ const Navbar = () => {
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const busquedaRef = useRef<HTMLDivElement>(null);
   const verMasRef = useRef<HTMLButtonElement>(null);
+  // Nuevo estado para controlar si estamos en cliente o servidor
+  const [isMounted, setIsMounted] = useState(false);
 
   const { isLoggedIn, isLoading, logout, idUsuario } = useAuth();
 
@@ -114,6 +116,9 @@ const Navbar = () => {
   const handleLogout = async () => {
     await logout();
     setIsUserMenuOpen(false);
+    
+    // Redireccionar a la raíz y recargar la página
+    window.location.href = '/';
   };
 
   // Añadir este nuevo componente para la foto de perfil
@@ -254,6 +259,11 @@ const Navbar = () => {
     return () => clearTimeout(timer);
   }, [pathname]);
 
+  // Efecto para marcar que el componente está montado en el cliente
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const handleLinkClick = () => {
     setIsPageLoading(true);
     setIsMenuOpen(false);
@@ -325,29 +335,36 @@ const Navbar = () => {
               <div className="relative flex-1 max-w-xl" ref={busquedaRef}>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
-                  <input
-                    type="text"
-                    placeholder="Busca algo interesante"
-                    value={terminoBusqueda}
-                    onChange={(e) => {
-                      setTerminoBusqueda(e.target.value);
-                      setMostrarResultados(e.target.value.length > 0);
-                    }}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => {
-                      if (terminoBusqueda.length > 0) {
-                        setMostrarResultados(true);
-                      }
-                    }}
-                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg 
-                             focus:outline-none focus:ring-2 focus:ring-[#612c7d] focus:ring-opacity-50 
-                             focus:border-transparent transition-all duration-200
-                             placeholder:text-gray-400 text-gray-900"
-                  />
+                  {isMounted ? (
+                    <input
+                      id="searchInput"
+                      type="text"
+                      placeholder="Busca algo interesante"
+                      value={terminoBusqueda}
+                      onChange={(e) => {
+                        setTerminoBusqueda(e.target.value);
+                        setMostrarResultados(e.target.value.length > 0);
+                      }}
+                      onKeyDown={handleKeyDown}
+                      onFocus={() => {
+                        if (terminoBusqueda.length > 0) {
+                          setMostrarResultados(true);
+                        }
+                      }}
+                      // Añadir suppressHydrationWarning para evitar errores de hidratación
+                      suppressHydrationWarning
+                      className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg 
+                               focus:outline-none focus:ring-2 focus:ring-[#612c7d] focus:ring-opacity-50 
+                               focus:border-transparent transition-all duration-200
+                               placeholder:text-gray-400 text-gray-900"
+                    />
+                  ) : (
+                    <div className="h-10 w-full bg-gray-100 rounded-lg animate-pulse"></div>
+                  )}
                 </div>
 
                 <AnimatePresence>
-                  {mostrarResultados && terminoBusqueda.length > 0 && (
+                  {mostrarResultados && terminoBusqueda.length > 0 && isMounted && (
                     <ResultadosBusqueda
                       busqueda={terminoBusqueda}
                       onClose={() => {

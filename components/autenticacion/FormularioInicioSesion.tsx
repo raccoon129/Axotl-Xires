@@ -86,6 +86,17 @@ const FormularioInicioSesion = () => {
           disabled={cargando}
           className="w-full bg-white/50 backdrop-blur-sm"
         />
+        
+        {/* Agregamos el enlace de recuperación de contraseña */}
+        <div className="text-right">
+          <Link 
+            href="/login/recuperacion" 
+            className="text-sm text-[#612c7d] hover:text-[#7d3ba3]"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+        
         <BotonMorado 
           type="submit" 
           cargando={cargando}

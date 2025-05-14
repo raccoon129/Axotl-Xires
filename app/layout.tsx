@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Axotl Xires',
-  description: 'Plataforma para la divulgación de artículos científicos y académicos',
+  description: 'Plataforma para la divulgación y redacción de artículos científicos y académicos',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
@@ -30,7 +30,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
+    // Usar suppressHydrationWarning para evitar errores causados por extensiones del navegador
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        {/* Meta tags específicas para mitigar problemas con extensiones */}
+        <meta name="next-hydration" content="protected" />
+      </head>
       <body className={inter.className}>
         <div className="flex flex-col min-h-screen">
           <Navbar />

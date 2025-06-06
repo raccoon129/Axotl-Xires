@@ -276,15 +276,14 @@ function ContenidoBusqueda() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-4 bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow"
-                >
-                  <Link 
+                >                <Link 
                     href={`/publicaciones/${resultado.id_publicacion}`}
                     className="flex gap-4 w-full"
                   >
                     <div className="h-32 w-24 rounded overflow-hidden flex-shrink-0">
                       <img
                         src={resultado.imagen_portada ? 
-                          `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${resultado.imagen_portada}` :
+                          `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${resultado.id_publicacion}/portada` :
                           `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
                         }
                         alt={resultado.titulo}

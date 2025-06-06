@@ -137,8 +137,7 @@ export const ResultadosBusqueda = ({ busqueda, onClose, verMasRef }: ResultadosB
           </div>
         ) : resultados.length > 0 ? (
           <div className="divide-y">
-            {resultados.map((resultado) => (
-              <Link
+            {resultados.map((resultado) => (              <Link
                 key={resultado.id_publicacion}
                 href={`/publicaciones/${resultado.id_publicacion}`}
                 onClick={onClose}
@@ -147,7 +146,7 @@ export const ResultadosBusqueda = ({ busqueda, onClose, verMasRef }: ResultadosB
                 <div className="h-16 w-12 rounded overflow-hidden flex-shrink-0">
                   <img
                     src={resultado.imagen_portada ? 
-                      `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${resultado.imagen_portada}` :
+                      `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${resultado.id_publicacion}/portada` :
                       `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
                     }
                     alt={resultado.titulo}

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Clock, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import confetti from 'canvas-confetti';
-import Link from 'next/link';
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Download, Clock, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import confetti from "canvas-confetti";
+import Link from "next/link";
 
 interface PublicacionDescarga {
   id_publicacion: number;
@@ -22,7 +22,9 @@ interface PublicacionDescarga {
 
 export default function DescargarPublicacion() {
   const params = useParams();
-  const [publicacion, setPublicacion] = useState<PublicacionDescarga | null>(null);
+  const [publicacion, setPublicacion] = useState<PublicacionDescarga | null>(
+    null
+  );
   const [contador, setContador] = useState(3);
   const [descargaIniciada, setDescargaIniciada] = useState(false);
   const [mostrarConfeti, setMostrarConfeti] = useState(false);
@@ -37,15 +39,15 @@ export default function DescargarPublicacion() {
         );
 
         if (!respuesta.ok) {
-          throw new Error('No se pudo cargar la publicación');
+          throw new Error("No se pudo cargar la publicación");
         }
 
         const data = await respuesta.json();
         setPublicacion(data.datos);
         document.title = `Descargando "${data.datos.titulo}" - Axotl Xires`;
       } catch (error) {
-        setError('Error al cargar la publicación');
-        console.error('Error:', error);
+        setError("Error al cargar la publicación");
+        console.error("Error:", error);
       } finally {
         setCargando(false);
       }
@@ -73,40 +75,40 @@ export default function DescargarPublicacion() {
   const iniciarDescarga = async () => {
     try {
       setDescargaIniciada(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/descargas/${params.idPublicacion}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       if (!respuesta.ok) {
-        throw new Error('Error al descargar el archivo');
+        throw new Error("Error al descargar el archivo");
       }
 
       const blob = await respuesta.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `${publicacion?.titulo || 'publicacion'}.pdf`;
+      a.download = `${publicacion?.titulo || "publicacion"}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       setMostrarConfeti(true);
       confetti({
         particleCount: 200,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#612c7d', '#9f5afd', '#ffffff']
+        colors: ["#612c7d", "#9f5afd", "#ffffff"],
       });
     } catch (error) {
-      setError('Error al descargar la publicación');
-      console.error('Error:', error);
+      setError("Error al descargar la publicación");
+      console.error("Error:", error);
     }
   };
 
@@ -118,10 +120,7 @@ export default function DescargarPublicacion() {
             Error al procesar la descarga
           </h1>
           <p className="text-gray-600">{error}</p>
-          <Button
-            onClick={() => window.history.back()}
-            className="mt-4"
-          >
+          <Button onClick={() => window.history.back()} className="mt-4">
             Volver
           </Button>
         </div>
@@ -140,9 +139,10 @@ export default function DescargarPublicacion() {
                 <Skeleton className="w-full aspect-[612/792]" />
               ) : (
                 <img
-                  src={publicacion?.imagen_portada ? 
-                    `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
-                    `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
+                  src={
+                    publicacion?.imagen_portada
+                      ? `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion.id_publicacion}/portada`
+                      : `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
                   }
                   alt={publicacion?.titulo}
                   className="w-full rounded-lg shadow-lg"
@@ -165,13 +165,16 @@ export default function DescargarPublicacion() {
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">
                       {publicacion?.titulo}
                     </h1>
-                    <p className="text-gray-600 mb-4">
-                      {publicacion?.resumen}
-                    </p>
+                    <p className="text-gray-600 mb-4">{publicacion?.resumen}</p>
                     <div className="text-sm text-gray-500">
                       <p>Autor: {publicacion?.autor}</p>
                       <p>Tipo: {publicacion?.tipo_publicacion}</p>
-                      <p>Fecha: {new Date(publicacion?.fecha_publicacion || '').toLocaleDateString()}</p>
+                      <p>
+                        Fecha:{" "}
+                        {new Date(
+                          publicacion?.fecha_publicacion || ""
+                        ).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
 
@@ -201,7 +204,9 @@ export default function DescargarPublicacion() {
                           ¡Gracias por descargar!
                         </h3>
                         <h6 className="text-[#612c7d]">
-                          Si este contenido te resulta útil, considera crear una publicación para que otros puedan beneficiarse del conocimiento.
+                          Si este contenido te resulta útil, considera crear una
+                          publicación para que otros puedan beneficiarse del
+                          conocimiento.
                         </h6>
                         <Link
                           href="/redactar"
@@ -209,7 +214,9 @@ export default function DescargarPublicacion() {
                         >
                           Redactar una publicación
                         </Link>
-                        <p className="text-[#612c7d]">Si la descarga no ha iniciado, refresca esta página.</p>
+                        <p className="text-[#612c7d]">
+                          Si la descarga no ha iniciado, refresca esta página.
+                        </p>
                       </motion.div>
                     ) : (
                       <motion.div
@@ -232,8 +239,7 @@ export default function DescargarPublicacion() {
         </Card>
       </div>
 
-      {mostrarConfeti
-      }
+      {mostrarConfeti}
     </div>
   );
-} 
+}

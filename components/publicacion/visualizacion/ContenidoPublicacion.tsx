@@ -9,7 +9,7 @@ interface PropiedadesContenido {
 
 export function ContenidoPublicacion({ publicacion }: PropiedadesContenido) {
   return (
-    <motion.article 
+    <motion.article
       className="lg:col-span-7 bg-white shadow-lg rounded-lg overflow-hidden order-1 lg:order-2"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -18,9 +18,10 @@ export function ContenidoPublicacion({ publicacion }: PropiedadesContenido) {
       {/* Portada móvil */}
       <div className="lg:hidden aspect-[16/9] relative overflow-hidden">
         <img
-          src={publicacion?.imagen_portada ? 
-            `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
-            `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
+          src={
+            publicacion?.imagen_portada
+              ? `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion.id_publicacion}/portada`
+              : `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
           }
           alt={publicacion?.titulo}
           className="w-full h-full object-cover"
@@ -40,10 +41,10 @@ export function ContenidoPublicacion({ publicacion }: PropiedadesContenido) {
       {/* Contenido */}
       <div className="p-4 lg:p-8">
         <style jsx global>{`
-          @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap');
-          
+          @import url("https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&display=swap");
+
           .contenido-publicacion {
-            font-family: 'Crimson Text', serif;
+            font-family: "Crimson Text", serif;
             font-size: 1.125rem;
             line-height: 1.8;
             color: #1a1a1a;
@@ -57,11 +58,19 @@ export function ContenidoPublicacion({ publicacion }: PropiedadesContenido) {
             margin: 1.5em 0 0.5em;
           }
 
-          .contenido-publicacion h1 { font-size: 2em; }
-          .contenido-publicacion h2 { font-size: 1.75em; }
-          .contenido-publicacion h3 { font-size: 1.5em; }
+          .contenido-publicacion h1 {
+            font-size: 2em;
+          }
+          .contenido-publicacion h2 {
+            font-size: 1.75em;
+          }
+          .contenido-publicacion h3 {
+            font-size: 1.5em;
+          }
 
-          .contenido-publicacion p { margin: 1em 0; }
+          .contenido-publicacion p {
+            margin: 1em 0;
+          }
 
           .contenido-publicacion img {
             max-width: 100%;
@@ -83,9 +92,9 @@ export function ContenidoPublicacion({ publicacion }: PropiedadesContenido) {
             color: #4b5563;
           }
         `}</style>
-        <div 
+        <div
           className="contenido-publicacion"
-          dangerouslySetInnerHTML={{ __html: publicacion?.contenido || '' }}
+          dangerouslySetInnerHTML={{ __html: publicacion?.contenido || "" }}
         />
       </div>
 

@@ -164,7 +164,7 @@ export default function PrevisualizarPublicacion() {
                                         )}
                                         <img
                                             src={publicacion?.imagen_portada ? 
-                                                `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
+                                                `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion.id_publicacion}/portada` :
                                                 `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
                                             }
                                             alt={publicacion?.titulo}

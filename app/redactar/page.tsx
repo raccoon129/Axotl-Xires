@@ -168,7 +168,7 @@ const RedactarContenido = () => {
           formData.append("imagen_portada", portada);
         }
         // Si es una URL del servidor, no enviamos la imagen pues no ha cambiado
-        else if (!vistaPrevia.startsWith(process.env.NEXT_PUBLIC_PORTADAS_URL!)) {
+        else if (!vistaPrevia.includes(`/api/publicaciones/${idBorradorActual}/portada`)) {
           const response = await fetch(vistaPrevia);
           const blob = await response.blob();
           const imageFile = new File([blob], 'portada.png', { type: 'image/png' });
@@ -207,7 +207,7 @@ const RedactarContenido = () => {
 
       // Actualizar la vista previa con la URL completa de la imagen
       if (data.datos.imagen_portada) {
-        const urlPortada = `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${data.datos.imagen_portada}`;
+        const urlPortada = `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idBorradorActual}/portada`;
         setVistaPrevia(urlPortada);
       }
 

@@ -263,15 +263,14 @@ const HistorialRevisionesPage = () => {
           {/* Columna 1: Detalles de la publicación */}
           <div className="lg:col-span-3">
             <div className="sticky top-24 space-y-6">
-              {/* Portada con skeleton */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+              {/* Portada con skeleton */}              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="aspect-[612/792] relative">
                   {!imageLoaded && (
                     <div className="absolute inset-0 w-full h-full bg-gray-200 animate-pulse"></div>
                   )}
                   <img
                     src={datos?.publicacion.imagen_portada ? 
-                      `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${datos.publicacion.imagen_portada}` :
+                      `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada` :
                       `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
                     }
                     alt={datos?.publicacion.titulo}

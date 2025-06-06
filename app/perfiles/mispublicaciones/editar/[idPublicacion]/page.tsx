@@ -140,7 +140,7 @@ const EditarPublicacionContenido = () => {
 
         // Manejar la imagen de portada
         if (publicacion.imagen_portada) {
-          const urlPortada = `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}`;
+          const urlPortada = `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada`;
           setVistaPrevia(urlPortada);
         }
 
@@ -265,7 +265,7 @@ const EditarPublicacionContenido = () => {
           formData.append("imagen_portada", portada);
         }
         // Si es una URL del servidor, no enviamos la imagen pues no ha cambiado
-        else if (!vistaPrevia.startsWith(process.env.NEXT_PUBLIC_PORTADAS_URL!)) {
+        else if (!vistaPrevia.includes(`/api/publicaciones/${idPublicacion}/portada`)) {
           const response = await fetch(vistaPrevia);
           const blob = await response.blob();
           const imageFile = new File([blob], 'portada.png', { type: 'image/png' });
@@ -293,7 +293,7 @@ const EditarPublicacionContenido = () => {
       
       // Actualizar la vista previa si hay una nueva imagen
       if (data.datos.imagen_portada) {
-        const urlPortada = `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${data.datos.imagen_portada}`;
+        const urlPortada = `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${idPublicacion}/portada`;
         setVistaPrevia(urlPortada);
       }
 

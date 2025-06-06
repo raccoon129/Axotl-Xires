@@ -1,18 +1,27 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar } from '@/components/ui/avatar';
-import { Calendar, MessageSquare, Star, BookOpen, X, Download, FileText, Maximize2 } from 'lucide-react';
-import Link from 'next/link';
-import { SeccionComentarios } from '@/components/publicacion/SeccionComentarios';
-import { useAuth } from '@/hooks/useAuth';
-import SEOMetadata from '@/components/global/SEOMetadata';
-import { ContenidoPublicacion } from '@/components/publicacion/visualizacion/ContenidoPublicacion';
-import { Publicacion } from '@/type/typePublicacion';
-import { ModoLectura } from '@/components/publicacion/visualizacion/ModoLectura';
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar } from "@/components/ui/avatar";
+import {
+  Calendar,
+  MessageSquare,
+  Star,
+  BookOpen,
+  X,
+  Download,
+  FileText,
+  Maximize2,
+} from "lucide-react";
+import Link from "next/link";
+import { SeccionComentarios } from "@/components/publicacion/SeccionComentarios";
+import { useAuth } from "@/hooks/useAuth";
+import SEOMetadata from "@/components/global/SEOMetadata";
+import { ContenidoPublicacion } from "@/components/publicacion/visualizacion/ContenidoPublicacion";
+import { Publicacion } from "@/type/typePublicacion";
+import { ModoLectura } from "@/components/publicacion/visualizacion/ModoLectura";
 
 const EsqueletoLectura = () => (
   <div className="min-h-screen">
@@ -112,7 +121,7 @@ const EsqueletoLectura = () => (
               <div className="flex-1 lg:flex-none">
                 <Skeleton className="h-[38px] w-full rounded-lg" />
               </div>
-              
+
               {/* Skeleton para el botón de Inmersivo */}
               <div className="flex-1 lg:flex-none">
                 <Skeleton className="h-[38px] w-full rounded-lg bg-purple-100/50" />
@@ -130,12 +139,12 @@ const EsqueletoLectura = () => (
   </div>
 );
 
-const PanelComentarios = ({ 
-  mostrar, 
+const PanelComentarios = ({
+  mostrar,
   onClose,
-  idPublicacion 
-}: { 
-  mostrar: boolean; 
+  idPublicacion,
+}: {
+  mostrar: boolean;
   onClose: () => void;
   idPublicacion: number;
 }) => {
@@ -144,14 +153,14 @@ const PanelComentarios = ({
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
+      animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
       transition={{ duration: 0.3 }}
       className="bg-white rounded-lg shadow-lg overflow-hidden mb-6"
     >
       <div className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
         <h3 className="text-lg font-semibold">Comentarios</h3>
-        <button 
+        <button
           onClick={onClose}
           className="p-1 hover:bg-gray-100 rounded-full transition-colors"
         >
@@ -189,15 +198,19 @@ export default function PublicacionPage() {
         );
 
         if (!respuesta.ok) {
-          throw new Error('No se pudo cargar la publicación');
+          throw new Error("No se pudo cargar la publicación");
         }
 
         const data = await respuesta.json();
         const publicacionData = data.datos;
 
         // Verificar y asegurar que el estado sea uno de los valores permitidos
-        if (!['borrador', 'en_revision', 'publicado', 'rechazado'].includes(publicacionData.estado)) {
-          publicacionData.estado = 'publicado'; // Valor por defecto si no es válido
+        if (
+          !["borrador", "en_revision", "publicado", "rechazado"].includes(
+            publicacionData.estado
+          )
+        ) {
+          publicacionData.estado = "publicado"; // Valor por defecto si no es válido
         }
 
         // Verificar si la publicación es privada y el usuario tiene acceso
@@ -218,8 +231,8 @@ export default function PublicacionPage() {
         setAccesoPermitido(true);
         setPublicacion(publicacionData as Publicacion);
       } catch (error) {
-        setError('Error al cargar la publicación');
-        console.error('Error:', error);
+        setError("Error al cargar la publicación");
+        console.error("Error:", error);
       } finally {
         setCargando(false);
       }
@@ -237,32 +250,32 @@ export default function PublicacionPage() {
   }, [publicacion?.titulo]);
 
   const formatearFecha = (fecha: string) => {
-    return new Date(fecha).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(fecha).toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   // Verificar si el usuario ya marcó como favorito
   const verificarFavorito = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/favoritos/publicacion/${params.idPublicacion}/usuario`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      
+
       if (respuesta.ok) {
         const { es_favorito } = await respuesta.json();
         setEsFavorito(es_favorito);
       }
     } catch (error) {
-      console.error('Error al verificar favorito:', error);
+      console.error("Error al verificar favorito:", error);
     }
   };
 
@@ -272,13 +285,13 @@ export default function PublicacionPage() {
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/favoritos/publicacion/${params.idPublicacion}`
       );
-      
+
       if (respuesta.ok) {
         const { total_favoritos } = await respuesta.json();
         setCantidadFavoritos(total_favoritos);
       }
     } catch (error) {
-      console.error('Error al obtener cantidad de favoritos:', error);
+      console.error("Error al obtener cantidad de favoritos:", error);
     }
   };
 
@@ -286,30 +299,30 @@ export default function PublicacionPage() {
   const toggleFavorito = async () => {
     try {
       setActualizandoFavorito(true);
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const respuesta = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/favoritos`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            id_publicacion: params.idPublicacion
-          })
+            id_publicacion: params.idPublicacion,
+          }),
         }
       );
 
       if (respuesta.ok) {
         setEsFavorito(!esFavorito);
         setContadorAnimado(true);
-        setCantidadFavoritos(prev => esFavorito ? prev - 1 : prev + 1);
+        setCantidadFavoritos((prev) => (esFavorito ? prev - 1 : prev + 1));
         await obtenerCantidadFavoritos();
         setTimeout(() => setContadorAnimado(false), 300);
       }
     } catch (error) {
-      console.error('Error al actualizar favorito:', error);
+      console.error("Error al actualizar favorito:", error);
       await obtenerCantidadFavoritos();
       setEsFavorito(!esFavorito);
     } finally {
@@ -331,23 +344,24 @@ export default function PublicacionPage() {
   if (!accesoPermitido) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center"
         >
-            <div className="text-red-600 mb-4">
-            <img 
+          <div className="text-red-600 mb-4">
+            <img
               src={`${process.env.NEXT_PUBLIC_ASSET_URL}/logoRoto.png`}
               alt="Acceso Restringido"
               className="mx-auto h-20 w-auto"
             />
-            </div>
+          </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Acceso Restringido
           </h2>
           <p className="text-gray-600 mb-6">
-            {mensajeError || "No tienes permiso para acceder a esta publicación"}
+            {mensajeError ||
+              "No tienes permiso para acceder a esta publicación"}
           </p>
           <div className="space-y-3">
             <button
@@ -357,7 +371,7 @@ export default function PublicacionPage() {
               Volver
             </button>
             <button
-              onClick={() => window.location.href = '/'}
+              onClick={() => (window.location.href = "/")}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Ir al inicio
@@ -387,12 +401,13 @@ export default function PublicacionPage() {
   return (
     <>
       {publicacion && (
-        <SEOMetadata 
+        <SEOMetadata
           titulo={publicacion.titulo}
           descripcion={publicacion.resumen}
-          imagen={publicacion.imagen_portada ? 
-            `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` : 
-            undefined
+          imagen={
+            publicacion.imagen_portada
+              ? `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${publicacion.id_publicacion}/portada`
+              : `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
           }
           autor={publicacion.autor}
           fechaPublicacion={publicacion.fecha_publicacion}
@@ -400,12 +415,12 @@ export default function PublicacionPage() {
           url={`/publicaciones/${publicacion.id_publicacion}`}
         />
       )}
-      
+
       <div className="min-h-screen">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 container mx-auto px-4 md:px-6 lg:px-8 xl:px-12 max-w-7xl py-8">
           {/* Columna izquierda - Portada y detalles */}
           <div className="lg:col-span-3 order-2 lg:order-1">
-            <motion.div 
+            <motion.div
               className="lg:sticky lg:top-24 space-y-6"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -432,8 +447,12 @@ export default function PublicacionPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-purple-700 font-medium">Publicación Privada</p>
-                    <p className="text-purple-600 text-sm">Solo tú puedes ver esta publicación</p>
+                    <p className="text-purple-700 font-medium">
+                      Publicación Privada
+                    </p>
+                    <p className="text-purple-600 text-sm">
+                      Solo tú puedes ver esta publicación
+                    </p>
                   </div>
                 </motion.div>
               )}
@@ -442,9 +461,10 @@ export default function PublicacionPage() {
               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
                 <div className="aspect-[612/792]">
                   <img
-                    src={publicacion?.imagen_portada ? 
-                      `${process.env.NEXT_PUBLIC_PORTADAS_URL}/${publicacion.imagen_portada}` :
-                      `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
+                    src={
+                      publicacion?.imagen_portada
+                        ? `${process.env.NEXT_PUBLIC_API_URL}/api/publicaciones/${params.idPublicacion}/portada`
+                        : `${process.env.NEXT_PUBLIC_ASSET_URL}/defaultCover.gif`
                     }
                     alt={publicacion?.titulo}
                     className="w-full h-full object-cover"
@@ -467,13 +487,17 @@ export default function PublicacionPage() {
               <div className="bg-white rounded-lg shadow-lg p-6 relative">
                 <div className="flex items-center gap-4 mb-4">
                   <Avatar className="h-12 w-12">
-                    <img 
-                      src={`${process.env.NEXT_PUBLIC_API_URL}/api/usuarios/foto-perfil/${publicacion?.autor_foto || 'null'}`}
+                    <img
+                      src={`${
+                        process.env.NEXT_PUBLIC_API_URL
+                      }/api/usuarios/foto-perfil/${
+                        publicacion?.autor_foto || "null"
+                      }`}
                       alt={publicacion?.autor}
                     />
                   </Avatar>
                   <div>
-                    <Link 
+                    <Link
                       href={`/perfiles/${publicacion?.id_usuario}`}
                       className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
                     >
@@ -487,7 +511,7 @@ export default function PublicacionPage() {
                 <div className="space-y-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    {formatearFecha(publicacion?.fecha_publicacion || '')}
+                    {formatearFecha(publicacion?.fecha_publicacion || "")}
                   </div>
                   <motion.button
                     onClick={toggleFavorito}
@@ -496,22 +520,32 @@ export default function PublicacionPage() {
                     whileTap={{ scale: 0.95 }}
                   >
                     <motion.div
-                      animate={esFavorito ? {
-                        scale: [1, 1.2, 1],
-                        rotate: [0, 15, -15, 0]
-                      } : {}}
+                      animate={
+                        esFavorito
+                          ? {
+                              scale: [1, 1.2, 1],
+                              rotate: [0, 15, -15, 0],
+                            }
+                          : {}
+                      }
                       transition={{ duration: 0.4 }}
                     >
-                      <Star className={`h-4 w-4 ${
-                        esFavorito ? "fill-yellow-400 text-yellow-400" : "text-gray-400"
-                      }`} />
+                      <Star
+                        className={`h-4 w-4 ${
+                          esFavorito
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-400"
+                        }`}
+                      />
                     </motion.div>
                     <motion.span
                       animate={{
                         scale: contadorAnimado ? [1, 1.2, 1] : 1,
-                        color: contadorAnimado ? 
-                          esFavorito ? ["#1F2937", "#EAB308", "#1F2937"] : 
-                          ["#1F2937", "#DC2626", "#1F2937"] : "#1F2937"
+                        color: contadorAnimado
+                          ? esFavorito
+                            ? ["#1F2937", "#EAB308", "#1F2937"]
+                            : ["#1F2937", "#DC2626", "#1F2937"]
+                          : "#1F2937",
                       }}
                     >
                       {cantidadFavoritos} favoritos
@@ -534,7 +568,7 @@ export default function PublicacionPage() {
 
           {/* Columna derecha - Navegación y acciones */}
           <div className="lg:col-span-2 order-3">
-            <motion.div 
+            <motion.div
               className="fixed bottom-0 left-0 right-0 bg-white lg:bg-transparent lg:static lg:sticky lg:top-24 shadow-inner lg:shadow-none p-4 z-20"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -554,7 +588,7 @@ export default function PublicacionPage() {
                     <span className="text-sm font-medium">Modo Lectura</span>
                   </motion.button>
 
-                  <Link 
+                  <Link
                     href={`/publicaciones/${params.idPublicacion}/formato`}
                     className="flex-1 lg:flex-none"
                   >
@@ -570,7 +604,7 @@ export default function PublicacionPage() {
                     </motion.button>
                   </Link>
 
-                  <Link 
+                  <Link
                     href={`/publicaciones/${params.idPublicacion}/lector`}
                     className="flex-1 lg:flex-none"
                   >
@@ -586,7 +620,7 @@ export default function PublicacionPage() {
                     </motion.button>
                   </Link>
 
-                  <Link 
+                  <Link
                     href={`/publicaciones/${params.idPublicacion}/descargar`}
                     className="flex-1 lg:flex-none"
                   >
